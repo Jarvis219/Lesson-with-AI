@@ -3,6 +3,7 @@
 import AdminLessonsFilters from "@/components/admin/lessons/filters";
 import AdminLessonsTable from "@/components/admin/lessons/lessons-table";
 import AdminLessonsModals from "@/components/admin/lessons/modals";
+import AdminLessonsPagination from "@/components/admin/lessons/pagination";
 import AdminLessonsStatsCards from "@/components/admin/lessons/stats-cards";
 import { AdminLessonsProvider } from "@/context/admin-lessons-context";
 import { useRequireAuth } from "@/hooks/useAuth";
@@ -12,7 +13,7 @@ export default function AdminLessonsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 sm:p-4 lg:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
@@ -31,21 +32,27 @@ export default function AdminLessonsPage() {
 
   return (
     <AdminLessonsProvider>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 sm:p-4 lg:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {/* Header Section - Responsive */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 lg:mb-8 gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 Lesson Management
               </h1>
-              <p className="text-gray-600">Create and manage English lessons</p>
+              <p className="text-sm sm:text-base text-gray-600">
+                Create and manage English lessons
+              </p>
             </div>
-            <AdminLessonsModals />
+            <div className="flex-shrink-0">
+              <AdminLessonsModals />
+            </div>
           </div>
 
           <AdminLessonsStatsCards />
           <AdminLessonsFilters />
           <AdminLessonsTable />
+          <AdminLessonsPagination />
         </div>
       </div>
     </AdminLessonsProvider>

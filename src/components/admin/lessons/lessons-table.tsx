@@ -15,11 +15,11 @@ import { BookOpen, Edit, Eye, Trash2, TrendingUp, Users } from "lucide-react";
 
 export default function AdminLessonsTable() {
   const {
-    filteredLessons,
+    lessons,
     loading,
     setPreviewLesson,
     setEditingLesson,
-    handleDeleteLesson,
+    setDeletingLesson,
   } = useAdminLessons();
 
   const getSkillInfo = (skill: string) => {
@@ -95,17 +95,27 @@ export default function AdminLessonsTable() {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+    <div className="bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-lg">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Lesson</TableHead>
-              <TableHead>Skill</TableHead>
-              <TableHead>Difficulty</TableHead>
-              <TableHead>Stats</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="min-w-[300px]">Lesson</TableHead>
+              <TableHead className="min-w-[120px] hidden sm:table-cell">
+                Skill
+              </TableHead>
+              <TableHead className="min-w-[120px] hidden md:table-cell">
+                Difficulty
+              </TableHead>
+              <TableHead className="min-w-[120px] hidden lg:table-cell">
+                Stats
+              </TableHead>
+              <TableHead className="min-w-[120px] hidden md:table-cell">
+                Status
+              </TableHead>
+              <TableHead className="min-w-[120px] text-right">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -118,37 +128,37 @@ export default function AdminLessonsTable() {
                       <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <div className="animate-pulse h-6 bg-gray-200 rounded w-16"></div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <div className="animate-pulse h-6 bg-gray-200 rounded w-12"></div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden lg:table-cell">
                     <div className="animate-pulse h-4 bg-gray-200 rounded w-20"></div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <div className="animate-pulse h-6 bg-gray-200 rounded w-16"></div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-right">
                     <div className="animate-pulse h-8 bg-gray-200 rounded w-20 ml-auto"></div>
                   </TableCell>
                 </TableRow>
               ))
-            ) : filteredLessons.length === 0 ? (
+            ) : lessons.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12">
-                  <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <TableCell colSpan={6} className="text-center py-8 sm:py-12">
+                  <BookOpen className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                     No lessons found
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-sm sm:text-base text-gray-600 px-4">
                     Try adjusting filters or create a new lesson
                   </p>
                 </TableCell>
               </TableRow>
             ) : (
-              filteredLessons.map((lesson) => {
+              lessons.map((lesson) => {
                 const skillInfo = getSkillInfo(lesson.type);
                 const difficultyInfo = getDifficultyInfo(lesson.difficulty);
                 const statusInfo = getStatusInfo("published");
@@ -156,10 +166,10 @@ export default function AdminLessonsTable() {
                 return (
                   <TableRow key={lesson._id}>
                     <TableCell>
-                      <div className="flex items-start gap-3">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-medium text-gray-900">
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">
                               {lesson.title}
                             </h3>
                             {lesson?.createdByAI && (
@@ -168,31 +178,46 @@ export default function AdminLessonsTable() {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-gray-600 line-clamp-2">
+                          <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
                             {lesson.description}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {lesson.content?.exercises.length} questions •{" "}
-                            {lesson.estimatedTime} mins
-                          </p>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            <p className="text-xs text-gray-500">
+                              {lesson.content?.exercises.length} questions
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {lesson.estimatedTime} mins
+                            </p>
+                            {/* Show skill and difficulty badges on mobile */}
+                            <div className="flex gap-1 sm:hidden">
+                              <Badge
+                                className={`${skillInfo.icon} bg-blue-100 text-blue-700 border-0 text-xs`}>
+                                {skillInfo.label}
+                              </Badge>
+                              <Badge
+                                className={`${difficultyInfo.color} border-0 text-xs`}>
+                                {difficultyInfo.label}
+                              </Badge>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </TableCell>
 
-                    <TableCell className="w-32">
+                    <TableCell className="hidden sm:table-cell">
                       <Badge
                         className={`${skillInfo.icon} bg-blue-100 text-blue-700 border-0`}>
                         {skillInfo.label}
                       </Badge>
                     </TableCell>
 
-                    <TableCell className="w-32">
+                    <TableCell className="hidden md:table-cell">
                       <Badge className={`${difficultyInfo.color} border-0`}>
                         {difficultyInfo.label}
                       </Badge>
                     </TableCell>
 
-                    <TableCell className="w-32">
+                    <TableCell className="hidden lg:table-cell">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1 text-sm text-gray-600">
                           <Users className="h-3 w-3" />
@@ -205,32 +230,34 @@ export default function AdminLessonsTable() {
                       </div>
                     </TableCell>
 
-                    <TableCell className="w-32">
+                    <TableCell className="hidden md:table-cell">
                       <Badge className={`${statusInfo.color} border-0`}>
                         {statusInfo.label}
                       </Badge>
                     </TableCell>
 
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-2">
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1 sm:gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setPreviewLesson(lesson)}>
-                          <Eye className="h-4 w-4" />
+                          onClick={() => setPreviewLesson(lesson)}
+                          className="h-8 w-8 sm:h-9 sm:w-9 p-0">
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setEditingLesson(lesson)}>
-                          <Edit className="h-4 w-4" />
+                          onClick={() => setEditingLesson(lesson)}
+                          className="h-8 w-8 sm:h-9 sm:w-9 p-0">
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteLesson(lesson._id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                          <Trash2 className="h-4 w-4" />
+                          onClick={() => setDeletingLesson(lesson)}
+                          className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </TableCell>

@@ -10,28 +10,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAdminLessons } from "@/context/admin-lessons-context";
+import { SKILLS, USER_LEVELS } from "@/lib/constants";
 import { Filter, Search } from "lucide-react";
 
 const skills = [
-  { value: "vocab", label: "Vocabulary", icon: "📚" },
-  { value: "grammar", label: "Grammar", icon: "📝" },
-  { value: "listening", label: "Listening", icon: "👂" },
-  { value: "speaking", label: "Speaking", icon: "🗣️" },
-  { value: "reading", label: "Reading", icon: "📖" },
-  { value: "writing", label: "Writing", icon: "✍️" },
+  { value: SKILLS.VOCAB, label: "Vocabulary", icon: "📚" },
+  { value: SKILLS.GRAMMAR, label: "Grammar", icon: "📝" },
+  { value: SKILLS.LISTENING, label: "Listening", icon: "👂" },
+  { value: SKILLS.SPEAKING, label: "Speaking", icon: "🗣️" },
+  { value: SKILLS.READING, label: "Reading", icon: "📖" },
+  { value: SKILLS.WRITING, label: "Writing", icon: "✍️" },
 ];
 
 const difficulties = [
-  { value: "easy", label: "Easy" },
-  { value: "medium", label: "Medium" },
-  { value: "hard", label: "Hard" },
+  { value: USER_LEVELS.BEGINNER, label: "Beginner" },
+  { value: USER_LEVELS.INTERMEDIATE, label: "Intermediate" },
+  { value: USER_LEVELS.ADVANCED, label: "Advanced" },
 ];
 
-const statuses = [
-  { value: "published", label: "Published" },
-  { value: "draft", label: "Draft" },
-  { value: "archived", label: "Archived" },
-];
+// const statuses = [
+//   { value: "published", label: "Published" },
+//   { value: "draft", label: "Draft" },
+//   { value: "archived", label: "Archived" },
+// ];
 
 export default function AdminLessonsFilters() {
   const {
@@ -46,14 +47,16 @@ export default function AdminLessonsFilters() {
   } = useAdminLessons();
 
   return (
-    <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-8">
-      <div className="flex items-center gap-4 mb-4">
-        <Filter className="h-5 w-5 text-gray-600" />
-        <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+    <Card className="p-4 sm:p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-6 lg:mb-8">
+      <div className="flex items-center gap-3 sm:gap-4 mb-4">
+        <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 flex-shrink-0" />
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+          Filters
+        </h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="sm:col-span-2 lg:col-span-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
@@ -95,7 +98,7 @@ export default function AdminLessonsFilters() {
           </SelectContent>
         </Select>
 
-        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+        {/* <Select value={selectedStatus} onValueChange={setSelectedStatus}>
           <SelectTrigger>
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -107,7 +110,7 @@ export default function AdminLessonsFilters() {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
       </div>
     </Card>
   );

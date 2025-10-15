@@ -72,3 +72,28 @@ export interface CreateLessonRequest {
   estimatedTime: number;
   questions: Question[];
 }
+
+// Pagination and filtering types
+export interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface LessonsResponse {
+  lessons: Lesson[];
+  pagination: PaginationInfo;
+}
+
+export interface LessonsFilterParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  skill?: string;
+  difficulty?: string;
+  status?: string;
+  tags?: string;
+}

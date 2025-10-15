@@ -11,6 +11,8 @@ import {
   DashboardStats,
   Lesson,
   LessonProgressRequest,
+  LessonsFilterParams,
+  LessonsResponse,
   ProgressStats,
   UpdateWeeklyGoalRequest,
 } from "@/types";
@@ -133,10 +135,21 @@ export class ApiClient {
   }
 
   // Lessons APIs
-  async getLessons(): Promise<{ lessons: Lesson[] }> {
-    const response = await apiService.get<ApiResponse<{ lessons: Lesson[] }>>(
-      "/api/lessons"
-    );
+  async getLessons(params?: LessonsFilterParams): Promise<LessonsResponse> {
+    const searchParams = new URLSearchParams();
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "all") {
+          searchParams.append(key, value.toString());
+        }
+      });
+    }
+
+    const url = `/api/lessons${
+      searchParams.toString() ? `?${searchParams.toString()}` : ""
+    }`;
+    const response = await apiService.get<ApiResponse<LessonsResponse>>(url);
     return response.data;
   }
 
@@ -174,6 +187,13 @@ export class ApiClient {
     const response = await apiService.put<ApiResponse<{ lesson: Lesson }>>(
       `/api/lessons/${id}`,
       request
+    );
+    return response.data;
+  }
+
+  async deleteLesson(id: string): Promise<{ message: string }> {
+    const response = await apiService.delete<ApiResponse<{ message: string }>>(
+      `/api/lessons/${id}`
     );
     return response.data;
   }
