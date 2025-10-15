@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useRequireAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api-client";
-import { Lesson, Question } from "@/types";
+import { Exercise, Lesson } from "@/types";
 import {
   ArrowLeft,
   BookOpen,
@@ -26,7 +26,7 @@ import { useEffect, useState } from "react";
 interface LessonProgress {
   currentQuestion: number;
   score: number;
-  timeSpent: number;
+  timeSpentSeconds: number;
   answers: Record<string, string | string[]>;
   startTime: Date;
 }
@@ -42,7 +42,7 @@ export default function LessonDetailPage() {
   const [progress, setProgress] = useState<LessonProgress>({
     currentQuestion: 0,
     score: 0,
-    timeSpent: 0,
+    timeSpentSeconds: 0,
     answers: {},
     startTime: new Date(),
   });
@@ -60,9 +60,7 @@ export default function LessonDetailPage() {
     const interval = setInterval(() => {
       setProgress((prev) => ({
         ...prev,
-        timeSpent: Math.floor(
-          (new Date().getTime() - prev.startTime.getTime()) / 1000 / 60
-        ),
+        timeSpentSeconds: prev.timeSpentSeconds + 1,
       }));
     }, 1000);
 
@@ -114,10 +112,10 @@ export default function LessonDetailPage() {
     try {
       // Calculate score
       let correctAnswers = 0;
-      let totalQuestions = lesson?.questions.length || 0;
+      let totalQuestions = lesson?.content.exercises.length || 0;
 
-      lesson?.questions.forEach((question) => {
-        const userAnswer = progress.answers[question.id];
+      lesson?.content.exercises.forEach((question) => {
+        const userAnswer = progress.answers[question._id];
         const correctAnswer = question.correctAnswer;
 
         if (Array.isArray(correctAnswer)) {
@@ -141,7 +139,7 @@ export default function LessonDetailPage() {
       await apiClient.updateProgress({
         lessonId: lessonId,
         score: finalScore,
-        timeSpent: progress.timeSpent,
+        timeSpent: Math.floor(progress.timeSpentSeconds / 60),
         skill: lesson?.type,
       });
 
@@ -159,32 +157,32 @@ export default function LessonDetailPage() {
   const getSkillInfo = (skill: string) => {
     const skills = {
       vocab: {
-        label: "Từ vựng",
+        label: "Vocabulary",
         icon: "📚",
         color: "bg-blue-100 text-blue-700",
       },
       grammar: {
-        label: "Ngữ pháp",
+        label: "Grammar",
         icon: "📝",
         color: "bg-green-100 text-green-700",
       },
       listening: {
-        label: "Nghe",
+        label: "Listening",
         icon: "👂",
         color: "bg-purple-100 text-purple-700",
       },
       speaking: {
-        label: "Nói",
+        label: "Speaking",
         icon: "🗣️",
         color: "bg-orange-100 text-orange-700",
       },
       reading: {
-        label: "Đọc",
+        label: "Reading",
         icon: "📖",
         color: "bg-indigo-100 text-indigo-700",
       },
       writing: {
-        label: "Viết",
+        label: "Writing",
         icon: "✍️",
         color: "bg-pink-100 text-pink-700",
       },
@@ -200,9 +198,9 @@ export default function LessonDetailPage() {
 
   const getDifficultyInfo = (difficulty: string) => {
     const difficulties = {
-      easy: { label: "Dễ", color: "bg-green-100 text-green-700" },
-      medium: { label: "Trung bình", color: "bg-yellow-100 text-yellow-700" },
-      hard: { label: "Khó", color: "bg-red-100 text-red-700" },
+      easy: { label: "Easy", color: "bg-green-100 text-green-700" },
+      medium: { label: "Medium", color: "bg-yellow-100 text-yellow-700" },
+      hard: { label: "Hard", color: "bg-red-100 text-red-700" },
     };
     return (
       difficulties[difficulty as keyof typeof difficulties] || {
@@ -212,8 +210,8 @@ export default function LessonDetailPage() {
     );
   };
 
-  const renderQuestion = (question: Question) => {
-    const userAnswer = progress.answers[question.id];
+  const renderQuestion = (question: Exercise) => {
+    const userAnswer = progress.answers[question._id];
 
     switch (question.type) {
       case "multiple-choice":
@@ -222,7 +220,7 @@ export default function LessonDetailPage() {
             {question.options?.map((option, index) => (
               <button
                 key={index}
-                onClick={() => handleAnswerSelect(question.id, option.value)}
+                onClick={() => handleAnswerSelect(question._id, option.value)}
                 className={`w-full p-4 text-left rounded-lg border-2 transition-colors ${
                   userAnswer === option.value
                     ? "border-blue-500 bg-blue-50"
@@ -250,17 +248,15 @@ export default function LessonDetailPage() {
         return (
           <div className="space-y-3">
             <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">
-                Nhập câu trả lời của bạn:
-              </p>
+              <p className="text-sm text-gray-600 mb-2">Enter your answer:</p>
               <input
                 type="text"
                 value={(userAnswer as string) || ""}
                 onChange={(e) =>
-                  handleAnswerSelect(question.id, e.target.value)
+                  handleAnswerSelect(question._id, e.target.value)
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Nhập câu trả lời..."
+                placeholder="Type your answer..."
               />
             </div>
           </div>
@@ -270,7 +266,7 @@ export default function LessonDetailPage() {
         return (
           <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={() => handleAnswerSelect(question.id, "true")}
+              onClick={() => handleAnswerSelect(question._id, "true")}
               className={`p-6 rounded-lg border-2 transition-colors ${
                 userAnswer === "true"
                   ? "border-green-500 bg-green-50"
@@ -278,12 +274,12 @@ export default function LessonDetailPage() {
               }`}>
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle className="h-6 w-6 text-green-600" />
-                <span className="font-medium text-green-700">Đúng</span>
+                <span className="font-medium text-green-700">True</span>
               </div>
             </button>
 
             <button
-              onClick={() => handleAnswerSelect(question.id, "false")}
+              onClick={() => handleAnswerSelect(question._id, "false")}
               className={`p-6 rounded-lg border-2 transition-colors ${
                 userAnswer === "false"
                   ? "border-red-500 bg-red-50"
@@ -291,7 +287,7 @@ export default function LessonDetailPage() {
               }`}>
               <div className="flex items-center justify-center gap-2">
                 <XCircle className="h-6 w-6 text-red-600" />
-                <span className="font-medium text-red-700">Sai</span>
+                <span className="font-medium text-red-700">False</span>
               </div>
             </button>
           </div>
@@ -301,17 +297,15 @@ export default function LessonDetailPage() {
         return (
           <div className="space-y-3">
             <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">
-                Viết câu trả lời của bạn:
-              </p>
+              <p className="text-sm text-gray-600 mb-2">Write your answer:</p>
               <textarea
                 value={(userAnswer as string) || ""}
                 onChange={(e) =>
-                  handleAnswerSelect(question.id, e.target.value)
+                  handleAnswerSelect(question._id, e.target.value)
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={4}
-                placeholder="Nhập câu trả lời chi tiết..."
+                placeholder="Type a detailed answer..."
               />
             </div>
           </div>
@@ -329,7 +323,7 @@ export default function LessonDetailPage() {
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Đang tải bài học...</p>
+              <p className="text-gray-600">Loading lesson...</p>
             </div>
           </div>
         </div>
@@ -344,11 +338,11 @@ export default function LessonDetailPage() {
           <div className="text-center py-12">
             <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Bài học không tìm thấy
+              Lesson not found
             </h1>
-            <Button onClick={() => router.push("/lessons")}>
+            <Button onClick={() => router.push("/dashboard/lessons")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay lại danh sách
+              Back to list
             </Button>
           </div>
         </div>
@@ -356,11 +350,18 @@ export default function LessonDetailPage() {
     );
   }
 
-  const currentQuestion = lesson.questions[progress.currentQuestion];
+  // console.log(lesson);
+  const currentQuestion = lesson?.content.exercises[progress.currentQuestion];
   const progressPercentage =
-    ((progress.currentQuestion + 1) / lesson.questions.length) * 100;
+    ((progress.currentQuestion + 1) / lesson.content.exercises.length) * 100;
   const skillInfo = getSkillInfo(lesson.type);
   const difficultyInfo = getDifficultyInfo(lesson.difficulty);
+
+  const formatElapsed = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -369,10 +370,10 @@ export default function LessonDetailPage() {
         <div className="mb-6">
           <Button
             variant="ghost"
-            onClick={() => router.push("/lessons")}
+            onClick={() => router.push("/dashboard/lessons")}
             className="mb-4 text-gray-600 hover:text-gray-900">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại danh sách bài học
+            Back to lessons
           </Button>
 
           <div className="flex items-center justify-between mb-4">
@@ -396,13 +397,13 @@ export default function LessonDetailPage() {
           <Card className="p-4 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">
-                Câu hỏi {progress.currentQuestion + 1} /{" "}
-                {lesson.questions.length}
+                Question {progress.currentQuestion + 1} /{" "}
+                {lesson.content.exercises.length}
               </span>
               <div className="flex items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
                   <Timer className="h-4 w-4" />
-                  <span>{progress.timeSpent} phút</span>
+                  <span>{formatElapsed(progress.timeSpentSeconds)}</span>
                 </div>
               </div>
             </div>
@@ -426,14 +427,14 @@ export default function LessonDetailPage() {
                 ) : (
                   <Eye className="h-4 w-4" />
                 )}
-                {showAnswer ? "Ẩn đáp án" : "Xem đáp án"}
+                {showAnswer ? "Hide answer" : "Show answer"}
               </Button>
             </div>
 
             {showAnswer && (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
                 <p className="text-sm font-medium text-green-800 mb-1">
-                  Đáp án đúng:
+                  Correct answer:
                 </p>
                 <p className="text-green-700">
                   {Array.isArray(currentQuestion.correctAnswer)
@@ -443,7 +444,7 @@ export default function LessonDetailPage() {
                 {currentQuestion.explanation && (
                   <div className="mt-2">
                     <p className="text-sm font-medium text-green-800 mb-1">
-                      Giải thích:
+                      Explanation:
                     </p>
                     <p className="text-sm text-green-700">
                       {currentQuestion.explanation}
@@ -463,22 +464,23 @@ export default function LessonDetailPage() {
               onClick={handlePreviousQuestion}
               disabled={progress.currentQuestion === 0}>
               <RotateCcw className="h-4 w-4 mr-2" />
-              Câu trước
+              Previous
             </Button>
 
             <div className="flex items-center gap-2">
-              {progress.currentQuestion === lesson.questions.length - 1 ? (
+              {progress.currentQuestion ===
+              lesson.content.exercises.length - 1 ? (
                 <Button
                   onClick={handleFinishLesson}
                   className="bg-green-600 hover:bg-green-700">
                   <Target className="h-4 w-4 mr-2" />
-                  Hoàn thành
+                  Finish
                 </Button>
               ) : (
                 <Button
                   onClick={handleNextQuestion}
-                  disabled={!progress.answers[currentQuestion.id]}>
-                  Câu tiếp
+                  disabled={!progress.answers[currentQuestion._id]}>
+                  Next
                   <Play className="h-4 w-4 ml-2" />
                 </Button>
               )}
@@ -492,7 +494,7 @@ export default function LessonDetailPage() {
         <LessonResultModal
           lesson={lesson}
           score={progress.score}
-          timeSpent={progress.timeSpent}
+          timeSpent={Math.floor(progress.timeSpentSeconds / 60)}
           onClose={() => setShowResult(false)}
           onContinue={() => router.push("/lessons")}
         />

@@ -199,6 +199,18 @@ export default function AdminLessonsModals() {
                             ))}
                           </ul>
                         )}
+                        {ex.options.length === 0 &&
+                          ex.correctAnswer.length !== 0 && (
+                            <ul className="list-disc list-inside text-xs sm:text-sm ml-2 sm:ml-4 text-gray-700 space-y-0.5">
+                              {ex.correctAnswer.map((answer) => (
+                                <li
+                                  key={answer}
+                                  className="text-green-500 underline underline-offset-1">
+                                  {answer}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                       </div>
                     ))}
                     {previewLesson.content.exercises.length > 10 && (

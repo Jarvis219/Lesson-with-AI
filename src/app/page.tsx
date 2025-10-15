@@ -1,5 +1,3 @@
-"use client";
-
 import Footer from "@/components/layout/footer";
 import Navbar from "@/components/layout/navbar";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
 import {
   ArrowRight,
   MessageSquare,
@@ -21,12 +18,45 @@ import {
   Target,
   Zap,
 } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import React from "react";
 
-const HomePage: React.FC = () => {
-  const { user } = useAuth();
+export const metadata: Metadata = {
+  title: "Lean English AI | Learn English with AI-Powered Lessons",
+  description:
+    "Master English with AI: personalized lessons, instant grammar correction, speaking practice, and progress tracking. Start learning English for free.",
+  keywords: [
+    "learn English",
+    "English learning",
+    "AI English",
+    "grammar correction",
+    "speaking practice",
+    "English lessons",
+    "IELTS",
+    "TOEIC",
+    "TOEFL",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Lean English AI | Learn English with AI-Powered Lessons",
+    description:
+      "Personalized English lessons created by AI with speaking and writing feedback.",
+    url: "/",
+    siteName: "Lean English AI",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lean English AI | Learn English with AI-Powered Lessons",
+    description:
+      "Personalized English lessons created by AI with speaking and writing feedback.",
+  },
+};
 
+const HomePage: React.FC = () => {
   const features = [
     {
       icon: Sparkles,
@@ -97,7 +127,9 @@ const HomePage: React.FC = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20">
+      <section
+        className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20"
+        aria-label="Hero">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge className="mb-4 bg-blue-100 text-blue-800 border-blue-200">
@@ -117,46 +149,27 @@ const HomePage: React.FC = () => {
               with cutting-edge AI technology.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {user ? (
-                <>
-                  <Link href="/lessons">
-                    <Button size="lg" className="w-full sm:w-auto">
-                      Continue Learning
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
-                  <Link href="/dashboard">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="w-full sm:w-auto">
-                      View Progress
-                    </Button>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link href="/auth">
-                    <Button size="lg" className="w-full sm:w-auto">
-                      Start Learning Free
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:w-auto">
-                    Watch Demo
+              <>
+                <Link href="/auth">
+                  <Button size="lg" className="w-full sm:w-auto">
+                    Start Learning Free
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
-                </>
-              )}
+                </Link>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto">
+                  Watch Demo
+                </Button>
+              </>
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white" aria-label="Key statistics">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
@@ -172,7 +185,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50" aria-label="Features">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -209,7 +222,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white" aria-label="How it works">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -256,7 +269,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50" aria-label="Testimonials">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -298,7 +311,9 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section
+        className="py-20 bg-gradient-to-r from-blue-600 to-purple-600"
+        aria-label="Call to action">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to Transform Your English?
@@ -307,29 +322,45 @@ const HomePage: React.FC = () => {
             Join thousands of learners who are already improving with AI-powered
             lessons
           </p>
-          {!user && (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/auth">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="w-full sm:w-auto">
-                  Start Learning Free
-                  <Zap className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth">
               <Button
                 size="lg"
-                variant="outline"
-                className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-blue-600">
-                Learn More
+                variant="secondary"
+                className="w-full sm:w-auto">
+                Start Learning Free
+                <Zap className="w-4 h-4 ml-2" />
               </Button>
-            </div>
-          )}
+            </Link>
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-blue-600">
+              Learn More
+            </Button>
+          </div>
         </div>
       </section>
 
       <Footer />
+      {/* SEO Structured Data */}
+      <script
+        type="application/ld+json"
+        // Using JSON.stringify to avoid XSS by ensuring a string literal
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Lean English AI",
+            url: "https://leanenglish.ai/",
+            potentialAction: {
+              "@type": "SearchAction",
+              target: "https://leanenglish.ai/search?q={search_term_string}",
+              "query-input": "required name=search_term_string",
+            },
+          }),
+        }}
+      />
     </div>
   );
 };

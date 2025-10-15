@@ -7,6 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 export interface JWTPayload {
   userId: string;
   email: string;
+  role: string;
   level: string;
 }
 
@@ -14,6 +15,7 @@ export function generateToken(user: IUser): string {
   const payload: JWTPayload = {
     userId: (user._id as any).toString(),
     email: user.email,
+    role: user.role,
     level: user.level,
   };
 
@@ -56,6 +58,32 @@ export function requireAuth(handler: Function) {
           headers: { "Content-Type": "application/json" },
         }
       );
+    }
+
+    // Pass user to handler via context
+    return handler(request, { ...context, user });
+  };
+}
+
+export function requireAdmin(handler: Function) {
+  return async (request: NextRequest, context: any) => {
+    const user = getUserFromRequest(request);
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (user.role !== "admin") {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Pass user to handler via context

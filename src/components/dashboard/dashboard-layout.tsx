@@ -1,20 +1,20 @@
 "use client";
 
-import { useRequireAdmin } from "@/hooks/useAuth";
+import { useRequireAuth } from "@/hooks/useAuth";
 import {
   BarChart3,
   BookOpen,
   Home,
   Menu,
   Settings,
-  Users,
+  User,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-interface AdminLayoutProps {
+interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
@@ -27,54 +27,56 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   {
-    name: "Dashboard",
-    href: "/admin",
+    name: "Tổng quan",
+    href: "/dashboard",
     icon: Home,
-    description: "Overview and analytics",
+    description: "Tiến trình và hoạt động gần đây",
   },
   {
-    name: "Lessons",
-    href: "/admin/lessons",
+    name: "Bài học",
+    href: "/dashboard/lessons",
     icon: BookOpen,
-    description: "Manage lessons and content",
+    description: "Danh sách bài học và lộ trình",
   },
   {
-    name: "Users",
-    href: "/admin/users",
-    icon: Users,
-    description: "User management",
-  },
-  {
-    name: "Statistics",
-    href: "/admin/stats",
+    name: "Thống kê",
+    href: "/dashboard", // keep within dashboard; could split later
     icon: BarChart3,
-    description: "Analytics and reports",
+    description: "Biểu đồ và số liệu học tập",
   },
   {
-    name: "Settings",
-    href: "/admin/settings",
+    name: "Hồ sơ",
+    href: "/dashboard/profile",
+    icon: User,
+    description: "Thông tin cá nhân và mục tiêu",
+  },
+  {
+    name: "Cài đặt",
+    href: "/dashboard/settings",
     icon: Settings,
-    description: "System configuration",
+    description: "Tùy chỉnh tài khoản",
   },
 ];
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function StudentDashboardLayout({
+  children,
+}: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const { isAdmin, isLoading: authLoading } = useRequireAdmin();
+  const { isAuthenticated, isLoading } = useRequireAuth();
 
-  if (authLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Đang tải...</p>
         </div>
       </div>
     );
   }
 
-  if (!isAdmin) {
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -100,7 +102,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
           <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4">
-              <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                Student Dashboard
+              </h1>
             </div>
             <nav className="mt-5 px-2 space-y-1">
               {navigation.map((item) => {
@@ -142,7 +146,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">
-              <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                Student Dashboard
+              </h1>
             </div>
             <nav className="mt-5 flex-1 px-2 space-y-1">
               {navigation.map((item) => {

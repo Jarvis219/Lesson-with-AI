@@ -61,7 +61,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Đang xác thực...</p>
+              <p className="text-gray-600">Authenticating...</p>
             </div>
           </div>
         </div>
@@ -97,9 +97,9 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Không thể tải dữ liệu dashboard
+              Cannot load dashboard data
             </h1>
-            <Button onClick={fetchDashboardData}>Thử lại</Button>
+            <Button onClick={fetchDashboardData}>Try again</Button>
           </div>
         </div>
       </div>
@@ -126,11 +126,9 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Dashboard Học Tập
+            Dashboard Learning
           </h1>
-          <p className="text-gray-600">
-            Theo dõi tiến trình và thành tích học tập của bạn
-          </p>
+          <p className="text-gray-600">Track your progress and achievements</p>
         </div>
 
         {/* Stats Cards */}
@@ -139,7 +137,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Bài học đã hoàn thành
+                  Completed lessons
                 </p>
                 <p className="text-3xl font-bold text-blue-600">
                   {stats.totalLessonsCompleted}
@@ -154,9 +152,7 @@ export default function DashboardPage() {
           <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Thời gian học
-                </p>
+                <p className="text-sm font-medium text-gray-600">Study time</p>
                 <p className="text-3xl font-bold text-green-600">
                   {formatTime(stats.totalTimeSpent)}
                 </p>
@@ -171,7 +167,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Điểm trung bình
+                  Average score
                 </p>
                 <p className="text-3xl font-bold text-purple-600">
                   {stats.averageScore}%
@@ -186,9 +182,7 @@ export default function DashboardPage() {
           <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Chuỗi ngày học
-                </p>
+                <p className="text-sm font-medium text-gray-600">Streak</p>
                 <p className="text-3xl font-bold text-orange-600 flex items-center gap-2">
                   {stats.streak}
                   <span className="text-xl">
@@ -208,7 +202,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Target className="h-5 w-5 text-blue-600" />
-              Mục tiêu tuần này
+              Weekly goal
             </h3>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="bg-blue-100 text-blue-700">
@@ -222,7 +216,7 @@ export default function DashboardPage() {
                   }
                 }}
               />
-              <span className="text-sm text-gray-600">bài học</span>
+              <span className="text-sm text-gray-600">lessons</span>
             </div>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3">
@@ -237,10 +231,10 @@ export default function DashboardPage() {
           </div>
           <p className="text-sm text-gray-600 mt-2">
             {stats.weeklyProgress >= stats.weeklyGoal
-              ? "🎉 Bạn đã hoàn thành mục tiêu tuần này!"
+              ? "🎉 You have completed your weekly goal!"
               : `Còn ${
                   stats.weeklyGoal - stats.weeklyProgress
-                } bài học nữa để hoàn thành mục tiêu`}
+                } more lessons to complete your goal`}
           </p>
         </Card>
 
@@ -249,7 +243,7 @@ export default function DashboardPage() {
           <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              Tiến trình theo thời gian
+              Progress over time
             </h3>
             <ProgressChart data={stats.recentActivity} />
           </Card>
@@ -257,7 +251,7 @@ export default function DashboardPage() {
           <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Brain className="h-5 w-5 text-purple-600" />
-              Điểm số kỹ năng
+              Skill scores
             </h3>
             <SkillRadarChart data={stats.skillScores} />
           </Card>
@@ -269,7 +263,7 @@ export default function DashboardPage() {
             <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Brain className="h-5 w-5 text-indigo-600" />
-                Gợi ý AI cho bạn
+                AI suggestions
               </h3>
               <AISuggestions suggestions={aiSuggestions} />
             </Card>
@@ -279,7 +273,7 @@ export default function DashboardPage() {
             <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Award className="h-5 w-5 text-yellow-600" />
-                Thành tích & Huy hiệu
+                Achievements & Badges
               </h3>
               <AchievementBadges achievements={stats.achievements} />
             </Card>
@@ -290,7 +284,7 @@ export default function DashboardPage() {
         <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-gray-600" />
-            Hoạt động gần đây
+            Recent activity
           </h3>
           <div className="space-y-3">
             {stats.recentActivity.length > 0 ? (
@@ -326,10 +320,8 @@ export default function DashboardPage() {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>Chưa có hoạt động nào</p>
-                <p className="text-sm">
-                  Bắt đầu học để xem tiến trình của bạn!
-                </p>
+                <p>No activity yet</p>
+                <p className="text-sm">Start learning to see your progress!</p>
               </div>
             )}
           </div>

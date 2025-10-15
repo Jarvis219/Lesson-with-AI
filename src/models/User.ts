@@ -4,6 +4,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   passwordHash: string;
+  role: "student" | "admin";
   level: "beginner" | "intermediate" | "advanced";
   goals: string;
   progress?: mongoose.Types.ObjectId;
@@ -40,6 +41,11 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
+    },
+    role: {
+      type: String,
+      enum: ["student", "admin"],
+      default: "student",
     },
     level: {
       type: String,
@@ -88,6 +94,7 @@ const UserSchema = new Schema<IUser>(
 // Index for faster queries
 UserSchema.index({ email: 1 });
 UserSchema.index({ level: 1 });
+UserSchema.index({ role: 1 });
 
 export default mongoose.models.User ||
   mongoose.model<IUser>("User", UserSchema);

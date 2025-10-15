@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { LessonCard } from "@/components/dashboard/lesson-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,17 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { difficulties, skills } from "@/constant/lesson.constant";
 import { useRequireAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api-client";
 import { Lesson } from "@/types";
 import {
   BookOpen,
   Brain,
-  Clock,
   Filter,
-  Play,
   Search,
-  Star,
   Target,
   TrendingUp,
 } from "lucide-react";
@@ -38,15 +36,24 @@ interface LessonWithProgress extends Lesson {
   isAIGenerated?: boolean;
 }
 
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 export default function LessonsPage() {
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
   const router = useRouter();
 
   const [lessons, setLessons] = useState<LessonWithProgress[]>([]);
-  const [filteredLessons, setFilteredLessons] = useState<LessonWithProgress[]>(
-    []
-  );
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(9);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,46 +62,14 @@ export default function LessonsPage() {
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [showAIGenerated, setShowAIGenerated] = useState<boolean | null>(null);
 
-  const skills = [
-    { value: "vocab", label: "Từ vựng", icon: "📚" },
-    { value: "grammar", label: "Ngữ pháp", icon: "📝" },
-    { value: "listening", label: "Nghe", icon: "👂" },
-    { value: "speaking", label: "Nói", icon: "🗣️" },
-    { value: "reading", label: "Đọc", icon: "📖" },
-    { value: "writing", label: "Viết", icon: "✍️" },
-  ];
-
-  const difficulties = [
-    { value: "easy", label: "Dễ", color: "bg-green-100 text-green-700" },
-    {
-      value: "medium",
-      label: "Trung bình",
-      color: "bg-yellow-100 text-yellow-700",
-    },
-    { value: "hard", label: "Khó", color: "bg-red-100 text-red-700" },
-  ];
-
-  const topics = [
-    "Giao tiếp hàng ngày",
-    "Công việc",
-    "Du lịch",
-    "Học tập",
-    "Gia đình",
-    "Thời tiết",
-    "Thể thao",
-    "Ẩm thực",
-  ];
-
   useEffect(() => {
     if (isAuthenticated) {
       fetchLessons();
     }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    filterLessons();
   }, [
-    lessons,
+    isAuthenticated,
+    page,
+    limit,
     searchTerm,
     selectedSkill,
     selectedDifficulty,
@@ -105,11 +80,19 @@ export default function LessonsPage() {
   const fetchLessons = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.getLessons();
+      const response = await apiClient.getLessons({
+        page,
+        limit,
+        search: searchTerm || undefined,
+        skill: selectedSkill === "all" ? undefined : selectedSkill,
+        difficulty:
+          selectedDifficulty === "all" ? undefined : selectedDifficulty,
+        // tags/topic not supported explicitly; could map selectedTopic to tags
+      });
 
-      // Mock progress data (in real app, this would come from API)
       const lessonsWithProgress = response.lessons.map((lesson: Lesson) => ({
         ...lesson,
+        // keep mock progress for UI continuity
         progress:
           Math.random() > 0.5
             ? {
@@ -123,6 +106,8 @@ export default function LessonsPage() {
       }));
 
       setLessons(lessonsWithProgress);
+      // @ts-ignore API type
+      setPagination(response.pagination as PaginationInfo);
     } catch (error) {
       console.error("Error fetching lessons:", error);
     } finally {
@@ -130,43 +115,9 @@ export default function LessonsPage() {
     }
   };
 
-  const filterLessons = () => {
-    let filtered = [...lessons];
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (lesson) =>
-          lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lesson.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Skill filter
-    if (selectedSkill !== "all") {
-      filtered = filtered.filter((lesson) => lesson.type === selectedSkill);
-    }
-
-    // Difficulty filter
-    if (selectedDifficulty !== "all") {
-      filtered = filtered.filter(
-        (lesson) => lesson.difficulty === selectedDifficulty
-      );
-    }
-
-    // Topic filter (mock - in real app would be based on lesson tags)
-    if (selectedTopic !== "all") {
-      filtered = filtered.filter(() => Math.random() > 0.3); // Mock filter
-    }
-
-    // AI Generated filter
-    if (showAIGenerated !== null) {
-      filtered = filtered.filter(
-        (lesson) => lesson.isAIGenerated === showAIGenerated
-      );
-    }
-
-    setFilteredLessons(filtered);
+  const applyFilters = () => {
+    setPage(1);
+    fetchLessons();
   };
 
   const handleStartLesson = async (lesson: LessonWithProgress) => {
@@ -175,13 +126,13 @@ export default function LessonsPage() {
       if (!lesson.progress?.completed) {
         await apiClient.updateProgress({
           lessonId: lesson._id,
-          score: 0,
-          timeSpent: 0,
+          score: 1,
+          timeSpent: 15,
           skill: lesson.type,
         });
       }
 
-      router.push(`/lessons/${lesson._id}`);
+      router.push(`/dashboard/lessons/${lesson._id}`);
     } catch (error) {
       console.error("Error starting lesson:", error);
     }
@@ -205,12 +156,6 @@ export default function LessonsPage() {
         color: "bg-gray-100 text-gray-700",
       }
     );
-  };
-
-  const getProgressColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-red-600";
   };
 
   if (authLoading) {
@@ -238,10 +183,10 @@ export default function LessonsPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Bài Học Tiếng Anh
+            Lessons English
           </h1>
           <p className="text-gray-600">
-            Khám phá và học tập với hàng trăm bài học được tối ưu hóa bởi AI
+            Explore and learn with hundreds of lessons optimized by AI
           </p>
         </div>
 
@@ -251,7 +196,7 @@ export default function LessonsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Tổng bài học
+                  Total lessons
                 </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {lessons.length}
@@ -264,9 +209,7 @@ export default function LessonsPage() {
           <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Đã hoàn thành
-                </p>
+                <p className="text-sm font-medium text-gray-600">Completed</p>
                 <p className="text-2xl font-bold text-green-600">
                   {lessons.filter((l) => l.progress?.completed).length}
                 </p>
@@ -279,7 +222,7 @@ export default function LessonsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  AI Generated
+                  AI generated
                 </p>
                 <p className="text-2xl font-bold text-purple-600">
                   {lessons.filter((l) => l.isAIGenerated).length}
@@ -292,7 +235,9 @@ export default function LessonsPage() {
           <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Điểm TB</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Average score
+                </p>
                 <p className="text-2xl font-bold text-orange-600">
                   {lessons.filter((l) => l.progress?.score).length > 0
                     ? Math.round(
@@ -314,7 +259,7 @@ export default function LessonsPage() {
         <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-8">
           <div className="flex items-center gap-4 mb-4">
             <Filter className="h-5 w-5 text-gray-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Bộ lọc</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
@@ -323,7 +268,7 @@ export default function LessonsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Tìm kiếm bài học..."
+                  placeholder="Search lessons..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -332,12 +277,14 @@ export default function LessonsPage() {
             </div>
 
             {/* Skill Filter */}
-            <Select value={selectedSkill} onValueChange={setSelectedSkill}>
+            <Select
+              value={selectedSkill}
+              onValueChange={(v) => setSelectedSkill(v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Kỹ năng" />
+                <SelectValue placeholder="Skills" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả kỹ năng</SelectItem>
+                <SelectItem value="all">All skills</SelectItem>
                 {skills.map((skill) => (
                   <SelectItem key={skill.value} value={skill.value}>
                     {skill.icon} {skill.label}
@@ -349,12 +296,12 @@ export default function LessonsPage() {
             {/* Difficulty Filter */}
             <Select
               value={selectedDifficulty}
-              onValueChange={setSelectedDifficulty}>
+              onValueChange={(v) => setSelectedDifficulty(v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Độ khó" />
+                <SelectValue placeholder="Difficulty" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả độ khó</SelectItem>
+                <SelectItem value="all">All difficulty</SelectItem>
                 {difficulties.map((diff) => (
                   <SelectItem key={diff.value} value={diff.value}>
                     {diff.label}
@@ -364,7 +311,7 @@ export default function LessonsPage() {
             </Select>
 
             {/* Topic Filter */}
-            <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+            {/* <Select value={selectedTopic} onValueChange={setSelectedTopic}>
               <SelectTrigger>
                 <SelectValue placeholder="Chủ đề" />
               </SelectTrigger>
@@ -376,7 +323,7 @@ export default function LessonsPage() {
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </Select> */}
 
             {/* AI Generated Filter */}
             <Select
@@ -391,12 +338,27 @@ export default function LessonsPage() {
                 setShowAIGenerated(value === "all" ? null : value === "ai")
               }>
               <SelectTrigger>
-                <SelectValue placeholder="Nguồn" />
+                <SelectValue placeholder="Source" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="ai">🤖 AI Generated</SelectItem>
                 <SelectItem value="manual">👨‍🏫 Manual</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <Button onClick={applyFilters}>Apply</Button>
+            <Select
+              value={String(limit)}
+              onValueChange={(v) => setLimit(parseInt(v))}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Per page" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="6">6 / page</SelectItem>
+                <SelectItem value="9">9 / page</SelectItem>
+                <SelectItem value="12">12 / page</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -420,109 +382,73 @@ export default function LessonsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredLessons.map((lesson) => {
+            {lessons.map((lesson) => {
               const skillInfo = getSkillInfo(lesson.type);
               const difficultyInfo = getDifficultyInfo(lesson.difficulty);
+              const difficultyPretty = (
+                difficultyInfo.label || "beginner"
+              ).toLowerCase();
+              const difficultyMapped =
+                difficultyPretty === "beginner"
+                  ? "Beginner"
+                  : difficultyPretty === "intermediate"
+                  ? "Intermediate"
+                  : "Advanced";
 
               return (
-                <Card
+                <LessonCard
                   key={lesson._id}
-                  className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow duration-200">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge className={`${difficultyInfo.color} border-0`}>
-                          {difficultyInfo.label}
-                        </Badge>
-                        {lesson.isAIGenerated && (
-                          <Badge className="bg-purple-100 text-purple-700 border-0">
-                            🤖 AI
-                          </Badge>
-                        )}
-                      </div>
-
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {lesson.title}
-                      </h3>
-
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                        {lesson.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span>{skillInfo.icon}</span>
-                      <span>{skillInfo.label}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Clock className="h-4 w-4" />
-                      <span>{lesson.estimatedTime} phút</span>
-                    </div>
-
-                    {lesson.progress && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Tiến trình:</span>
-                          <span
-                            className={`font-medium ${getProgressColor(
-                              lesson.progress.score
-                            )}`}>
-                            {lesson.progress.score}%
-                          </span>
-                        </div>
-
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${
-                              lesson.progress.score >= 80
-                                ? "bg-green-500"
-                                : lesson.progress.score >= 60
-                                ? "bg-yellow-500"
-                                : "bg-red-500"
-                            }`}
-                            style={{
-                              width: `${lesson.progress.score}%`,
-                            }}></div>
-                        </div>
-
-                        {lesson.progress.completed && (
-                          <div className="flex items-center gap-1 text-green-600 text-sm">
-                            <Star className="h-4 w-4 fill-current" />
-                            <span>Đã hoàn thành</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <Button
-                    onClick={() => handleStartLesson(lesson)}
-                    className="w-full bg-blue-600 hover:bg-blue-700">
-                    <Play className="h-4 w-4 mr-2" />
-                    {lesson.progress?.completed
-                      ? "Học lại"
-                      : lesson.progress
-                      ? "Học tiếp"
-                      : "Bắt đầu học"}
-                  </Button>
-                </Card>
+                  icon={<span className="text-base">{skillInfo.icon}</span>}
+                  lessonType={skillInfo.label}
+                  difficulty={
+                    difficultyMapped as "Beginner" | "Intermediate" | "Advanced"
+                  }
+                  title={lesson.title}
+                  description={lesson.description}
+                  duration={lesson.estimatedTime}
+                  progress={lesson.progress?.score}
+                  isCompleted={Boolean(lesson.progress?.completed)}
+                  onClick={() => handleStartLesson(lesson)}
+                />
               );
             })}
           </div>
         )}
-
-        {filteredLessons.length === 0 && !loading && (
+        {lessons.length === 0 && !loading && (
           <div className="text-center py-12">
             <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Không tìm thấy bài học nào
+              No lessons found
             </h3>
             <p className="text-gray-600">
-              Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác
+              Try changing the filters or search with a different keyword
             </p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Page {pagination.currentPage} of {pagination.totalPages} •{" "}
+              {pagination.totalItems} lessons
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                disabled={!pagination.hasPrevPage}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                Prev
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!pagination.hasNextPage}
+                onClick={() =>
+                  setPage((p) => (pagination?.hasNextPage ? p + 1 : p))
+                }>
+                Next
+              </Button>
+            </div>
           </div>
         )}
       </div>

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { lessonId, score, timeSpent, skill } = await request.json();
-
+    console.log(lessonId, score, timeSpent, skill);
     // Validation
     if (!lessonId || score === undefined || !timeSpent) {
       return NextResponse.json(

@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
       id: user._id,
       name: user.name,
       email: user.email,
+      role: user.role,
       level: user.level,
       goals: user.goals,
       streak: user.streak,

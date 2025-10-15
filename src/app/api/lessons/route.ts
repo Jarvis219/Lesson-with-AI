@@ -1,4 +1,4 @@
-import { getUserFromRequest } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Lesson from "@/models/Lesson";
 import { NextRequest, NextResponse } from "next/server";
@@ -74,19 +74,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export const POST = requireAdmin(async (request: NextRequest) => {
   console.log("test----------");
 
   try {
     await connectDB();
-
-    const userPayload = getUserFromRequest(request);
-    if (!userPayload) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
 
     const {
       title,
@@ -169,4 +161,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

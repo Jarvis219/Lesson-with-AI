@@ -1,4 +1,4 @@
-import { getUserFromRequest } from "@/lib/auth";
+import { getUserFromRequest, requireAdmin } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Lesson from "@/models/Lesson";
 import Progress from "@/models/Progress";
@@ -55,137 +55,131 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    await connectDB();
+export const PUT = requireAdmin(
+  async (
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+  ) => {
+    try {
+      await connectDB();
 
-    const userPayload = getUserFromRequest(request);
-    if (!userPayload) {
+      const { id } = await params;
+      const {
+        title,
+        description,
+        content,
+        difficulty,
+        skill,
+        estimatedTime,
+        questions = [],
+        tags = [],
+      } = await request.json();
+
+      // Validation
+      if (
+        !title ||
+        !description ||
+        !content ||
+        !difficulty ||
+        !skill ||
+        !estimatedTime
+      ) {
+        return NextResponse.json(
+          { error: "Missing required fields" },
+          { status: 400 }
+        );
+      }
+
+      // Find lesson
+      const lesson = await Lesson.findById(id);
+      if (!lesson) {
+        return NextResponse.json(
+          { error: "Lesson not found" },
+          { status: 404 }
+        );
+      }
+
+      // Map skill to type (they are the same in our case)
+      const type = skill;
+
+      // Map difficulty from request to model format
+      const levelMapping = {
+        beginner: "beginner",
+        intermediate: "intermediate",
+        advanced: "advanced",
+      };
+
+      // Map questions to exercises format
+      const exercises = questions.map((question: any) => ({
+        type: question.type,
+        question: question.question,
+        options: question.options || [],
+        correctAnswer: question.correctAnswer,
+        explanation: question.explanation || "",
+        difficulty,
+        points: question.points || 1,
+      }));
+
+      // Update lesson fields
+      lesson.title = title;
+      lesson.description = description;
+      lesson.type = type;
+      lesson.level =
+        levelMapping[difficulty as keyof typeof levelMapping] || "beginner";
+      lesson.difficulty = difficulty;
+      lesson.content = {
+        text: content,
+        exercises: exercises,
+      };
+      lesson.estimatedTime = estimatedTime;
+      lesson.tags = tags;
+
+      await lesson.save();
+
+      return NextResponse.json({
+        message: "Lesson updated successfully",
+        lesson,
+      });
+    } catch (error) {
+      console.error("Update lesson error:", error);
       return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
+        { error: "Internal server error" },
+        { status: 500 }
       );
     }
-
-    const { id } = await params;
-    const {
-      title,
-      description,
-      content,
-      difficulty,
-      skill,
-      estimatedTime,
-      questions = [],
-      tags = [],
-    } = await request.json();
-
-    // Validation
-    if (
-      !title ||
-      !description ||
-      !content ||
-      !difficulty ||
-      !skill ||
-      !estimatedTime
-    ) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    // Find lesson
-    const lesson = await Lesson.findById(id);
-    if (!lesson) {
-      return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
-    }
-
-    // Map skill to type (they are the same in our case)
-    const type = skill;
-
-    // Map difficulty from request to model format
-    const levelMapping = {
-      beginner: "beginner",
-      intermediate: "intermediate",
-      advanced: "advanced",
-    };
-
-    // Map questions to exercises format
-    const exercises = questions.map((question: any) => ({
-      type: question.type,
-      question: question.question,
-      options: question.options || [],
-      correctAnswer: question.correctAnswer,
-      explanation: question.explanation || "",
-      difficulty,
-      points: question.points || 1,
-    }));
-
-    // Update lesson fields
-    lesson.title = title;
-    lesson.description = description;
-    lesson.type = type;
-    lesson.level =
-      levelMapping[difficulty as keyof typeof levelMapping] || "beginner";
-    lesson.difficulty = difficulty;
-    lesson.content = {
-      text: content,
-      exercises: exercises,
-    };
-    lesson.estimatedTime = estimatedTime;
-    lesson.tags = tags;
-
-    await lesson.save();
-
-    return NextResponse.json({
-      message: "Lesson updated successfully",
-      lesson,
-    });
-  } catch (error) {
-    console.error("Update lesson error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
   }
-}
+);
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    await connectDB();
+export const DELETE = requireAdmin(
+  async (
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+  ) => {
+    try {
+      await connectDB();
 
-    const userPayload = getUserFromRequest(request);
-    if (!userPayload) {
+      const { id } = await params;
+
+      // Find and delete lesson
+      const lesson = await Lesson.findById(id);
+      if (!lesson) {
+        return NextResponse.json(
+          { error: "Lesson not found" },
+          { status: 404 }
+        );
+      }
+
+      await Lesson.findByIdAndDelete(id);
+
+      return NextResponse.json({
+        message: "Lesson deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete lesson error:", error);
       return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
+        { error: "Internal server error" },
+        { status: 500 }
       );
     }
-
-    const { id } = await params;
-
-    // Find and delete lesson
-    const lesson = await Lesson.findById(id);
-    if (!lesson) {
-      return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
-    }
-
-    await Lesson.findByIdAndDelete(id);
-
-    return NextResponse.json({
-      message: "Lesson deleted successfully",
-    });
-  } catch (error) {
-    console.error("Delete lesson error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
   }
-}
+);

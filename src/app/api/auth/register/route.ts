@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       name,
       email,
       password,
+      role = "student",
       level = "beginner",
       goals,
     } = await request.json();
@@ -22,6 +23,13 @@ export async function POST(request: NextRequest) {
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: "Name, email, and password are required" },
+        { status: 400 }
+      );
+    }
+
+    if (role && !["student", "admin"].includes(role)) {
+      return NextResponse.json(
+        { error: "Role must be either 'student' or 'admin'" },
         { status: 400 }
       );
     }
@@ -62,6 +70,7 @@ export async function POST(request: NextRequest) {
       name,
       email,
       passwordHash,
+      role,
       level,
       goals: goals || "Improve my English skills",
       streak: 0,
@@ -104,6 +113,7 @@ export async function POST(request: NextRequest) {
       id: user._id,
       name: user.name,
       email: user.email,
+      role: user.role,
       level: user.level,
       goals: user.goals,
       streak: user.streak,

@@ -181,3 +181,26 @@ export function useRequireAuth() {
 
   return { isAuthenticated, isLoading };
 }
+
+// Custom hook for admin-protected routes
+export function useRequireAdmin() {
+  const { user, isLoading, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    // Not logged in -> go to login
+    if (!isAuthenticated) {
+      window.location.href = "/auth";
+      return;
+    }
+
+    // Logged in but not admin -> go home
+    if (user && user.role !== "admin") {
+      window.location.href = "/";
+    }
+  }, [isAuthenticated, isLoading, user]);
+
+  const isAdmin = Boolean(user && user.role === "admin");
+  return { isAdmin, isLoading };
+}

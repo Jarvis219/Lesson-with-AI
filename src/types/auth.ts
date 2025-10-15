@@ -8,6 +8,7 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
+  role?: "student" | "admin";
   level?: "beginner" | "intermediate" | "advanced";
   goals?: string;
 }
@@ -16,6 +17,7 @@ export interface User {
   _id: string;
   name: string;
   email: string;
+  role: "student" | "admin";
   level: "beginner" | "intermediate" | "advanced";
   goals: string;
   streak: number;

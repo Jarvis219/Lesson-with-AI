@@ -10,7 +10,7 @@ export const EXERCISE_QUESTION_TYPES: string[] = [
   "translation",
 ];
 
-interface Exercise {
+export interface Exercise {
   correctAnswer: string[];
   difficulty: "beginner" | "intermediate" | "advanced";
   explanation: string;

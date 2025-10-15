@@ -71,11 +71,9 @@ export class AuthService {
   async getCurrentUser(): Promise<User> {
     try {
       const response = await apiService.get<ApiResponse<User>>("/api/auth/me");
-      return response.data;
+      return response.data.user;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.error || "Không thể lấy thông tin người dùng"
-      );
+      throw new Error(error.response?.data?.error || "Cannot get user data");
     }
   }
 
@@ -88,9 +86,7 @@ export class AuthService {
       );
       return response.data;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.error || "Cập nhật thông tin thất bại"
-      );
+      throw new Error(error.response?.data?.error || "Cannot update user data");
     }
   }
 
