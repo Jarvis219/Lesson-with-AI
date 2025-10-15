@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Count achievements by category
-    progress.achievements.forEach((achievement) => {
+    progress.achievements.forEach((achievement: string) => {
       if (achievement.includes("streak")) categories.streak.earned++;
       else if (achievement.includes("lesson")) categories.lessons.earned++;
       else if (achievement.includes("score") || achievement.includes("perfect"))

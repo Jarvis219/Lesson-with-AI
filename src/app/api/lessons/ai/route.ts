@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { level, focus, duration, topics } = await request.json();
+    const { level, focus, duration, topics, prompt } = await request.json();
 
     // Validation
     if (!level || !focus || !duration) {
@@ -31,10 +31,18 @@ export async function POST(request: NextRequest) {
       level,
       focus,
       duration,
-      topics,
+      prompt,
+      // topics,
     };
 
-    const aiResponse = await generateLessonPlan(aiRequest);
+    const aiResponse = await generateLessonPlan(aiRequest, 10);
+
+    if (!aiResponse) {
+      return NextResponse.json(
+        { error: "Failed to generate lesson plan" },
+        { status: 500 }
+      );
+    }
 
     // Create lesson from AI response
     const lesson = new Lesson({
@@ -61,7 +69,7 @@ export async function POST(request: NextRequest) {
           ? "medium"
           : "hard",
       content: {
-        vocabulary: aiResponse.content.vocabulary,
+        vocabulary: aiResponse.content.text,
         exercises: aiResponse.content.exercises,
       },
       estimatedTime: aiResponse.estimatedTime,

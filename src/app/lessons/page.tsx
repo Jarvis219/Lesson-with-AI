@@ -144,7 +144,7 @@ export default function LessonsPage() {
 
     // Skill filter
     if (selectedSkill !== "all") {
-      filtered = filtered.filter((lesson) => lesson.skill === selectedSkill);
+      filtered = filtered.filter((lesson) => lesson.type === selectedSkill);
     }
 
     // Difficulty filter
@@ -177,7 +177,7 @@ export default function LessonsPage() {
           lessonId: lesson._id,
           score: 0,
           timeSpent: 0,
-          skill: lesson.skill,
+          skill: lesson.type,
         });
       }
 
@@ -421,7 +421,7 @@ export default function LessonsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredLessons.map((lesson) => {
-              const skillInfo = getSkillInfo(lesson.skill);
+              const skillInfo = getSkillInfo(lesson.type);
               const difficultyInfo = getDifficultyInfo(lesson.difficulty);
 
               return (

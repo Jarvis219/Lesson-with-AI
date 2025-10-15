@@ -142,7 +142,7 @@ export default function LessonDetailPage() {
         lessonId: lessonId,
         score: finalScore,
         timeSpent: progress.timeSpent,
-        skill: lesson?.skill,
+        skill: lesson?.type,
       });
 
       setProgress((prev) => ({
@@ -222,24 +222,24 @@ export default function LessonDetailPage() {
             {question.options?.map((option, index) => (
               <button
                 key={index}
-                onClick={() => handleAnswerSelect(question.id, option)}
+                onClick={() => handleAnswerSelect(question.id, option.value)}
                 className={`w-full p-4 text-left rounded-lg border-2 transition-colors ${
-                  userAnswer === option
+                  userAnswer === option.value
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}>
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      userAnswer === option
+                      userAnswer === option.value
                         ? "border-blue-500 bg-blue-500"
                         : "border-gray-300"
                     }`}>
-                    {userAnswer === option && (
+                    {userAnswer === option.value && (
                       <div className="w-2 h-2 bg-white rounded-full"></div>
                     )}
                   </div>
-                  <span className="font-medium">{option}</span>
+                  <span className="font-medium">{option.value}</span>
                 </div>
               </button>
             ))}
@@ -359,7 +359,7 @@ export default function LessonDetailPage() {
   const currentQuestion = lesson.questions[progress.currentQuestion];
   const progressPercentage =
     ((progress.currentQuestion + 1) / lesson.questions.length) * 100;
-  const skillInfo = getSkillInfo(lesson.skill);
+  const skillInfo = getSkillInfo(lesson.type);
   const difficultyInfo = getDifficultyInfo(lesson.difficulty);
 
   return (
@@ -415,7 +415,7 @@ export default function LessonDetailPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                {currentQuestion.question}
+                {currentQuestion.question.text}
               </h2>
               <Button
                 variant="outline"

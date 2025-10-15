@@ -92,7 +92,7 @@ export default function LessonResultModal({
       ],
     };
 
-    return feedbacks[lesson.skill as keyof typeof feedbacks] || feedbacks.vocab;
+    return feedbacks[lesson.type as keyof typeof feedbacks] || feedbacks.vocab;
   };
 
   const getNextLessonSuggestion = () => {
@@ -110,7 +110,7 @@ export default function LessonResultModal({
     };
 
     return (
-      suggestions[lesson.skill as keyof typeof suggestions] || suggestions.vocab
+      suggestions[lesson.type as keyof typeof suggestions] || suggestions.vocab
     );
   };
 
@@ -157,7 +157,7 @@ export default function LessonResultModal({
                 <p className="text-sm text-gray-600">{lesson.description}</p>
               </div>
               <Badge className="bg-blue-100 text-blue-700 border-0">
-                {lesson.skill.toUpperCase()}
+                {lesson.type.toUpperCase()}
               </Badge>
             </div>
           </Card>
