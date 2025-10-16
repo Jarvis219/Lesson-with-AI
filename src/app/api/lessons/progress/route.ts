@@ -1,5 +1,6 @@
 import { getUserFromRequest } from "@/lib/auth";
 import connectDB from "@/lib/db";
+import LessonResult from "@/models/LessonResult";
 import Progress from "@/models/Progress";
 import User from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
@@ -16,8 +17,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { lessonId, score, timeSpent, skill, stats } = await request.json();
-    console.log(lessonId, score, timeSpent, skill);
+    const {
+      lessonId,
+      score,
+      timeSpent,
+      skill,
+      stats,
+      questionResults,
+      feedback,
+    } = await request.json();
+
     // Validation
     if (!lessonId || score === undefined || !timeSpent) {
       return NextResponse.json(
@@ -75,6 +84,46 @@ export async function POST(request: NextRequest) {
     if (user) {
       user.streak = progress.streak;
       await user.save();
+    }
+
+    // Save lesson result to database
+    if (questionResults && Array.isArray(questionResults)) {
+      const correctAnswers = questionResults.filter(
+        (q: any) => q.isCorrect
+      ).length;
+
+      // Check if result already exists
+      const existingResult = await LessonResult.findOne({
+        userId: userPayload.userId,
+        lessonId: lessonId,
+      });
+
+      if (existingResult) {
+        // Update existing result if new score is better
+        if (score > existingResult.score) {
+          existingResult.score = score;
+          existingResult.correctAnswers = correctAnswers;
+          existingResult.timeSpent = timeSpent;
+          existingResult.questionResults = questionResults;
+          existingResult.completedAt = new Date();
+          if (feedback) {
+            existingResult.feedback = feedback;
+          }
+          await existingResult.save();
+        }
+      } else {
+        // Create new lesson result
+        await LessonResult.create({
+          userId: userPayload.userId,
+          lessonId: lessonId,
+          score: score,
+          totalQuestions: questionResults.length,
+          correctAnswers: correctAnswers,
+          timeSpent: timeSpent,
+          questionResults: questionResults,
+          feedback: feedback || undefined,
+        });
+      }
     }
 
     return NextResponse.json({

@@ -2,6 +2,7 @@
 export * from "./ai";
 export * from "./auth";
 export * from "./dashboard";
+export * from "./lesson-result";
 export * from "./lessons";
 export * from "./progress";
 

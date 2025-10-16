@@ -1,9 +1,13 @@
 import { generateLessonFeedback } from "@/lib/ai";
 import { getUserFromRequest } from "@/lib/auth";
+import connectDB from "@/lib/db";
+import LessonResult from "@/models/LessonResult";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
+
     const userPayload = getUserFromRequest(request);
     if (!userPayload) {
       return NextResponse.json(
@@ -20,6 +24,7 @@ export async function POST(request: NextRequest) {
       timeSpent,
       userLevel,
       questions,
+      lessonId,
     } = await request.json();
 
     // Validation
@@ -48,6 +53,19 @@ export async function POST(request: NextRequest) {
       userLevel,
       questions,
     });
+
+    // Save feedback to database if lessonId is provided
+    if (lessonId) {
+      const existingResult = await LessonResult.findOne({
+        userId: userPayload.userId,
+        lessonId: lessonId,
+      });
+
+      if (existingResult) {
+        existingResult.feedback = feedback;
+        await existingResult.save();
+      }
+    }
 
     return NextResponse.json({
       feedback,

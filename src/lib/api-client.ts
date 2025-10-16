@@ -11,6 +11,7 @@ import {
   DashboardStats,
   Lesson,
   LessonProgressRequest,
+  LessonResultResponse,
   LessonsFilterParams,
   LessonsResponse,
   ProgressStats,
@@ -203,11 +204,18 @@ export class ApiClient {
   }
 
   async getLessonFeedback(
-    data: LessonFeedbackRequest
+    data: LessonFeedbackRequest & { lessonId?: string }
   ): Promise<{ feedback: LessonFeedbackResponse }> {
     const response = await apiService.post<
       ApiResponse<{ feedback: LessonFeedbackResponse }>
     >(`/api/lessons/feedback`, data);
+    return response.data;
+  }
+
+  async getLessonResult(id: string): Promise<LessonResultResponse> {
+    const response = await apiService.get<ApiResponse<LessonResultResponse>>(
+      `/api/lessons/${id}/result`
+    );
     return response.data;
   }
 }

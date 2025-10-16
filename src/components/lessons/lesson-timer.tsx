@@ -16,6 +16,7 @@ interface LessonTimerProps {
 
 export interface LessonTimerRef {
   getCurrentTime: () => number;
+  reset: () => void;
 }
 
 const LessonTimer = forwardRef<LessonTimerRef, LessonTimerProps>(
@@ -43,6 +44,10 @@ const LessonTimer = forwardRef<LessonTimerRef, LessonTimerProps>(
 
     useImperativeHandle(ref, () => ({
       getCurrentTime: () => timeRef.current,
+      reset: () => {
+        timeRef.current = 0;
+        setTimeSpentSeconds(0);
+      },
     }));
 
     const formatElapsed = (totalSeconds: number) => {

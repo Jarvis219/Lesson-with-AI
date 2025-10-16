@@ -1,4 +1,6 @@
 import { ILessonProgressStats } from "@/models/Progress";
+import { LessonFeedbackResponse } from "./feedback";
+import { QuestionResult } from "./lesson-result";
 
 // Progress related types
 export interface ProgressStats {
@@ -33,4 +35,6 @@ export interface LessonProgressRequest {
   timeSpent: number;
   skill?: string;
   stats: ILessonProgressStats;
+  questionResults?: QuestionResult[];
+  feedback?: LessonFeedbackResponse;
 }
