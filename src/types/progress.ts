@@ -1,3 +1,5 @@
+import { ILessonProgressStats } from "@/models/Progress";
+
 // Progress related types
 export interface ProgressStats {
   totalLessonsCompleted: number;
@@ -30,4 +32,5 @@ export interface LessonProgressRequest {
   score: number;
   timeSpent: number;
   skill?: string;
+  stats: ILessonProgressStats;
 }

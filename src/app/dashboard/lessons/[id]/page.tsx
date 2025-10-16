@@ -1,13 +1,18 @@
 "use client";
 
 import LessonResultModal from "@/components/lessons/lesson-result-modal";
+import LessonTimer, { LessonTimerRef } from "@/components/lessons/lesson-timer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useRequireAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api-client";
+import { ILessonProgressStats } from "@/models/Progress";
 import { Exercise, Lesson } from "@/types";
+import { QuestionAnswer } from "@/types/feedback";
 import {
   ArrowLeft,
   BookOpen,
@@ -17,11 +22,10 @@ import {
   Play,
   RotateCcw,
   Target,
-  Timer,
   XCircle,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface LessonProgress {
   currentQuestion: number;
@@ -46,26 +50,17 @@ export default function LessonDetailPage() {
     answers: {},
     startTime: new Date(),
   });
+  const [questionsData, setQuestionsData] = useState<QuestionAnswer[]>([]);
   const [showResult, setShowResult] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [isTimerActive, setIsTimerActive] = useState(true);
+  const timerRef = useRef<LessonTimerRef>(null);
 
   useEffect(() => {
     if (isAuthenticated && lessonId) {
       fetchLesson();
     }
   }, [isAuthenticated, lessonId]);
-
-  useEffect(() => {
-    // Update timer every second
-    const interval = setInterval(() => {
-      setProgress((prev) => ({
-        ...prev,
-        timeSpentSeconds: prev.timeSpentSeconds + 1,
-      }));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const fetchLesson = async () => {
     try {
@@ -115,38 +110,84 @@ export default function LessonDetailPage() {
       let totalQuestions = lesson?.content.exercises.length || 0;
 
       lesson?.content.exercises.forEach((question) => {
-        const userAnswer = progress.answers[question._id];
+        const userAnswer: string | string[] = progress.answers[question._id];
         const correctAnswer = question.correctAnswer;
 
-        if (Array.isArray(correctAnswer)) {
+        if (Array.isArray(correctAnswer) && Array.isArray(userAnswer)) {
           if (
-            Array.isArray(userAnswer) &&
-            userAnswer.length === correctAnswer.length &&
-            userAnswer.every((ans) => correctAnswer.includes(ans))
+            correctAnswer.length === userAnswer.length &&
+            correctAnswer.every((ans) => userAnswer.includes(ans))
           ) {
             correctAnswers++;
           }
         } else {
-          if (userAnswer === correctAnswer) {
+          if (userAnswer === correctAnswer.join("")) {
             correctAnswers++;
           }
         }
       });
 
       const finalScore = Math.round((correctAnswers / totalQuestions) * 100);
+      // Get final time from timer before stopping
+      const finalTime =
+        timerRef.current?.getCurrentTime() || progress.timeSpentSeconds;
+
+      const stats: ILessonProgressStats = {
+        totalQuestionsAnswered: totalQuestions,
+        totalCorrectAnswers: correctAnswers,
+        totalIncorrectAnswers: totalQuestions - correctAnswers,
+      };
 
       // Update progress
       await apiClient.updateProgress({
         lessonId: lessonId,
         score: finalScore,
-        timeSpent: Math.floor(progress.timeSpentSeconds / 60),
+        timeSpent: finalTime,
         skill: lesson?.type,
+        stats,
       });
 
       setProgress((prev) => ({
         ...prev,
         score: finalScore,
+        timeSpentSeconds: finalTime,
       }));
+
+      // Stop the timer when lesson is completed
+      setIsTimerActive(false);
+
+      // Store detailed question data for AI feedback
+      const questionsData: QuestionAnswer[] = (
+        lesson?.content.exercises ?? []
+      ).map((question) => {
+        const userAnswer: string | string[] = progress.answers[question._id];
+        let isCorrect = false;
+
+        if (
+          Array.isArray(question.correctAnswer) &&
+          Array.isArray(userAnswer)
+        ) {
+          isCorrect =
+            question.correctAnswer.length === userAnswer.length &&
+            question.correctAnswer.every((ans) => userAnswer.includes(ans));
+        } else {
+          isCorrect = userAnswer === question.correctAnswer;
+        }
+
+        return {
+          question: question.question.text,
+          userAnswer: userAnswer || "",
+          correctAnswer: Array.isArray(question.correctAnswer)
+            ? question.correctAnswer.join(", ")
+            : question.correctAnswer,
+          isCorrect,
+          questionType: question.type,
+          explanation: question.explanation,
+        };
+      });
+
+      // Store questions data for AI feedback
+      setQuestionsData(questionsData);
 
       setShowResult(true);
     } catch (error) {
@@ -198,9 +239,12 @@ export default function LessonDetailPage() {
 
   const getDifficultyInfo = (difficulty: string) => {
     const difficulties = {
-      easy: { label: "Easy", color: "bg-green-100 text-green-700" },
-      medium: { label: "Medium", color: "bg-yellow-100 text-yellow-700" },
-      hard: { label: "Hard", color: "bg-red-100 text-red-700" },
+      beginner: { label: "Beginner", color: "bg-green-100 text-green-700" },
+      intermediate: {
+        label: "Intermediate",
+        color: "bg-yellow-100 text-yellow-700",
+      },
+      advanced: { label: "Advanced", color: "bg-red-100 text-red-700" },
     };
     return (
       difficulties[difficulty as keyof typeof difficulties] || {
@@ -218,33 +262,41 @@ export default function LessonDetailPage() {
         return (
           <div className="space-y-3">
             {question.options?.map((option, index) => (
-              <button
+              <label
                 key={index}
-                onClick={() => handleAnswerSelect(question._id, option.value)}
-                className={`w-full p-4 text-left rounded-lg border-2 transition-colors ${
-                  userAnswer === option.value
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}>
+                className={`w-full p-4 text-left rounded-lg transition-colors cursor-pointer`}>
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      userAnswer === option.value
-                        ? "border-blue-500 bg-blue-500"
-                        : "border-gray-300"
-                    }`}>
-                    {userAnswer === option.value && (
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                    )}
-                  </div>
-                  <span className="font-medium">{option.value}</span>
+                  <Checkbox
+                    checked={
+                      Array.isArray(userAnswer) &&
+                      userAnswer.includes(option.value)
+                    }
+                    onCheckedChange={(checked) => {
+                      const currentAnswers = Array.isArray(userAnswer)
+                        ? userAnswer
+                        : [];
+                      let newAnswers;
+                      if (checked) {
+                        newAnswers = [...currentAnswers, option.value];
+                      } else {
+                        newAnswers = currentAnswers.filter(
+                          (ans: string) => ans !== option.value
+                        );
+                      }
+                      handleAnswerSelect(question._id, newAnswers);
+                    }}
+                  />
+                  <Tooltip content={option.translate}>
+                    <span className="font-medium">{option.value}</span>
+                  </Tooltip>
                 </div>
-              </button>
+              </label>
             ))}
           </div>
         );
 
       case "fill-in-the-blank":
+      case "translation":
         return (
           <div className="space-y-3">
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -356,12 +408,7 @@ export default function LessonDetailPage() {
     ((progress.currentQuestion + 1) / lesson.content.exercises.length) * 100;
   const skillInfo = getSkillInfo(lesson.type);
   const difficultyInfo = getDifficultyInfo(lesson.difficulty);
-
-  const formatElapsed = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
+  // console.log(difficultyInfo);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -401,10 +448,7 @@ export default function LessonDetailPage() {
                 {lesson.content.exercises.length}
               </span>
               <div className="flex items-center gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
-                  <Timer className="h-4 w-4" />
-                  <span>{formatElapsed(progress.timeSpentSeconds)}</span>
-                </div>
+                <LessonTimer ref={timerRef} isActive={isTimerActive} />
               </div>
             </div>
             <Progress value={progressPercentage} className="h-2" />
@@ -416,7 +460,9 @@ export default function LessonDetailPage() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                {currentQuestion.question.text}
+                <Tooltip content={currentQuestion.question.translate}>
+                  {currentQuestion.question.text}
+                </Tooltip>
               </h2>
               <Button
                 variant="outline"
@@ -495,8 +541,9 @@ export default function LessonDetailPage() {
           lesson={lesson}
           score={progress.score}
           timeSpent={Math.floor(progress.timeSpentSeconds / 60)}
+          questionsData={questionsData}
           onClose={() => setShowResult(false)}
-          onContinue={() => router.push("/lessons")}
+          onContinue={() => router.push("/dashboard/lessons")}
         />
       )}
     </div>

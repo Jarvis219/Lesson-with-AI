@@ -1,3 +1,4 @@
+import { imageConstants } from "@/constant/image.constant";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -17,6 +18,9 @@ export const metadata: Metadata = {
     description: "Master English with personalized AI-powered lessons",
     type: "website",
     locale: "en_US",
+  },
+  icons: {
+    icon: imageConstants.favicon,
   },
 };
 

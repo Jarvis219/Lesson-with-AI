@@ -6,6 +6,12 @@ export interface IScore {
   lastUpdated: Date;
 }
 
+export interface ILessonProgressStats {
+  totalQuestionsAnswered: number;
+  totalCorrectAnswers: number;
+  totalIncorrectAnswers: number;
+}
+
 export interface ILessonProgress {
   lessonId: mongoose.Types.ObjectId;
   completed: boolean;
@@ -13,6 +19,7 @@ export interface ILessonProgress {
   timeSpent: number; // in minutes
   completedAt?: Date;
   attempts: number;
+  stats: ILessonProgressStats;
 }
 
 export interface IProgress extends Document {
@@ -29,6 +36,21 @@ export interface IProgress extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+const LessonProgressStatsSchema = new Schema<ILessonProgressStats>({
+  totalQuestionsAnswered: {
+    type: Number,
+    default: 0,
+  },
+  totalCorrectAnswers: {
+    type: Number,
+    default: 0,
+  },
+  totalIncorrectAnswers: {
+    type: Number,
+    default: 0,
+  },
+});
 
 const ScoreSchema = new Schema<IScore>({
   skill: {
@@ -54,6 +76,7 @@ const LessonProgressSchema = new Schema<ILessonProgress>({
     ref: "Lesson",
     required: true,
   },
+  stats: LessonProgressStatsSchema,
   completed: {
     type: Boolean,
     default: false,
@@ -161,7 +184,8 @@ ProgressSchema.methods.updateScore = function (
 ProgressSchema.methods.addLessonProgress = function (
   lessonId: string,
   score: number,
-  timeSpent: number
+  timeSpent: number,
+  stats?: ILessonProgressStats
 ) {
   const existingProgress = this.lessonProgress.find(
     (progress: ILessonProgress) => progress.lessonId.toString() === lessonId
@@ -175,6 +199,9 @@ ProgressSchema.methods.addLessonProgress = function (
       existingProgress.completed = true;
       existingProgress.completedAt = new Date();
     }
+    if (stats) {
+      existingProgress.stats = stats;
+    }
   } else {
     this.lessonProgress.push({
       lessonId: new mongoose.Types.ObjectId(lessonId),
@@ -183,11 +210,41 @@ ProgressSchema.methods.addLessonProgress = function (
       completed: score >= 70,
       completedAt: score >= 70 ? new Date() : undefined,
       attempts: 1,
+      stats: stats || {
+        totalQuestionsAnswered: 0,
+        totalCorrectAnswers: 0,
+        totalIncorrectAnswers: 0,
+      },
     });
   }
 
   if (score >= 70 && !this.lessonsCompleted.includes(lessonId)) {
     this.lessonsCompleted.push(lessonId);
+  }
+
+  return this.save();
+};
+
+// Method to add lesson progress stats
+ProgressSchema.methods.addLessonProgressStats = function (
+  lessonId: string,
+  stats: ILessonProgressStats
+) {
+  const existingProgress = this.lessonProgress.find(
+    (progress: ILessonProgress) => progress.lessonId.toString() === lessonId
+  );
+
+  if (existingProgress) {
+    existingProgress.stats = stats;
+  } else {
+    this.lessonProgress.push({
+      lessonId: new mongoose.Types.ObjectId(lessonId),
+      score: 0,
+      timeSpent: 0,
+      completed: false,
+      attempts: 1,
+      stats,
+    });
   }
 
   return this.save();

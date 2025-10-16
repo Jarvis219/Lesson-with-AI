@@ -16,6 +16,10 @@ import {
   ProgressStats,
   UpdateWeeklyGoalRequest,
 } from "@/types";
+import {
+  LessonFeedbackRequest,
+  LessonFeedbackResponse,
+} from "@/types/feedback";
 import { apiService } from "./axios";
 
 // API Client class
@@ -195,6 +199,15 @@ export class ApiClient {
     const response = await apiService.delete<ApiResponse<{ message: string }>>(
       `/api/lessons/${id}`
     );
+    return response.data;
+  }
+
+  async getLessonFeedback(
+    data: LessonFeedbackRequest
+  ): Promise<{ feedback: LessonFeedbackResponse }> {
+    const response = await apiService.post<
+      ApiResponse<{ feedback: LessonFeedbackResponse }>
+    >(`/api/lessons/feedback`, data);
     return response.data;
   }
 }

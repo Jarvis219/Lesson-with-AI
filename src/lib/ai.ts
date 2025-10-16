@@ -1,4 +1,8 @@
 import { EXERCISE_QUESTION_TYPES, Lesson } from "@/types";
+import {
+  LessonFeedbackRequest,
+  LessonFeedbackResponse,
+} from "@/types/feedback";
 import { GoogleGenAI, Type } from "@google/genai";
 
 // Initialize AI client
@@ -82,6 +86,11 @@ export interface AILessonPlanResponse {
   };
   estimatedTime: number;
 }
+
+export type {
+  LessonFeedbackRequest,
+  LessonFeedbackResponse,
+} from "@/types/feedback";
 
 // Grammar correction using Google AI
 export async function correctGrammar(
@@ -397,7 +406,7 @@ export async function generateLessonPlan(
   request: AILessonPlanRequest,
   numberOfQuestions: number,
   maxRetries: number = 3
-): Promise<Lesson | undefined> {
+): Promise<Omit<Lesson, "progress"> | undefined> {
   let attempts = 0;
 
   while (attempts < maxRetries) {
@@ -819,5 +828,159 @@ The lesson should be engaging and educational for the specified level.`;
       }
       // Continue to next attempt
     }
+  }
+}
+
+// Generate lesson feedback using Google AI
+export async function generateLessonFeedback(
+  request: LessonFeedbackRequest
+): Promise<LessonFeedbackResponse> {
+  try {
+    // Format questions and answers for AI
+    const questionsDetail = request.questions
+      .map((q, index) => {
+        const userAns = Array.isArray(q.userAnswer)
+          ? q.userAnswer.join(", ")
+          : q.userAnswer;
+        const correctAns = Array.isArray(q.correctAnswer)
+          ? q.correctAnswer.join(", ")
+          : q.correctAnswer;
+        return `
+Question ${index + 1} (${q.questionType}):
+- Question: ${q.question}
+- User's Answer: ${userAns}
+- Correct Answer: ${correctAns}
+- Result: ${q.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+${q.explanation ? `- Explanation: ${q.explanation}` : ""}`;
+      })
+      .join("\n");
+
+    const prompt = `
+You are an experienced English teacher providing detailed, personalized feedback to a student.
+
+STUDENT PERFORMANCE OVERVIEW:
+- Lesson Type: ${request.lessonType}
+- Score: ${request.score}%
+- Correct Answers: ${request.correctAnswers}/${request.totalQuestions}
+- Time Spent: ${request.timeSpent} minutes
+- Student Level: ${request.userLevel}
+
+DETAILED QUESTION ANALYSIS:
+${questionsDetail}
+
+Please provide comprehensive feedback in JSON format with:
+1. strengths: 2-3 specific strengths based on their performance and correct answers
+2. improvements: 2-3 specific areas for improvement with actionable advice based on their mistakes
+3. nextLessonSuggestions: 2-3 suggestions for next lessons they should take
+4. motivationalMessage: A motivational message (1-2 sentences)
+5. detailedAnalysis: (optional) More detailed analysis including:
+   - weakAreas: Specific topics or question types they struggled with
+   - strongAreas: Specific topics or question types they excelled at
+   - specificMistakes: List of specific mistakes made with explanations
+
+Be specific and reference the actual questions and answers in your feedback.`;
+
+    const response = await genAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            strengths: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.STRING,
+                description: "Specific strengths based on performance",
+              },
+            },
+            improvements: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.STRING,
+                description:
+                  "Specific areas for improvement with actionable advice",
+              },
+            },
+            nextLessonSuggestions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.STRING,
+                description: "Suggestions for next lessons",
+              },
+            },
+            motivationalMessage: {
+              type: Type.STRING,
+              description: "Motivational message to encourage the student",
+            },
+            detailedAnalysis: {
+              type: Type.OBJECT,
+              description: "Detailed analysis of performance",
+              properties: {
+                weakAreas: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.STRING,
+                    description: "Specific weak areas",
+                  },
+                },
+                strongAreas: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.STRING,
+                    description: "Specific strong areas",
+                  },
+                },
+                specificMistakes: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      question: {
+                        type: Type.STRING,
+                        description: "The question text",
+                      },
+                      userAnswer: {
+                        type: Type.STRING,
+                        description: "What the user answered",
+                      },
+                      correctAnswer: {
+                        type: Type.STRING,
+                        description: "The correct answer",
+                      },
+                      explanation: {
+                        type: Type.STRING,
+                        description: "Explanation of the mistake",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const text = response.text;
+
+    if (!text) {
+      throw new Error("No response text received");
+    }
+
+    const data = JSON.parse(text);
+
+    return {
+      strengths: data.strengths || [],
+      improvements: data.improvements || [],
+      nextLessonSuggestions: data.nextLessonSuggestions || [],
+      motivationalMessage:
+        data.motivationalMessage || "Keep up the great work!",
+      detailedAnalysis: data.detailedAnalysis,
+    };
+  } catch (error) {
+    console.error("Lesson feedback generation error:", error);
+    throw new Error("Failed to generate lesson feedback");
   }
 }

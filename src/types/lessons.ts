@@ -1,3 +1,5 @@
+import { ILessonProgress } from "@/models/Progress";
+
 interface Options {
   value: string;
   translate: string;
@@ -39,6 +41,7 @@ export interface Lesson {
   createdByAI?: boolean;
   createdAt: string;
   updatedAt: string;
+  progress: ILessonProgress;
 }
 
 export interface Question {

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { lessonId, score, timeSpent, skill } = await request.json();
+    const { lessonId, score, timeSpent, skill, stats } = await request.json();
     console.log(lessonId, score, timeSpent, skill);
     // Validation
     if (!lessonId || score === undefined || !timeSpent) {
@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Add lesson progress
-    await progress.addLessonProgress(lessonId, score, timeSpent);
+    // Add lesson progress with stats if provided
+    await progress.addLessonProgress(lessonId, score, timeSpent, stats);
 
     // Update skill score if provided
     if (skill) {
@@ -79,13 +79,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message: "Progress updated successfully",
-      progress: {
-        totalLessonsCompleted: progress.lessonsCompleted.length,
-        streak: progress.streak,
-        totalTimeSpent: progress.totalTimeSpent,
-        scores: progress.scores,
-        newAchievements,
-      },
     });
   } catch (error) {
     console.error("Update progress error:", error);

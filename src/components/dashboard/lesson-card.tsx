@@ -37,88 +37,102 @@ export function LessonCard({
   };
 
   const getProgressColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-red-600";
+    if (score >= 70) return "text-green-600";
+    return "text-orange-600";
   };
 
   return (
     <Card className="group relative overflow-hidden border border-border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
-      <div className="p-6 space-y-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-              {icon}
+      <div className="p-6 flex flex-col justify-between h-full">
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                {icon}
+              </div>
+              <span className="text-sm font-medium text-foreground">
+                {lessonType}
+              </span>
             </div>
-            <span className="text-sm font-medium text-foreground">
-              {lessonType}
-            </span>
+            <Badge
+              variant="outline"
+              className={cn(
+                "border font-medium capitalize",
+                difficultyColors[difficulty]
+              )}>
+              {difficulty}
+            </Badge>
           </div>
-          <Badge
-            variant="outline"
-            className={cn(
-              "border font-medium capitalize",
-              difficultyColors[difficulty]
-            )}>
-            {difficulty}
-          </Badge>
-        </div>
 
-        {/* Content */}
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold leading-tight text-balance text-foreground group-hover:text-primary transition-colors">
-            {title}
-          </h3>
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-            {description}
-          </p>
-        </div>
+          {/* Content */}
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold leading-tight text-balance text-foreground group-hover:text-primary transition-colors">
+              {title}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+              {description}
+            </p>
+          </div>
 
-        {/* Duration */}
-        <div className="flex items-center gap-1.5 text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span className="text-sm">{duration} minutes</span>
-        </div>
+          {/* Duration */}
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm">{duration} minutes</span>
+          </div>
 
-        {/* Progress Section */}
-        {isCompleted && progress > 0 && (
-          <div className="space-y-2.5 pt-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-semibold text-foreground">{progress}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+          {/* Progress Section */}
+          {progress > 0 && (
+            <div className="space-y-2.5 pt-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Progress</span>
+                <span className="font-semibold text-foreground">
+                  {progress}%
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                <div
+                  className={cn(
+                    "h-full transition-all duration-500 rounded-full bg-green-500"
+                  )}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
               <div
                 className={cn(
-                  "h-full transition-all duration-500 rounded-full bg-green-500"
+                  "flex items-center gap-1.5 text-success",
+                  getProgressColor(progress)
+                )}>
+                {isCompleted ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  <Clock className="h-4 w-4" />
                 )}
-                style={{ width: `${progress}%` }}
-              />
+                <span className="text-sm font-medium">
+                  {isCompleted ? "Completed" : "In Progress"}
+                </span>
+              </div>
             </div>
-            <div
-              className={cn(
-                "flex items-center gap-1.5 text-success",
-                getProgressColor(progress)
-              )}>
-              <CheckCircle2 className="h-4 w-4" />
-              <span className="text-sm font-medium">Completed</span>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Action Button */}
         <Button
           onClick={onClick}
           className={cn(
-            "w-full gap-2 font-medium transition-all",
+            "w-full gap-2 font-medium transition-all mt-2",
             isCompleted
               ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               : "bg-primary text-primary-foreground hover:bg-primary/90"
           )}
           size="lg">
           <Play className="h-4 w-4" />
-          {isCompleted ? "Review" : "Start learning"}
+          {/* {isCompleted ? "Review" : "Start learning"} */}
+          {progress > 0
+            ? isCompleted
+              ? "Review"
+              : "Continue"
+            : "Start learning"}
         </Button>
       </div>
 

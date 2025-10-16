@@ -1,5 +1,6 @@
 "use client";
 
+import { imageConstants } from "@/constant/image.constant";
 import { useRequireAuth } from "@/hooks/useAuth";
 import {
   BarChart3,
@@ -10,6 +11,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -27,34 +29,34 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   {
-    name: "Tổng quan",
+    name: "Overview",
     href: "/dashboard",
     icon: Home,
-    description: "Tiến trình và hoạt động gần đây",
+    description: "Progress and recent activity",
   },
   {
-    name: "Bài học",
+    name: "Lessons",
     href: "/dashboard/lessons",
     icon: BookOpen,
-    description: "Danh sách bài học và lộ trình",
+    description: "Lessons and progress",
   },
   {
-    name: "Thống kê",
-    href: "/dashboard", // keep within dashboard; could split later
+    name: "Statistics",
+    href: "/dashboard/statistics",
     icon: BarChart3,
-    description: "Biểu đồ và số liệu học tập",
+    description: "Charts and analytics",
   },
   {
-    name: "Hồ sơ",
+    name: "Profile",
     href: "/dashboard/profile",
     icon: User,
-    description: "Thông tin cá nhân và mục tiêu",
+    description: "Personal information and goals",
   },
   {
-    name: "Cài đặt",
+    name: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
-    description: "Tùy chỉnh tài khoản",
+    description: "Account settings",
   },
 ];
 
@@ -70,7 +72,7 @@ export default function StudentDashboardLayout({
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -102,9 +104,12 @@ export default function StudentDashboardLayout({
           </div>
           <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4">
-              <h1 className="text-xl font-bold text-gray-900">
-                Student Dashboard
-              </h1>
+              <Image
+                src={imageConstants.logo}
+                alt="logo"
+                width={100}
+                height={100}
+              />
             </div>
             <nav className="mt-5 px-2 space-y-1">
               {navigation.map((item) => {
@@ -145,16 +150,24 @@ export default function StudentDashboardLayout({
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
         <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex items-center flex-shrink-0 px-4">
-              <h1 className="text-xl font-bold text-gray-900">
-                Student Dashboard
-              </h1>
+            <div className="flex items-center justify-center flex-shrink-0 px-4">
+              <Link href="/" className="cursor-pointer">
+                <Image
+                  src={imageConstants.logo}
+                  alt="logo"
+                  width={120}
+                  height={120}
+                />
+              </Link>
             </div>
-            <nav className="mt-5 flex-1 px-2 space-y-1">
+            <nav className="flex-1 px-2 space-y-1">
               {navigation.map((item) => {
                 const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(item.href + "/");
+                  pathname === "/dashboard"
+                    ? true
+                    : pathname.includes(item.href) &&
+                      item.href !== "/dashboard";
+
                 return (
                   <Link
                     key={item.name}

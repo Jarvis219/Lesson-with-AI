@@ -14,6 +14,7 @@ import {
 import { difficulties, skills } from "@/constant/lesson.constant";
 import { useRequireAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api-client";
+import { ILessonProgressStats } from "@/models/Progress";
 import { Lesson } from "@/types";
 import {
   BookOpen,
@@ -25,16 +26,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-interface LessonWithProgress extends Lesson {
-  progress?: {
-    completed: boolean;
-    score: number;
-    timeSpent: number;
-    attempts: number;
-  };
-  isAIGenerated?: boolean;
-}
 
 interface PaginationInfo {
   currentPage: number;
@@ -49,7 +40,7 @@ export default function LessonsPage() {
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
   const router = useRouter();
 
-  const [lessons, setLessons] = useState<LessonWithProgress[]>([]);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [page, setPage] = useState<number>(1);
@@ -90,22 +81,7 @@ export default function LessonsPage() {
         // tags/topic not supported explicitly; could map selectedTopic to tags
       });
 
-      const lessonsWithProgress = response.lessons.map((lesson: Lesson) => ({
-        ...lesson,
-        // keep mock progress for UI continuity
-        progress:
-          Math.random() > 0.5
-            ? {
-                completed: Math.random() > 0.3,
-                score: Math.floor(Math.random() * 40) + 60,
-                timeSpent: Math.floor(Math.random() * 20) + 5,
-                attempts: Math.floor(Math.random() * 3) + 1,
-              }
-            : undefined,
-        isAIGenerated: Math.random() > 0.7,
-      }));
-
-      setLessons(lessonsWithProgress);
+      setLessons(response.lessons);
       // @ts-ignore API type
       setPagination(response.pagination as PaginationInfo);
     } catch (error) {
@@ -120,22 +96,8 @@ export default function LessonsPage() {
     fetchLessons();
   };
 
-  const handleStartLesson = async (lesson: LessonWithProgress) => {
-    try {
-      // Update lesson progress if not completed
-      if (!lesson.progress?.completed) {
-        await apiClient.updateProgress({
-          lessonId: lesson._id,
-          score: 1,
-          timeSpent: 15,
-          skill: lesson.type,
-        });
-      }
-
-      router.push(`/dashboard/lessons/${lesson._id}`);
-    } catch (error) {
-      console.error("Error starting lesson:", error);
-    }
+  const handleStartLesson = async (lesson: Lesson) => {
+    router.push(`/dashboard/lessons/${lesson._id}`);
   };
 
   const getSkillInfo = (skill: string) => {
@@ -172,6 +134,16 @@ export default function LessonsPage() {
       </div>
     );
   }
+
+  const calculatorCompletedLessons = (stats: ILessonProgressStats) => {
+    if (stats.totalQuestionsAnswered === 0) {
+      return 0;
+    }
+
+    return Math.round(
+      (stats.totalCorrectAnswers / stats.totalQuestionsAnswered) * 100
+    );
+  };
 
   if (!isAuthenticated) {
     return null;
@@ -225,7 +197,7 @@ export default function LessonsPage() {
                   AI generated
                 </p>
                 <p className="text-2xl font-bold text-purple-600">
-                  {lessons.filter((l) => l.isAIGenerated).length}
+                  {lessons.filter((l) => l.createdByAI).length}
                 </p>
               </div>
               <Brain className="h-8 w-8 text-purple-600" />
@@ -395,6 +367,10 @@ export default function LessonsPage() {
                   ? "Intermediate"
                   : "Advanced";
 
+              const calculatedCompletedLessons = calculatorCompletedLessons(
+                lesson.progress?.stats
+              );
+
               return (
                 <LessonCard
                   key={lesson._id}
@@ -406,8 +382,8 @@ export default function LessonsPage() {
                   title={lesson.title}
                   description={lesson.description}
                   duration={lesson.estimatedTime}
-                  progress={lesson.progress?.score}
-                  isCompleted={Boolean(lesson.progress?.completed)}
+                  progress={calculatedCompletedLessons}
+                  isCompleted={calculatedCompletedLessons >= 70}
                   onClick={() => handleStartLesson(lesson)}
                 />
               );
