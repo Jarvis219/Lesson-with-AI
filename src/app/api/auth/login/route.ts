@@ -4,7 +4,7 @@ import { validateEmail } from "@/lib/utils";
 import Progress from "@/models/Progress";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,35 +14,25 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
+      return new Response("Email and password are required", { status: 400 });
     }
 
     if (!validateEmail(email)) {
-      return NextResponse.json(
-        { error: "Please provide a valid email address" },
-        { status: 400 }
-      );
+      return new Response("Please provide a valid email address", {
+        status: 400,
+      });
     }
 
     // Find user
     const user = await User.findOne({ email }).populate("progress");
     if (!user) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
+      return new Response("Invalid email or password", { status: 401 });
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
+      return new Response("Invalid email or password", { status: 401 });
     }
 
     // Update last login
@@ -73,16 +63,15 @@ export async function POST(request: NextRequest) {
       preferences: user.preferences,
     };
 
-    return NextResponse.json({
-      message: "Login successful",
-      user: userResponse,
-      token,
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({
+        message: "Login successful",
+        user: userResponse,
+        token,
+      }),
+      { status: 200 }
     );
+  } catch (error) {
+    return new Response("Invalid email or password", { status: 401 });
   }
 }

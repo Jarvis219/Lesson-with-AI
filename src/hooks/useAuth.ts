@@ -75,9 +75,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await authService.login({ email, password });
       setUser(response.user);
-      setError(null);
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data ||
+        error?.message ||
+        "Login failed. Please try again.";
+      setError(errorMessage);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -93,9 +100,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }) => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await authService.register(userData);
       setUser(response.user);
-      setError(null);
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data ||
+        error?.message ||
+        "Registration failed. Please try again.";
+      setError(errorMessage);
+      throw error;
     } finally {
       setIsLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import LoginForm from "@/components/forms/login-form";
 import RegisterForm from "@/components/forms/register-form";
+import TeacherRegisterForm from "@/components/forms/teacher-register-form";
 import Footer from "@/components/layout/footer";
 import Navbar from "@/components/layout/navbar";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,9 +12,15 @@ import React, { useEffect, useState } from "react";
 const AuthPage: React.FC = () => {
   const { user, login, register, isLoading, error } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [isTeacherRegistration, setIsTeacherRegistration] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    if (user?.role === "teacher" && !user?.isTeacherApproved) {
+      router.push("/teacher/dashboard");
+      return;
+    }
+
     if (user) {
       router.push("/dashboard");
     }
@@ -22,18 +29,30 @@ const AuthPage: React.FC = () => {
   const handleLogin = async (email: string, password: string) => {
     try {
       await login(email, password);
-      router.push("/dashboard");
+      // Login successful, will redirect via useEffect
     } catch (error) {
-      // Error is handled by the auth context
+      // Error is handled by axios interceptor and auth context
+      // Toast notification will be shown automatically
     }
   };
 
   const handleRegister = async (data: any) => {
     try {
-      await register(data);
-      router.push("/dashboard");
+      const registerData = {
+        ...data,
+        role: isTeacherRegistration ? "teacher" : "student",
+      };
+      await register(registerData);
+
+      if (isTeacherRegistration) {
+        // Redirect to a waiting page for teacher approval
+        router.push("/teacher/pending-approval");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error) {
-      // Error is handled by the auth context
+      // Error is handled by axios interceptor and auth context
+      // Toast notification will be shown automatically
     }
   };
 
@@ -56,15 +75,47 @@ const AuthPage: React.FC = () => {
           {isLogin ? (
             <LoginForm
               onLogin={handleLogin}
-              onSwitchToRegister={() => setIsLogin(false)}
+              onSwitchToRegister={() => {
+                setIsLogin(false);
+                setIsTeacherRegistration(false);
+              }}
+              isLoading={isLoading}
+            />
+          ) : isTeacherRegistration ? (
+            <TeacherRegisterForm
+              onRegister={handleRegister}
+              onSwitchToLogin={() => {
+                setIsLogin(true);
+                setIsTeacherRegistration(false);
+              }}
               isLoading={isLoading}
             />
           ) : (
             <RegisterForm
               onRegister={handleRegister}
-              onSwitchToLogin={() => setIsLogin(true)}
+              onSwitchToLogin={() => {
+                setIsLogin(true);
+                setIsTeacherRegistration(false);
+              }}
               isLoading={isLoading}
             />
+          )}
+
+          {!isLogin && !isTeacherRegistration && (
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Want to teach?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTeacherRegistration(true);
+                    setIsLogin(false);
+                  }}
+                  className="text-primary hover:underline font-medium">
+                  Register as a teacher
+                </button>
+              </p>
+            </div>
           )}
         </div>
       </div>

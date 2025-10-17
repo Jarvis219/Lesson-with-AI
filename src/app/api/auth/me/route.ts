@@ -38,6 +38,10 @@ export async function GET(request: NextRequest) {
       goals: user.goals,
       streak: user.streak,
       preferences: user.preferences,
+      isTeacherApproved: user.isTeacherApproved,
+      teacherBio: user.teacherBio,
+      teacherQualification: user.teacherQualification,
+      coursesCreated: user.coursesCreated,
       progress: progressData
         ? {
             totalLessonsCompleted: progressData.lessonsCompleted.length,

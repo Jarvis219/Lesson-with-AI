@@ -1,10 +1,12 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export const USER_ROLES = ["student", "teacher", "admin"] as const;
+
 export interface IUser extends Document {
   name: string;
   email: string;
   passwordHash: string;
-  role: "student" | "admin";
+  role: (typeof USER_ROLES)[number];
   level: "beginner" | "intermediate" | "advanced";
   goals: string;
   progress?: mongoose.Types.ObjectId;
@@ -17,6 +19,11 @@ export interface IUser extends Document {
     notifications: boolean;
     difficulty: "easy" | "medium" | "hard";
   };
+  // Teacher specific fields
+  isTeacherApproved?: boolean;
+  teacherBio?: string;
+  teacherQualification?: string;
+  coursesCreated?: mongoose.Types.ObjectId[];
 }
 
 const UserSchema = new Schema<IUser>(
@@ -44,7 +51,7 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["student", "admin"],
+      enum: USER_ROLES,
       default: "student",
     },
     level: {
@@ -85,6 +92,25 @@ const UserSchema = new Schema<IUser>(
         default: "easy",
       },
     },
+    // Teacher specific fields
+    isTeacherApproved: {
+      type: Boolean,
+      default: false,
+    },
+    teacherBio: {
+      type: String,
+      maxlength: [500, "Bio cannot be more than 500 characters"],
+    },
+    teacherQualification: {
+      type: String,
+      maxlength: [200, "Qualification cannot be more than 200 characters"],
+    },
+    coursesCreated: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
   },
   {
     timestamps: true,

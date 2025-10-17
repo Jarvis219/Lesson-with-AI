@@ -4,6 +4,7 @@ import { useRequireAdmin } from "@/hooks/useAuth";
 import {
   BarChart3,
   BookOpen,
+  CheckCircle,
   Home,
   Menu,
   Settings,
@@ -43,6 +44,12 @@ const navigation: NavItem[] = [
     href: "/admin/users",
     icon: Users,
     description: "User management",
+  },
+  {
+    name: "Teachers",
+    href: "/admin/teachers",
+    icon: CheckCircle,
+    description: "Approve teacher applications",
   },
   {
     name: "Statistics",

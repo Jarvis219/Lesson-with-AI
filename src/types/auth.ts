@@ -8,16 +8,18 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
-  role?: "student" | "admin";
+  role?: "student" | "teacher" | "admin";
   level?: "beginner" | "intermediate" | "advanced";
   goals?: string;
+  teacherBio?: string;
+  teacherQualification?: string;
 }
 
 export interface User {
-  _id: string;
+  id: string;
   name: string;
   email: string;
-  role: "student" | "admin";
+  role: "student" | "teacher" | "admin";
   level: "beginner" | "intermediate" | "advanced";
   goals: string;
   streak: number;
@@ -26,6 +28,9 @@ export interface User {
     notifications: boolean;
     difficulty: "easy" | "medium" | "hard";
   };
+  isTeacherApproved?: boolean;
+  teacherBio?: string;
+  teacherQualification?: string;
   createdAt: string;
   updatedAt: string;
 }

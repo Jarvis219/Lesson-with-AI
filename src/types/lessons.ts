@@ -1,20 +1,20 @@
 import { ILessonProgress } from "@/models/Progress";
+import { DifficultyLevel, EXERCISE_TYPES, LessonType } from "./lesson-enums";
 
 interface Options {
   value: string;
   translate: string;
 }
 
-export const EXERCISE_QUESTION_TYPES: string[] = [
-  "multiple-choice",
-  "fill-in-the-blank",
-  "true-false",
-  "translation",
-];
+// Sync with centralized EXERCISE_TYPES
+export const EXERCISE_QUESTION_TYPES = EXERCISE_TYPES as unknown as string[];
+
+// Re-export for convenience
+export type { DifficultyLevel, LessonType };
 
 export interface Exercise {
   correctAnswer: string[];
-  difficulty: "beginner" | "intermediate" | "advanced";
+  difficulty: DifficultyLevel;
   explanation: string;
   options: Options[];
   question: {
@@ -34,8 +34,8 @@ export interface Lesson {
     exercises: Exercise[];
     text?: string;
   };
-  difficulty: "beginner" | "intermediate" | "advanced";
-  type: "vocab" | "grammar" | "listening" | "speaking" | "reading" | "writing";
+  difficulty: DifficultyLevel;
+  type: LessonType;
   estimatedTime: number;
   questions: Question[];
   createdByAI?: boolean;
@@ -70,8 +70,8 @@ export interface CreateLessonRequest {
   title: string;
   description: string;
   content: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
-  skill: "vocab" | "grammar" | "listening" | "speaking" | "reading" | "writing";
+  difficulty: DifficultyLevel;
+  skill: LessonType;
   estimatedTime: number;
   questions: Question[];
 }

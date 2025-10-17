@@ -163,7 +163,7 @@ export default function StudentDashboardLayout({
             <nav className="flex-1 px-2 space-y-1">
               {navigation.map((item) => {
                 const isActive =
-                  pathname === "/dashboard"
+                  pathname === "/dashboard" && item.href === "/dashboard"
                     ? true
                     : pathname.includes(item.href) &&
                       item.href !== "/dashboard";

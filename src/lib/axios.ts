@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { toastEventEmitter } from "./toast-event-emitter";
 
 // Base URL configuration
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -11,6 +12,15 @@ const axiosInstance: AxiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+axiosInstance.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Token management
 class TokenManager {
@@ -68,7 +78,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle auth errors
+// Response interceptor to handle auth errors and show toast notifications
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
@@ -80,8 +90,27 @@ axiosInstance.interceptors.response.use(
       tokenManager.removeToken();
 
       // Redirect to login page if we're on client side
-      if (typeof window !== "undefined") {
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/auth")
+      ) {
         window.location.href = "/auth";
+      }
+    }
+
+    // Emit toast event for error notifications
+    if (typeof window !== "undefined") {
+      const errorMessage =
+        error.response?.data?.message || error.message || "An error occurred";
+      const statusCode = error.response?.status;
+
+      // Don't show toast for 401 errors (already handled with redirect)
+      if (statusCode !== 401) {
+        toastEventEmitter.error(
+          errorMessage,
+          `Error ${statusCode ? `(${statusCode})` : ""}`,
+          5000
+        );
       }
     }
 

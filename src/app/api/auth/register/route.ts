@@ -17,6 +17,8 @@ export async function POST(request: NextRequest) {
       role = "student",
       level = "beginner",
       goals,
+      teacherBio,
+      teacherQualification,
     } = await request.json();
 
     // Validation
@@ -27,11 +29,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (role && !["student", "admin"].includes(role)) {
+    if (role && !["student", "teacher", "admin"].includes(role)) {
       return NextResponse.json(
-        { error: "Role must be either 'student' or 'admin'" },
+        { error: "Role must be either 'student', 'teacher', or 'admin'" },
         { status: 400 }
       );
+    }
+
+    // Validate teacher-specific fields
+    if (role === "teacher") {
+      if (!teacherBio || !teacherQualification) {
+        return NextResponse.json(
+          {
+            error:
+              "Teacher bio and qualification are required for teacher registration",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     if (!validateEmail(email)) {
@@ -66,7 +81,7 @@ export async function POST(request: NextRequest) {
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Create user
-    const user = new User({
+    const userData: any = {
       name,
       email,
       passwordHash,
@@ -75,41 +90,52 @@ export async function POST(request: NextRequest) {
       goals: goals || "Improve my English skills",
       streak: 0,
       lastLogin: new Date(),
-    });
+    };
+
+    // Add teacher-specific fields
+    if (role === "teacher") {
+      userData.isTeacherApproved = false;
+      userData.teacherBio = teacherBio;
+      userData.teacherQualification = teacherQualification;
+    }
+
+    const user = new User(userData);
 
     await user.save();
 
-    // Create progress record
-    const progress = new Progress({
-      userId: user._id,
-      lessonsCompleted: [],
-      streak: 0,
-      totalTimeSpent: 0,
-      scores: [
-        { skill: "vocab", score: 0, lastUpdated: new Date() },
-        { skill: "grammar", score: 0, lastUpdated: new Date() },
-        { skill: "listening", score: 0, lastUpdated: new Date() },
-        { skill: "speaking", score: 0, lastUpdated: new Date() },
-        { skill: "reading", score: 0, lastUpdated: new Date() },
-        { skill: "writing", score: 0, lastUpdated: new Date() },
-      ],
-      lessonProgress: [],
-      achievements: [],
-      weeklyGoal: 5,
-      weeklyProgress: 0,
-    });
+    // Create progress record only for students
+    if (role === "student") {
+      const progress = new Progress({
+        userId: user._id,
+        lessonsCompleted: [],
+        streak: 0,
+        totalTimeSpent: 0,
+        scores: [
+          { skill: "vocab", score: 0, lastUpdated: new Date() },
+          { skill: "grammar", score: 0, lastUpdated: new Date() },
+          { skill: "listening", score: 0, lastUpdated: new Date() },
+          { skill: "speaking", score: 0, lastUpdated: new Date() },
+          { skill: "reading", score: 0, lastUpdated: new Date() },
+          { skill: "writing", score: 0, lastUpdated: new Date() },
+        ],
+        lessonProgress: [],
+        achievements: [],
+        weeklyGoal: 5,
+        weeklyProgress: 0,
+      });
 
-    await progress.save();
+      await progress.save();
 
-    // Update user with progress reference
-    user.progress = progress._id;
-    await user.save();
+      // Update user with progress reference
+      user.progress = progress._id;
+      await user.save();
+    }
 
     // Generate token
     const token = generateToken(user);
 
     // Return user data (without password)
-    const userResponse = {
+    const userResponse: any = {
       id: user._id,
       name: user.name,
       email: user.email,
@@ -120,6 +146,13 @@ export async function POST(request: NextRequest) {
       preferences: user.preferences,
       token,
     };
+
+    // Add teacher-specific fields if applicable
+    if (role === "teacher") {
+      userResponse.isTeacherApproved = user.isTeacherApproved;
+      userResponse.teacherBio = user.teacherBio;
+      userResponse.teacherQualification = user.teacherQualification;
+    }
 
     return NextResponse.json(
       {

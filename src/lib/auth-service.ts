@@ -21,20 +21,16 @@ export class AuthService {
 
   // Login user
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    try {
-      const response = await apiService.post<ApiResponse<AuthResponse>>(
-        "/api/auth/login",
-        credentials
-      );
+    const response = await apiService.post<ApiResponse<AuthResponse>>(
+      "/api/auth/login",
+      credentials
+    );
 
-      if (response.data?.token) {
-        apiService.setAuthToken(response.data.token);
-      }
-
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.error || "Đăng nhập thất bại");
+    if (response.data?.token) {
+      apiService.setAuthToken(response.data.token);
     }
+
+    return response.data;
   }
 
   // Register user

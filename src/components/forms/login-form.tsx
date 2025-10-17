@@ -7,9 +7,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { validateEmail } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+// Zod validation schema
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -22,51 +38,22 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onSwitchToRegister,
   isLoading = false,
 }) => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      await onLogin(formData.email, formData.password);
+      await onLogin(data.email, data.password);
     } catch (error) {
-      // Error handling is done in parent component
+      // Error is handled by axios interceptor and auth context
+      // Toast notification will be shown automatically
     }
   };
 
@@ -79,7 +66,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
               Email
@@ -88,17 +75,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 id="email"
-                name="email"
                 type="email"
                 placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleInputChange}
+                {...register("email")}
                 className={`pl-10 ${errors.email ? "border-red-500" : ""}`}
                 disabled={isLoading}
               />
             </div>
             {errors.email && (
-              <p className="text-sm text-red-500">{errors.email}</p>
+              <p className="text-sm text-red-500">{errors.email.message}</p>
             )}
           </div>
 
@@ -110,11 +95,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 id="password"
-                name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleInputChange}
+                {...register("password")}
                 className={`pl-10 pr-10 ${
                   errors.password ? "border-red-500" : ""
                 }`}
@@ -133,7 +116,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-red-500">{errors.password}</p>
+              <p className="text-sm text-red-500">{errors.password.message}</p>
             )}
           </div>
 
