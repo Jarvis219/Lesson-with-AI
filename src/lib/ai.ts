@@ -1,9 +1,12 @@
+import { AILessonGenerateResponseSchema } from "@/constant/ai.schema.constant";
 import { EXERCISE_QUESTION_TYPES, Lesson } from "@/types";
 import {
   LessonFeedbackRequest,
   LessonFeedbackResponse,
 } from "@/types/feedback";
+import type { LessonContent, LessonType } from "@/types/lesson-content";
 import { GoogleGenAI, Type } from "@google/genai";
+import { getSchemaForType } from "utils/lesson.util";
 
 // Initialize AI client
 const genAI = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || "" });
@@ -91,6 +94,457 @@ export type {
   LessonFeedbackRequest,
   LessonFeedbackResponse,
 } from "@/types/feedback";
+
+// ==================== AI LESSON GENERATION ====================
+
+export interface AILessonGenerateRequest {
+  title?: string;
+  description?: string;
+  type: LessonType;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  estimatedTime: number;
+  topic?: string;
+  focusAreas?: string[];
+  numberOfExercises?: number;
+}
+
+export interface AILessonGenerateResponse {
+  title: string;
+  description: string;
+  type: LessonType;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  estimatedTime: number;
+  tags: string[];
+  content: LessonContent;
+}
+
+// Generate complete lesson content using Google AI
+export async function generateLessonContent(
+  request: AILessonGenerateRequest
+): Promise<AILessonGenerateResponse> {
+  try {
+    const lessonTypeDescriptions = {
+      vocab:
+        "vocabulary lesson with words, definitions, examples, and vocabulary exercises",
+      grammar:
+        "grammar lesson with rules, explanations, examples, and grammar exercises",
+      listening:
+        "listening lesson with audio content, pre-listening activities, and comprehension exercises",
+      speaking:
+        "speaking lesson with conversation practice, pronunciation tips, and speaking exercises",
+      reading:
+        "reading lesson with a passage, pre-reading activities, and comprehension questions",
+      writing:
+        "writing lesson with instructions, examples, framework, and writing exercises",
+    };
+
+    const prompt = `
+You are an expert English teacher creating a ${
+      lessonTypeDescriptions[request.type]
+    } for ${request.difficulty} level students.
+
+${request.topic ? `Topic: ${request.topic}` : ""}
+${request.title ? `Suggested Title: ${request.title}` : ""}
+${request.description ? `Description: ${request.description}` : ""}
+Estimated Time: ${request.estimatedTime} minutes
+${
+  request.focusAreas && request.focusAreas.length > 0
+    ? `Focus Areas: ${request.focusAreas.join(", ")}`
+    : ""
+}
+Number of Exercises: ${request.numberOfExercises || 5}
+
+Create a complete lesson following this structure:
+
+**BASIC INFO:**
+- title: A clear, engaging lesson title
+- description: Detailed description of what students will learn (at least 100 characters)
+- tags: 3-5 relevant tags (comma-separated)
+
+**CONTENT STRUCTURE:**
+
+${
+  request.type === "vocab"
+    ? `
+VOCABULARY LESSON:
+{
+  "thematicGroup": "Topic theme (e.g., Food, Travel, Technology)",
+  "vocabulary": [
+    {
+      "word": "word",
+      "definition": "clear definition",
+      "example": "example sentence",
+      "pronunciation": "IPA notation",
+      "partOfSpeech": "noun/verb/adjective/adverb/preposition/conjunction/pronoun/interjection",
+      "synonyms": ["synonym1", "synonym2"],
+      "antonyms": ["antonym1"],
+      "difficulty": "beginner/intermediate/advanced"
+    }
+  ],
+  "exercises": [
+    {
+      "type": "multiple-choice",
+      "question": "What does [word] mean?",
+      "translation": "Vietnamese translation",
+      "options": [
+        {"value": "correct answer", "translate": "Vietnamese"},
+        {"value": "wrong answer 1", "translate": "Vietnamese"},
+        {"value": "wrong answer 2", "translate": "Vietnamese"}
+      ],
+      "correctAnswer": "correct answer",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "Why this is correct"
+    },
+    {
+      "type": "fill-in-the-blank",
+      "question": "Complete the sentence",
+      "translation": "Vietnamese translation",
+      "sentence": "I like to ___ in the morning.",
+      "correctAnswers": ["exercise", "run", "jog"],
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "These are all correct verbs"
+    },
+    {
+      "type": "true-false",
+      "question": "This is a statement",
+      "translation": "Vietnamese translation",
+      "correctAnswer": "true",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "This statement is correct"
+    },
+    {
+      "type": "translation",
+      "question": "Translate to Vietnamese",
+      "translation": "Vietnamese translation",
+      "sentence": "Hello, how are you?",
+      "correctAnswers": ["Xin chào, bạn có khỏe không?", "Chào bạn, bạn thế nào?"],
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "These are correct translations"
+    }
+  ]
+}
+`
+    : ""
+}
+
+${
+  request.type === "grammar"
+    ? `
+GRAMMAR LESSON:
+{
+  "grammarRule": {
+    "name": "Grammar Rule Name (e.g., Present Simple Tense)",
+    "explanation": "Detailed explanation of the grammar rule",
+    "examples": [
+      {
+        "sentence": "Example sentence",
+        "translation": "Vietnamese translation",
+        "highlight": "part to highlight",
+        "explanation": "Why this demonstrates the rule"
+      }
+    ]
+  },
+  "exercises": [
+    {
+      "type": "fill-in-the-blank",
+      "question": "Complete the sentence",
+      "translation": "Vietnamese translation",
+      "sentence": "I ___ to school yesterday.",
+      "correctAnswers": ["went"],
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "Use past tense of 'go'"
+    },
+    {
+      "type": "multiple-choice",
+      "question": "Which sentence is correct?",
+      "translation": "Vietnamese translation",
+      "options": [
+        {"value": "I go to school yesterday", "translate": "Vietnamese"},
+        {"value": "I went to school yesterday", "translate": "Vietnamese"}
+      ],
+      "correctAnswer": "I went to school yesterday",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "Use past tense for past actions"
+    }
+  ],
+  "visualAids": []
+}
+`
+    : ""
+}
+
+${
+  request.type === "listening"
+    ? `
+LISTENING LESSON:
+{
+  "audio": {
+    "url": "https://example.com/audio.mp3",
+    "duration": 120,
+    "transcript": "Full transcript text of the audio",
+    "accent": "american/british/australian/canadian/irish/scottish"
+  },
+  "preListening": {
+    "context": "Background information about the audio topic",
+    "vocabulary": [
+      {
+        "word": "word",
+        "definition": "definition",
+        "example": "example sentence",
+        "partOfSpeech": "noun/verb/adjective/adverb/preposition/conjunction/pronoun/interjection",
+        "difficulty": "beginner/intermediate/advanced"
+      }
+    ],
+    "predictionQuestions": ["What do you think this audio is about?"]
+  },
+  "whileListening": {
+    "exercises": [
+      {
+        "type": "multiple-choice",
+        "question": "What is the main topic?",
+        "translation": "Vietnamese translation",
+        "options": [
+          {"value": "correct answer", "translate": "Vietnamese"},
+          {"value": "wrong answer 1", "translate": "Vietnamese"},
+          {"value": "wrong answer 2", "translate": "Vietnamese"}
+        ],
+        "correctAnswer": "correct answer",
+        "points": 10,
+        "difficulty": "beginner",
+        "explanation": "This is the main topic mentioned in the audio"
+      }
+    ]
+  },
+  "postListening": {
+    "comprehensionQuestions": [
+      {
+        "type": "true-false",
+        "question": "The speaker mentioned this point",
+        "translation": "Vietnamese translation",
+        "correctAnswer": "true",
+        "points": 10,
+        "difficulty": "beginner",
+        "explanation": "This point was mentioned in the audio"
+      }
+    ],
+    "discussionQuestions": ["Discussion question about the audio"],
+    "summaryTask": "Summarize the main points of the audio"
+  }
+}
+`
+    : ""
+}
+
+${
+  request.type === "speaking"
+    ? `
+SPEAKING LESSON:
+{
+  "pronunciation": {
+    "sounds": [
+      {
+        "phoneme": "/θ/",
+        "description": "Description of the sound and how to pronounce it",
+        "examples": ["think", "thought", "bath"]
+      }
+    ],
+    "intonation": [
+      {
+        "pattern": "Rising intonation for questions",
+        "description": "Description of the intonation pattern",
+        "examples": ["Really?", "Is that true?"]
+      }
+    ]
+  },
+  "conversation": {
+    "scenario": "At a restaurant",
+    "dialogues": [
+      {
+        "speaker": "Waiter",
+        "text": "What would you like to order?"
+      },
+      {
+        "speaker": "Customer",
+        "text": "I'll have the pasta, please."
+      }
+    ]
+  },
+  "practiceExercises": [
+    {
+      "type": "conversation/roleplay/presentation/discussion/pronunciation",
+      "prompt": "Practice prompt for the speaking exercise"
+    }
+  ]
+}
+`
+    : ""
+}
+
+${
+  request.type === "reading"
+    ? `
+READING LESSON:
+{
+  "passage": {
+    "title": "Article Title",
+    "content": "Full passage text (at least 200 words)",
+    "genre": "article/blog/news/story/essay/poem/letter"
+  },
+  "preReading": {
+    "context": "Background information about the passage",
+    "predictions": ["What do you think this passage is about?"],
+    "vocabulary": [
+      {
+        "word": "word",
+        "definition": "definition",
+        "example": "example sentence",
+        "partOfSpeech": "noun/verb/adjective/adverb/preposition/conjunction/pronoun/interjection",
+        "difficulty": "beginner/intermediate/advanced"
+      }
+    ]
+  },
+  "whileReading": {
+    "questions": [
+      {
+        "type": "true-false",
+        "question": "This statement is mentioned in the passage",
+        "translation": "Vietnamese translation",
+        "correctAnswer": "true",
+        "points": 10,
+        "difficulty": "beginner",
+        "explanation": "This statement is found in the passage"
+      }
+    ]
+  },
+  "postReading": {
+    "comprehensionQuestions": [
+      {
+        "type": "multiple-choice",
+        "question": "What is the main idea?",
+        "translation": "Vietnamese translation",
+        "options": [
+          {"value": "correct answer", "translate": "Vietnamese"},
+          {"value": "wrong answer 1", "translate": "Vietnamese"},
+          {"value": "wrong answer 2", "translate": "Vietnamese"}
+        ],
+        "correctAnswer": "correct answer",
+        "points": 10,
+        "difficulty": "beginner",
+        "explanation": "This is the main idea of the passage"
+      }
+    ],
+    "discussionQuestions": ["Discussion question about the passage"]
+  }
+}
+`
+    : ""
+}
+
+${
+  request.type === "writing"
+    ? `
+WRITING LESSON:
+{
+  "writingType": "essay/letter/email/report/story",
+  "instruction": {
+    "prompt": "Writing task prompt",
+    "requirements": ["200-250 words", "Include introduction and conclusion"]
+  },
+  "modelText": {
+    "title": "Model Essay Title",
+    "text": "Complete model text showing good writing"
+  },
+  "writingFramework": {
+    "structure": ["Introduction", "Body Paragraph 1", "Body Paragraph 2", "Conclusion"],
+    "usefulPhrases": [
+      {
+        "category": "Opening",
+        "phrases": ["useful phrase 1", "useful phrase 2"]
+      }
+    ]
+  }
+}
+`
+    : ""
+}
+
+**IMPORTANT RULES:**
+1. All exercises must have proper structure based on their type
+2. All exercises MUST have either "correctAnswer" (string) or "correctAnswers" (array) based on type:
+   - Multiple-choice: use "correctAnswer" (string) - the VALUE of the correct option
+   - Single-choice: use "correctAnswer" (string) - the VALUE of the correct option
+   - Fill-in-the-blank: use "correctAnswers" (array of strings) - possible correct answers
+   - True-false: use "correctAnswer" (string) - either "true" or "false"
+   - Translation: use "correctAnswers" (array of strings) - possible correct translations
+3. Multiple-choice and single-choice exercises MUST have options array with at least 2 options
+4. Fill-in-the-blank exercises MUST have correctAnswers array with at least one answer
+5. True-false exercises MUST have correctAnswer as string "true" or "false"
+6. Translation exercises MUST have correctAnswers array with at least one translation
+7. All fields marked as required in the schema MUST be filled
+8. Content must be appropriate for ${request.difficulty} level
+9. All text must be meaningful and educational
+10. For vocabulary lessons: use "theme" and "words" (not "vocabulary")
+11. For grammar lessons: use "name" in grammarRule (not "title")
+12. For reading lessons: use "content" in passage (not "text")
+13. For speaking lessons: intonation should be an array (not object)
+
+Return ONLY the JSON object with all required fields.`;
+
+    // Get the appropriate schema for validation
+    const schema = getSchemaForType(request.type);
+
+    // Note: We use a flexible schema since content structure varies by lesson type
+    // The AI will generate the appropriate content structure based on the prompt
+    const response = await genAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: AILessonGenerateResponseSchema(request.type),
+      },
+    });
+
+    const text = response.text?.trim();
+
+    if (!text) {
+      throw new Error("No response text received from AI");
+    }
+
+    const data = JSON.parse(text);
+
+    const result: AILessonGenerateResponse = {
+      title: data.title || request.title || "AI Generated Lesson",
+      description: data.description || request.description || "",
+      type: request.type,
+      difficulty:
+        (data.difficulty as "beginner" | "intermediate" | "advanced") ||
+        request.difficulty,
+      estimatedTime: data.estimatedTime || request.estimatedTime,
+      tags: data?.tags?.join(", "),
+      content: data.content as LessonContent,
+    };
+
+    console.log("---------------result----------------", result);
+
+    // Validate the response against the schema
+    const validatedData = schema.parse(result);
+    console.log("Validated Data:", validatedData);
+
+    return {
+      ...validatedData,
+      tags: validatedData?.tags?.split(", ").map((tag: string) => tag.trim()),
+    } as unknown as AILessonGenerateResponse;
+  } catch (error) {
+    console.error("Lesson generation error:", error);
+    throw new Error("Failed to generate lesson content");
+  }
+}
 
 // Grammar correction using Google AI
 export async function correctGrammar(

@@ -67,7 +67,7 @@ const fillInBlankExerciseSchema = baseExerciseSchema.extend({
 // True/False Exercise
 const trueFalseExerciseSchema = baseExerciseSchema.extend({
   type: z.literal("true-false"),
-  correctAnswer: z.boolean(),
+  correctAnswer: z.string(),
 });
 
 // Translation Exercise

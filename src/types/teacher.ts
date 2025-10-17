@@ -1,3 +1,5 @@
+import type { LessonContent } from "./lesson-content";
+
 export interface Teacher {
   _id: string;
   name: string;
@@ -82,7 +84,7 @@ export interface CreateLessonData {
   difficulty: string;
   estimatedTime: number;
   tags: string[];
-  content: any; // Can be any LessonContent type (Vocabulary, Grammar, Listening, Speaking, Reading, Writing)
+  content: LessonContent;
   teacherId: string;
 }
 

@@ -39,10 +39,11 @@ import type {
   WritingLessonContent,
 } from "@/types/lesson-content";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, Sparkles } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { getSchemaForType } from "utils/lesson.util";
 import type { z } from "zod";
 
 // Helper to initialize empty content based on lesson type
@@ -166,24 +167,6 @@ type LessonFormData =
   | ReadingFormData
   | WritingFormData;
 
-// Helper to get the correct schema based on lesson type
-const getSchemaForType = (type: LessonType) => {
-  switch (type) {
-    case "vocab":
-      return vocabularyLessonFormSchema;
-    case "grammar":
-      return grammarLessonFormSchema;
-    case "listening":
-      return listeningLessonFormSchema;
-    case "speaking":
-      return speakingLessonFormSchema;
-    case "reading":
-      return readingLessonFormSchema;
-    case "writing":
-      return writingLessonFormSchema;
-  }
-};
-
 export default function NewLessonPage() {
   const params = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -194,6 +177,8 @@ export default function NewLessonPage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [currentType, setCurrentType] = useState<LessonType>("vocab");
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Create form with dynamic schema - using VocabularyFormData as default
   const form = useForm<LessonFormData>({
@@ -236,6 +221,63 @@ export default function NewLessonPage() {
       } as LessonFormData);
     }
   }, [watchedType, currentType, form, reset]);
+
+  const handleGenerateWithAI = async () => {
+    try {
+      setIsGenerating(true);
+
+      const requestData = {
+        title: form.getValues("title"),
+        description: form.getValues("description"),
+        type: form.getValues("type"),
+        difficulty: form.getValues("difficulty"),
+        estimatedTime: form.getValues("estimatedTime"),
+        topic: form.getValues("title"), // Use title as topic
+        numberOfExercises: 5,
+      };
+
+      const response = await fetch("/api/ai/generate-lesson", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate lesson");
+      }
+
+      const { lesson } = await response.json();
+
+      // Fill form with AI generated data
+      reset({
+        title: lesson.title,
+        description: lesson.description,
+        type: lesson.type,
+        difficulty: lesson.difficulty,
+        estimatedTime: lesson.estimatedTime,
+        tags: lesson.tags.join(", "),
+        content: lesson.content,
+      } as LessonFormData);
+
+      setCurrentType(lesson.type);
+      toast({
+        title: "Success!",
+        description: "Lesson content generated successfully",
+      });
+
+      setShowAIGenerator(false);
+      setStep(2);
+    } catch (error) {
+      console.error("AI generation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate lesson content",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleNextStep = () => {
     // Validate basic info fields before moving to step 2
@@ -300,7 +342,7 @@ export default function NewLessonPage() {
         difficulty: data.difficulty,
         estimatedTime: data.estimatedTime,
         tags: tagsArray,
-        content: data.content,
+        content: data.content as LessonContent,
         teacherId: user.id,
       });
 
@@ -389,12 +431,24 @@ export default function NewLessonPage() {
             {step === 1 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold">
-                    Create New Lesson
-                  </CardTitle>
-                  <CardDescription>
-                    Step 1: Enter basic lesson information
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-2xl font-bold">
+                        Create New Lesson
+                      </CardTitle>
+                      <CardDescription>
+                        Step 1: Enter basic lesson information
+                      </CardDescription>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowAIGenerator(!showAIGenerator)}
+                      className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      {showAIGenerator ? "Hide AI" : "Generate with AI"}
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
@@ -519,12 +573,32 @@ export default function NewLessonPage() {
                         className="flex-1">
                         Cancel
                       </Button>
-                      <Button
-                        type="button"
-                        onClick={handleNextStep}
-                        className="flex-1">
-                        Next: Add Content
-                      </Button>
+                      {showAIGenerator ? (
+                        <Button
+                          type="button"
+                          onClick={handleGenerateWithAI}
+                          disabled={isGenerating}
+                          className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                          {isGenerating ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="mr-2 h-4 w-4" />
+                              Generate with AI
+                            </>
+                          )}
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={handleNextStep}
+                          className="flex-1">
+                          Next: Add Content
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -44,6 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getSchemaForType } from "utils/lesson.util";
 
 // Define form data types
 type VocabularyFormData = z.infer<typeof vocabularyLessonFormSchema>;
@@ -60,26 +61,6 @@ type LessonFormData =
   | SpeakingFormData
   | ReadingFormData
   | WritingFormData;
-
-// Helper to get schema based on lesson type
-const getSchemaForType = (type: LessonType) => {
-  switch (type) {
-    case "vocab":
-      return vocabularyLessonFormSchema;
-    case "grammar":
-      return grammarLessonFormSchema;
-    case "listening":
-      return listeningLessonFormSchema;
-    case "speaking":
-      return speakingLessonFormSchema;
-    case "reading":
-      return readingLessonFormSchema;
-    case "writing":
-      return writingLessonFormSchema;
-    default:
-      return vocabularyLessonFormSchema;
-  }
-};
 
 export default function EditLessonPage() {
   const params = useParams();
@@ -229,7 +210,7 @@ export default function EditLessonPage() {
           difficulty: data.difficulty,
           estimatedTime: data.estimatedTime,
           tags: tagsArray,
-          content: data.content,
+          content: data.content as LessonContent,
           teacherId: user.id,
         }
       );

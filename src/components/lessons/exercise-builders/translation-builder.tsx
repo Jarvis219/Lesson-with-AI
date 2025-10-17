@@ -12,15 +12,15 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import { Controller, useFormContext } from "react-hook-form";
 
-interface SingleChoiceBuilderProps {
+interface TranslationBuilderProps {
   index: number;
   onRemove: () => void;
 }
 
-export function SingleChoiceBuilder({
+export function TranslationBuilder({
   index,
   onRemove,
-}: SingleChoiceBuilderProps) {
+}: TranslationBuilderProps) {
   const {
     control,
     watch,
@@ -29,20 +29,32 @@ export function SingleChoiceBuilder({
   } = useFormContext();
 
   const basePath = `content.exercises.${index}` as const;
-  const options = watch(`${basePath}.options`) || [];
+  const correctAnswers = watch(`${basePath}.correctAnswers`) || [];
+  const hints = watch(`${basePath}.hints`) || [];
 
   // Get nested errors safely
   const contentErrors = errors?.content as any;
   const exerciseError = contentErrors?.exercises?.[index];
 
-  const addOption = () => {
-    setValue(`${basePath}.options`, [...options, { value: "", translate: "" }]);
+  const addCorrectAnswer = () => {
+    setValue(`${basePath}.correctAnswers`, [...correctAnswers, ""]);
   };
 
-  const removeOption = (optionIndex: number) => {
+  const removeCorrectAnswer = (answerIndex: number) => {
     setValue(
-      `${basePath}.options`,
-      options.filter((_: any, i: number) => i !== optionIndex)
+      `${basePath}.correctAnswers`,
+      correctAnswers.filter((_: any, i: number) => i !== answerIndex)
+    );
+  };
+
+  const addHint = () => {
+    setValue(`${basePath}.hints`, [...hints, ""]);
+  };
+
+  const removeHint = (hintIndex: number) => {
+    setValue(
+      `${basePath}.hints`,
+      hints.filter((_: any, i: number) => i !== hintIndex)
     );
   };
 
@@ -50,9 +62,9 @@ export function SingleChoiceBuilder({
     <div className="border rounded-lg p-4 space-y-4 bg-white">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h4 className="font-semibold text-sm">Single Choice Question</h4>
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-            Only one correct answer
+          <h4 className="font-semibold text-sm">Translation Exercise</h4>
+          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+            Translate sentence
           </span>
         </div>
         <Button
@@ -67,7 +79,7 @@ export function SingleChoiceBuilder({
 
       {/* Question */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Question *</label>
+        <label className="text-sm font-medium">Question/Instruction *</label>
         <Controller
           control={control}
           name={`${basePath}.question`}
@@ -75,7 +87,7 @@ export function SingleChoiceBuilder({
             <>
               <Input
                 {...field}
-                placeholder="Enter your question"
+                placeholder="Enter the instruction for translation"
                 className={fieldState.error ? "border-red-500" : ""}
               />
               {fieldState.error && (
@@ -96,7 +108,7 @@ export function SingleChoiceBuilder({
           name={`${basePath}.translation`}
           render={({ field, fieldState }) => (
             <>
-              <Input {...field} placeholder="Dịch câu hỏi sang tiếng Việt" />
+              <Input {...field} placeholder="Dịch hướng dẫn sang tiếng Việt" />
               {fieldState.error && (
                 <p className="text-sm text-red-500">
                   {fieldState.error.message}
@@ -107,20 +119,43 @@ export function SingleChoiceBuilder({
         />
       </div>
 
-      {/* Options */}
+      {/* Sentence to Translate */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Answer Options *</label>
-        {options.map((option: any, optionIndex: number) => (
-          <div key={optionIndex} className="space-y-2">
+        <label className="text-sm font-medium">Sentence to Translate *</label>
+        <Controller
+          control={control}
+          name={`${basePath}.sentence`}
+          render={({ field, fieldState }) => (
+            <>
+              <Input
+                {...field}
+                placeholder="Enter the sentence to be translated"
+                className={fieldState.error ? "border-red-500" : ""}
+              />
+              {fieldState.error && (
+                <p className="text-sm text-red-500">
+                  {fieldState.error.message}
+                </p>
+              )}
+            </>
+          )}
+        />
+      </div>
+
+      {/* Correct Answers */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Correct Answers *</label>
+        {correctAnswers.map((answer: any, answerIndex: number) => (
+          <div key={answerIndex} className="space-y-2">
             <div className="flex gap-2 items-center">
               <Controller
                 control={control}
-                name={`${basePath}.options.${optionIndex}.value`}
+                name={`${basePath}.correctAnswers.${answerIndex}`}
                 render={({ field, fieldState }) => (
                   <div className="flex-1">
                     <Input
                       {...field}
-                      placeholder={`Option ${optionIndex + 1}`}
+                      placeholder={`Correct answer ${answerIndex + 1}`}
                       className={fieldState.error ? "border-red-500" : ""}
                     />
                     {fieldState.error && (
@@ -131,12 +166,12 @@ export function SingleChoiceBuilder({
                   </div>
                 )}
               />
-              {options.length > 2 && (
+              {correctAnswers.length > 1 && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeOption(optionIndex)}
+                  onClick={() => removeCorrectAnswer(answerIndex)}
                   className="text-red-500 hover:text-red-700">
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -148,49 +183,53 @@ export function SingleChoiceBuilder({
           type="button"
           variant="outline"
           size="sm"
-          onClick={addOption}
+          onClick={addCorrectAnswer}
           className="w-full">
           <Plus className="h-4 w-4 mr-2" />
-          Add Option
+          Add Correct Answer
         </Button>
-        {exerciseError?.options?.message && (
+        {exerciseError?.correctAnswers?.message && (
           <p className="text-sm text-red-500">
-            {exerciseError.options.message}
+            {exerciseError.correctAnswers.message}
           </p>
         )}
       </div>
 
-      {/* Correct Answer */}
+      {/* Hints (Optional) */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Correct Answer *</label>
-        <Controller
-          control={control}
-          name={`${basePath}.correctAnswer`}
-          render={({ field, fieldState }) => (
-            <>
-              <Select value={field.value || ""} onValueChange={field.onChange}>
-                <SelectTrigger
-                  className={fieldState.error ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select correct answer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {options
-                    .filter((opt: any) => opt?.value?.trim())
-                    .map((option: any, idx: number) => (
-                      <SelectItem key={idx} value={option.value}>
-                        {option.value}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              {fieldState.error && (
-                <p className="text-sm text-red-500">
-                  {fieldState.error.message}
-                </p>
-              )}
-            </>
-          )}
-        />
+        <label className="text-sm font-medium">Hints (Optional)</label>
+        {hints.map((hint: any, hintIndex: number) => (
+          <div key={hintIndex} className="space-y-2">
+            <div className="flex gap-2 items-center">
+              <Controller
+                control={control}
+                name={`${basePath}.hints.${hintIndex}`}
+                render={({ field }) => (
+                  <div className="flex-1">
+                    <Input {...field} placeholder={`Hint ${hintIndex + 1}`} />
+                  </div>
+                )}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeHint(hintIndex)}
+                className="text-red-500 hover:text-red-700">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addHint}
+          className="w-full">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Hint
+        </Button>
       </div>
 
       {/* Points & Difficulty */}
@@ -259,7 +298,7 @@ export function SingleChoiceBuilder({
             <>
               <textarea
                 {...field}
-                placeholder="Explain why this is the correct answer..."
+                placeholder="Provide additional context or explanation..."
                 rows={2}
                 className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none ${
                   fieldState.error ? "border-red-500" : ""

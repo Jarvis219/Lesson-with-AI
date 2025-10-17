@@ -4,6 +4,8 @@ import {
   FillInBlankBuilder,
   MultipleChoiceBuilder,
   SingleChoiceBuilder,
+  TranslationBuilder,
+  TrueFalseBuilder,
 } from "@/components/lessons/exercise-builders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Exercise, VocabularyWord } from "@/types/lesson-content";
+import type { ExerciseType, VocabularyWord } from "@/types/lesson-content";
 import { Plus, Trash2 } from "lucide-react";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  FieldErrors,
+  FieldValues,
+  useFieldArray,
+  useFormContext,
+} from "react-hook-form";
+import { addExerciseToLesson } from "utils/lesson.util";
 
 export function VocabularyLessonForm() {
   const {
@@ -75,47 +84,10 @@ export function VocabularyLessonForm() {
     appendVocabulary(newWord);
   };
 
-  const addExercise = (
-    type: "multiple-choice" | "single-choice" | "fill-in-the-blank"
-  ) => {
-    const baseExercise: Partial<Exercise> = {
-      type,
-      question: "",
-      points: 1,
-      difficulty: "beginner",
-    };
-
-    const newExercise =
-      type === "multiple-choice"
-        ? {
-            ...baseExercise,
-            type: "multiple-choice" as const,
-            options: [
-              { value: "", translate: "" },
-              { value: "", translate: "" },
-              { value: "", translate: "" },
-            ],
-            correctAnswer: "",
-          }
-        : type === "single-choice"
-        ? {
-            ...baseExercise,
-            type: "single-choice" as const,
-            options: [
-              { value: "", translate: "" },
-              { value: "", translate: "" },
-              { value: "", translate: "" },
-            ],
-            correctAnswer: "",
-          }
-        : {
-            ...baseExercise,
-            type: "fill-in-the-blank" as const,
-            sentence: "",
-            correctAnswers: [""],
-          };
-
-    appendExercise(newExercise as Exercise);
+  const addExercise = (type: ExerciseType) => {
+    addExerciseToLesson(type, (exercise) => {
+      appendExercise(exercise);
+    });
   };
 
   return (
@@ -214,32 +186,28 @@ export function VocabularyLessonForm() {
               <Plus className="h-4 w-4 mr-2" />
               Fill in Blank
             </Button>
+            <Button
+              type="button"
+              onClick={() => addExercise("true-false")}
+              size="sm"
+              variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              True False
+            </Button>
+            <Button
+              type="button"
+              onClick={() => addExercise("translation")}
+              size="sm"
+              variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Translation
+            </Button>
           </div>
         </div>
 
         {exerciseFields.length === 0 ? (
           <div className="text-center py-8 border-2 border-dashed rounded-lg">
             <p className="text-gray-500 mb-4">No exercises yet</p>
-            <div className="flex gap-2 justify-center">
-              <Button
-                type="button"
-                onClick={() => addExercise("multiple-choice")}
-                variant="outline">
-                Add Multiple Choice
-              </Button>
-              <Button
-                type="button"
-                onClick={() => addExercise("single-choice")}
-                variant="outline">
-                Add Single Choice
-              </Button>
-              <Button
-                type="button"
-                onClick={() => addExercise("fill-in-the-blank")}
-                variant="outline">
-                Add Fill in Blank
-              </Button>
-            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -261,6 +229,18 @@ export function VocabularyLessonForm() {
                   )}
                   {exerciseType === "fill-in-the-blank" && (
                     <FillInBlankBuilder
+                      index={index}
+                      onRemove={() => removeExercise(index)}
+                    />
+                  )}
+                  {exerciseType === "true-false" && (
+                    <TrueFalseBuilder
+                      index={index}
+                      onRemove={() => removeExercise(index)}
+                    />
+                  )}
+                  {exerciseType === "translation" && (
+                    <TranslationBuilder
                       index={index}
                       onRemove={() => removeExercise(index)}
                     />
@@ -435,22 +415,35 @@ function VocabularyWordCard({
           <Controller
             control={control}
             name={`content.vocabulary.${index}.antonyms`}
-            render={({ field }) => (
-              <Input
-                placeholder="home kitchen"
-                value={(field.value || []).join(", ")}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  field.onChange(
-                    value
-                      ? value
-                          .split(",")
-                          .map((s) => s.trim())
-                          .filter((s) => s)
-                      : []
-                  );
-                }}
-              />
+            render={({
+              field,
+              formState: { errors },
+            }: {
+              field: FieldValues;
+              formState: { errors: FieldErrors };
+            }) => (
+              <>
+                <Input
+                  placeholder="home kitchen"
+                  value={(field.value || []).join(", ")}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(
+                      value
+                        ? value
+                            .split(",")
+                            .map((s) => s.trim())
+                            .filter((s) => s)
+                        : []
+                    );
+                  }}
+                />
+                {errors.antonyms?.message && (
+                  <p className="text-sm text-red-500">
+                    {errors.antonyms?.message as string}
+                  </p>
+                )}
+              </>
             )}
           />
         </div>

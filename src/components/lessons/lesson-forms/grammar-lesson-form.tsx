@@ -3,12 +3,16 @@
 import {
   FillInBlankBuilder,
   MultipleChoiceBuilder,
+  SingleChoiceBuilder,
+  TranslationBuilder,
+  TrueFalseBuilder,
 } from "@/components/lessons/exercise-builders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { Exercise, GrammarExample } from "@/types/lesson-content";
+import type { ExerciseType, GrammarExample } from "@/types/lesson-content";
 import { Plus, Trash2 } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { addExerciseToLesson } from "utils/lesson.util";
 
 export function GrammarLessonForm() {
   const {
@@ -71,33 +75,10 @@ export function GrammarLessonForm() {
     appendExample(newExample);
   };
 
-  const addExercise = (type: "multiple-choice" | "fill-in-the-blank") => {
-    const baseExercise: Partial<Exercise> = {
-      type,
-      question: "",
-      points: 1,
-      difficulty: "beginner",
-    };
-
-    const newExercise =
-      type === "multiple-choice"
-        ? {
-            ...baseExercise,
-            type: "multiple-choice" as const,
-            options: [
-              { value: "", translate: "" },
-              { value: "", translate: "" },
-            ],
-            correctAnswer: "",
-          }
-        : {
-            ...baseExercise,
-            type: "fill-in-the-blank" as const,
-            sentence: "",
-            correctAnswers: [""],
-          };
-
-    appendExercise(newExercise as Exercise);
+  const addExercise = (type: ExerciseType) => {
+    addExerciseToLesson(type, (exercise) => {
+      appendExercise(exercise);
+    });
   };
 
   return (
@@ -396,11 +377,35 @@ export function GrammarLessonForm() {
             </Button>
             <Button
               type="button"
+              onClick={() => addExercise("single-choice")}
+              size="sm"
+              variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Single Choice
+            </Button>
+            <Button
+              type="button"
               onClick={() => addExercise("fill-in-the-blank")}
               size="sm"
               variant="outline">
               <Plus className="h-4 w-4 mr-2" />
               Fill in Blank
+            </Button>
+            <Button
+              type="button"
+              onClick={() => addExercise("true-false")}
+              size="sm"
+              variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              True False
+            </Button>
+            <Button
+              type="button"
+              onClick={() => addExercise("translation")}
+              size="sm"
+              variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Translation
             </Button>
           </div>
         </div>
@@ -408,20 +413,6 @@ export function GrammarLessonForm() {
         {exerciseFields.length === 0 ? (
           <div className="text-center py-8 border-2 border-dashed rounded-lg">
             <p className="text-gray-500 mb-4">No exercises yet</p>
-            <div className="flex gap-2 justify-center">
-              <Button
-                type="button"
-                onClick={() => addExercise("multiple-choice")}
-                variant="outline">
-                Add Multiple Choice
-              </Button>
-              <Button
-                type="button"
-                onClick={() => addExercise("fill-in-the-blank")}
-                variant="outline">
-                Add Fill in Blank
-              </Button>
-            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -435,8 +426,26 @@ export function GrammarLessonForm() {
                       onRemove={() => removeExercise(index)}
                     />
                   )}
+                  {exerciseType === "single-choice" && (
+                    <SingleChoiceBuilder
+                      index={index}
+                      onRemove={() => removeExercise(index)}
+                    />
+                  )}
                   {exerciseType === "fill-in-the-blank" && (
                     <FillInBlankBuilder
+                      index={index}
+                      onRemove={() => removeExercise(index)}
+                    />
+                  )}
+                  {exerciseType === "true-false" && (
+                    <TrueFalseBuilder
+                      index={index}
+                      onRemove={() => removeExercise(index)}
+                    />
+                  )}
+                  {exerciseType === "translation" && (
+                    <TranslationBuilder
                       index={index}
                       onRemove={() => removeExercise(index)}
                     />
