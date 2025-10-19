@@ -8,10 +8,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { TeacherService } from "@/lib/teacher-service";
+import { Lesson } from "@/types";
 import type { Course } from "@/types/teacher";
-import { ArrowLeft, BookOpen, Clock, Eye, Plus, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  BookOpen,
+  Clock,
+  Eye,
+  Globe,
+  Lock,
+  Plus,
+  Users,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -19,8 +30,10 @@ export default function CourseDetailPage() {
   const params = useParams<{ id: string }>();
   const { user } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -48,6 +61,32 @@ export default function CourseDetailPage() {
     router.push(`/teacher/courses/${params.id}/lessons/new`);
   };
 
+  const handleTogglePublish = async () => {
+    if (!course) return;
+
+    try {
+      setIsUpdating(true);
+      const newStatus = !course.isPublished;
+      await TeacherService.updateCourseStatus(params.id, newStatus);
+      setCourse((prev) => (prev ? { ...prev, isPublished: newStatus } : null));
+      toast({
+        title: "Success!",
+        description: newStatus
+          ? "Course published successfully"
+          : "Course unpublished successfully",
+      });
+    } catch (error) {
+      console.error("Error updating course status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update course status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -62,6 +101,8 @@ export default function CourseDetailPage() {
   if (!course) {
     return null;
   }
+
+  console.log(course);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,16 +141,29 @@ export default function CourseDetailPage() {
                   </span>
                 </div>
               </div>
-              <div className="ml-4">
+              <div className="ml-4 flex items-center gap-3">
                 {course.isPublished ? (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    <Globe className="h-3 w-3 mr-1" />
                     Published
                   </span>
                 ) : (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                    <Lock className="h-3 w-3 mr-1" />
                     Draft
                   </span>
                 )}
+                <Button
+                  onClick={handleTogglePublish}
+                  disabled={isUpdating}
+                  variant={course.isPublished ? "outline" : "default"}
+                  size="sm">
+                  {isUpdating
+                    ? "Updating..."
+                    : course.isPublished
+                    ? "Unpublish"
+                    : "Publish Course"}
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -150,7 +204,7 @@ export default function CourseDetailPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {course.lessons.map((lesson: any, index: number) => (
+                {course.lessons.map((lesson: Lesson, index: number) => (
                   <div
                     key={lesson._id}
                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">

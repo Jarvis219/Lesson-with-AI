@@ -120,6 +120,22 @@ export class TeacherService {
   }
 
   /**
+   * Update course publish status
+   * @param courseId - The ID of the course
+   * @param isPublished - true to publish, false to unpublish
+   */
+  static async updateCourseStatus(
+    courseId: string,
+    isPublished: boolean
+  ): Promise<Course> {
+    const response = await apiService.patch<{ course: Course }>(
+      `/api/teacher/courses/${courseId}/publish`,
+      { isPublished }
+    );
+    return response.data.course;
+  }
+
+  /**
    * Get a specific lesson by ID
    * @param courseId - The ID of the course
    * @param lessonId - The ID of the lesson

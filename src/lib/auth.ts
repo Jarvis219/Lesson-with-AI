@@ -90,3 +90,32 @@ export function requireAdmin(handler: Function) {
     return handler(request, { ...context, user });
   };
 }
+
+export function requireTeacher(handler: Function) {
+  return async (request: NextRequest, context: any) => {
+    const user = getUserFromRequest(request);
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (user.role !== "teacher") {
+      return new Response(
+        JSON.stringify({ error: "Teacher access required" }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Pass user to handler via context
+    return handler(request, { ...context, user });
+  };
+}
