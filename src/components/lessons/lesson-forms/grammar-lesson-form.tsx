@@ -89,7 +89,9 @@ export function GrammarLessonForm() {
 
         {/* Title */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Rule Title *</label>
+          <label className="text-sm font-medium">
+            Rule Title <span className="text-red-500">*</span>
+          </label>
           <Input
             placeholder="e.g., Present Simple Tense"
             {...register("content.grammarRule.title")}
@@ -106,7 +108,9 @@ export function GrammarLessonForm() {
 
         {/* Structure/Formula */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Structure/Formula *</label>
+          <label className="text-sm font-medium">
+            Structure/Formula <span className="text-red-500">*</span>
+          </label>
           <Input
             placeholder="e.g., S + V(s/es) + O"
             {...register("content.grammarRule.structure")}
@@ -126,7 +130,9 @@ export function GrammarLessonForm() {
 
         {/* Explanation */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Explanation *</label>
+          <label className="text-sm font-medium">
+            Explanation <span className="text-red-500">*</span>
+          </label>
           <textarea
             placeholder="Explain when and how to use this grammar rule..."
             {...register("content.grammarRule.explanation")}
@@ -144,7 +150,9 @@ export function GrammarLessonForm() {
 
         {/* Usage Cases */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Usage Cases *</label>
+          <label className="text-sm font-medium">
+            Usage Cases <span className="text-red-500">*</span>
+          </label>
           <Controller
             control={control}
             name="content.grammarRule.usage"
@@ -291,7 +299,9 @@ export function GrammarLessonForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Sentence *</label>
+                  <label className="text-sm font-medium">
+                    Sentence <span className="text-red-500">*</span>
+                  </label>
                   <Input
                     placeholder="She goes to school every day."
                     {...register(
@@ -309,7 +319,9 @@ export function GrammarLessonForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Translation *</label>
+                  <label className="text-sm font-medium">
+                    Translation <span className="text-red-500">*</span>
+                  </label>
                   <Input
                     placeholder="Cô ấy đi học mỗi ngày."
                     {...register(

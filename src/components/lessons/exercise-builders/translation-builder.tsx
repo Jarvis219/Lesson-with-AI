@@ -79,7 +79,9 @@ export function TranslationBuilder({
 
       {/* Question */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Question/Instruction *</label>
+        <label className="text-sm font-medium">
+          Question/Instruction <span className="text-red-500">*</span>
+        </label>
         <Controller
           control={control}
           name={`${basePath}.question`}
@@ -121,7 +123,9 @@ export function TranslationBuilder({
 
       {/* Sentence to Translate */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Sentence to Translate *</label>
+        <label className="text-sm font-medium">
+          Sentence to Translate <span className="text-red-500">*</span>
+        </label>
         <Controller
           control={control}
           name={`${basePath}.sentence`}
@@ -144,7 +148,9 @@ export function TranslationBuilder({
 
       {/* Correct Answers */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Correct Answers *</label>
+        <label className="text-sm font-medium">
+          Correct Answers <span className="text-red-500">*</span>
+        </label>
         {correctAnswers.map((answer: any, answerIndex: number) => (
           <div key={answerIndex} className="space-y-2">
             <div className="flex gap-2 items-center">

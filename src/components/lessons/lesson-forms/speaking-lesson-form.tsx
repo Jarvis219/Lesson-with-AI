@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SPEAKING_EXERCISE_TYPES } from "@/types/lesson-enums";
 import { Plus, Trash2 } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
@@ -57,13 +58,27 @@ export function SpeakingLessonForm() {
 
   const contentErrors = errors.content as
     | {
-        practiceExercises?: { message?: string };
+        conversation?: {
+          scenario?: { message?: string };
+          dialogues?:
+            | { message?: string }
+            | { message?: string; root?: { message?: string } }
+            | Array<{
+                speaker?: { message?: string };
+                text?: { message?: string };
+              }>;
+        };
+        practiceExercises?:
+          | { message?: string }
+          | Array<{
+              prompt?: { message?: string };
+            }>;
       }
     | undefined;
 
   const addPracticeExercise = () => {
     appendExercise({
-      type: "conversation",
+      type: SPEAKING_EXERCISE_TYPES[0],
       prompt: "",
       sampleAnswer: "",
       sampleAudioUrl: "",
@@ -81,16 +96,50 @@ export function SpeakingLessonForm() {
         </h3>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Scenario</label>
-          <Input
-            placeholder="e.g., At a restaurant"
-            {...register("content.conversation.scenario")}
+          <label className="text-sm font-medium">
+            Scenario <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            control={control}
+            name="content.conversation.scenario"
+            render={({ field, fieldState }) => (
+              <>
+                <Input
+                  {...field}
+                  placeholder="e.g., At a restaurant"
+                  className={fieldState.error ? "border-red-500" : ""}
+                />
+                {fieldState.error && (
+                  <p className="text-sm text-red-500">
+                    {fieldState.error.message}
+                  </p>
+                )}
+              </>
+            )}
           />
         </div>
 
         {/* Dialogues */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Dialogues</label>
+          <label className="text-sm font-medium">
+            Dialogues <span className="text-red-500">*</span>
+          </label>
+          {contentErrors?.conversation?.dialogues &&
+          !Array.isArray(contentErrors.conversation.dialogues) &&
+          "root" in contentErrors.conversation.dialogues &&
+          contentErrors.conversation.dialogues.root?.message ? (
+            <p className="text-sm text-red-500">
+              {contentErrors.conversation.dialogues.root.message}
+            </p>
+          ) : (
+            contentErrors?.conversation?.dialogues &&
+            !Array.isArray(contentErrors.conversation.dialogues) &&
+            "message" in contentErrors.conversation.dialogues && (
+              <p className="text-sm text-red-500">
+                {contentErrors.conversation.dialogues.message}
+              </p>
+            )
+          )}
           {dialogueFields.map((field, index) => (
             <div
               key={field.id}
@@ -106,18 +155,58 @@ export function SpeakingLessonForm() {
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-              <Input
-                placeholder="Speaker"
-                {...register(`content.conversation.dialogues.${index}.speaker`)}
+              <Controller
+                control={control}
+                name={`content.conversation.dialogues.${index}.speaker`}
+                render={({ field, fieldState }) => (
+                  <>
+                    <Input
+                      {...field}
+                      placeholder="Speaker"
+                      className={fieldState.error ? "border-red-500" : ""}
+                    />
+                    {fieldState.error && (
+                      <p className="text-sm text-red-500">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </>
+                )}
               />
-              <Input
-                placeholder="What they say..."
-                {...register(`content.conversation.dialogues.${index}.text`)}
+              <Controller
+                control={control}
+                name={`content.conversation.dialogues.${index}.text`}
+                render={({ field, fieldState }) => (
+                  <>
+                    <Input
+                      {...field}
+                      placeholder="What they say..."
+                      className={fieldState.error ? "border-red-500" : ""}
+                    />
+                    {fieldState.error && (
+                      <p className="text-sm text-red-500">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </>
+                )}
               />
-              <Input
-                placeholder="Audio URL (optional)"
-                {...register(
-                  `content.conversation.dialogues.${index}.audioUrl`
+              <Controller
+                control={control}
+                name={`content.conversation.dialogues.${index}.audioUrl`}
+                render={({ field, fieldState }) => (
+                  <>
+                    <Input
+                      {...field}
+                      placeholder="Audio URL (optional)"
+                      className={fieldState.error ? "border-red-500" : ""}
+                    />
+                    {fieldState.error && (
+                      <p className="text-sm text-red-500">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </>
                 )}
               />
             </div>
@@ -135,13 +224,19 @@ export function SpeakingLessonForm() {
         </div>
 
         {/* Useful Phrases */}
-        <div className="space-y-2">
+        <div className="space-y-2 flex flex-col gap-2">
           <label className="text-sm font-medium">Useful Phrases</label>
           {phraseFields.map((field, index) => (
             <div key={field.id} className="flex gap-2">
-              <Input
-                {...register(`content.conversation.usefulPhrases.${index}`)}
-                placeholder="e.g., Can I have the menu, please?"
+              <Controller
+                control={control}
+                name={`content.conversation.usefulPhrases.${index}`}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    placeholder="e.g., Can I have the menu, please?"
+                  />
+                )}
               />
               <Button
                 type="button"
@@ -157,7 +252,8 @@ export function SpeakingLessonForm() {
             type="button"
             onClick={() => appendPhrase("")}
             size="sm"
-            variant="outline">
+            variant="outline"
+            className="w-fit">
             <Plus className="h-4 w-4 mr-2" />
             Add Useful Phrase
           </Button>
@@ -169,11 +265,13 @@ export function SpeakingLessonForm() {
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">
             Practice Exercises ({exerciseFields.length})
-            {contentErrors?.practiceExercises?.message && (
-              <span className="text-sm text-red-500 ml-2 font-normal">
-                * {contentErrors.practiceExercises.message}
-              </span>
-            )}
+            {contentErrors?.practiceExercises &&
+              !Array.isArray(contentErrors.practiceExercises) &&
+              contentErrors.practiceExercises.message && (
+                <span className="text-sm text-red-500 ml-2 font-normal">
+                  * {contentErrors.practiceExercises.message}
+                </span>
+              )}
           </h3>
           <Button type="button" onClick={addPracticeExercise} size="sm">
             <Plus className="h-4 w-4 mr-2" />
@@ -213,7 +311,9 @@ export function SpeakingLessonForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Type *</label>
+                  <label className="text-sm font-medium">
+                    Type <span className="text-red-500">*</span>
+                  </label>
                   <Controller
                     control={control}
                     name={`content.practiceExercises.${index}.type`}
@@ -221,21 +321,18 @@ export function SpeakingLessonForm() {
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}>
-                        <SelectTrigger>
+                        <SelectTrigger className="capitalize">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="conversation">
-                            Conversation
-                          </SelectItem>
-                          <SelectItem value="roleplay">Role Play</SelectItem>
-                          <SelectItem value="presentation">
-                            Presentation
-                          </SelectItem>
-                          <SelectItem value="discussion">Discussion</SelectItem>
-                          <SelectItem value="pronunciation">
-                            Pronunciation
-                          </SelectItem>
+                          {SPEAKING_EXERCISE_TYPES.map((type) => (
+                            <SelectItem
+                              key={type}
+                              value={type}
+                              className="capitalize">
+                              {type.replace(/-/g, " ")}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     )}
@@ -243,10 +340,26 @@ export function SpeakingLessonForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Prompt *</label>
-                  <Input
-                    placeholder="Exercise prompt..."
-                    {...register(`content.practiceExercises.${index}.prompt`)}
+                  <label className="text-sm font-medium">
+                    Prompt <span className="text-red-500">*</span>
+                  </label>
+                  <Controller
+                    control={control}
+                    name={`content.practiceExercises.${index}.prompt`}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Input
+                          {...field}
+                          placeholder="Exercise prompt..."
+                          className={fieldState.error ? "border-red-500" : ""}
+                        />
+                        {fieldState.error && (
+                          <p className="text-sm text-red-500">
+                            {fieldState.error.message}
+                          </p>
+                        )}
+                      </>
+                    )}
                   />
                 </div>
 
@@ -254,13 +367,26 @@ export function SpeakingLessonForm() {
                   <label className="text-sm font-medium">
                     Sample Answer (optional)
                   </label>
-                  <textarea
-                    placeholder="Provide a sample answer..."
-                    {...register(
-                      `content.practiceExercises.${index}.sampleAnswer`
+                  <Controller
+                    control={control}
+                    name={`content.practiceExercises.${index}.sampleAnswer`}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <textarea
+                          {...field}
+                          placeholder="Provide a sample answer..."
+                          rows={2}
+                          className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none ${
+                            fieldState.error ? "border-red-500" : ""
+                          }`}
+                        />
+                        {fieldState.error && (
+                          <p className="text-sm text-red-500">
+                            {fieldState.error.message}
+                          </p>
+                        )}
+                      </>
                     )}
-                    rows={2}
-                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none"
                   />
                 </div>
 
@@ -268,10 +394,22 @@ export function SpeakingLessonForm() {
                   <label className="text-sm font-medium">
                     Sample Audio URL (optional)
                   </label>
-                  <Input
-                    placeholder="https://..."
-                    {...register(
-                      `content.practiceExercises.${index}.sampleAudioUrl`
+                  <Controller
+                    control={control}
+                    name={`content.practiceExercises.${index}.sampleAudioUrl`}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Input
+                          {...field}
+                          placeholder="https://..."
+                          className={fieldState.error ? "border-red-500" : ""}
+                        />
+                        {fieldState.error && (
+                          <p className="text-sm text-red-500">
+                            {fieldState.error.message}
+                          </p>
+                        )}
+                      </>
                     )}
                   />
                 </div>
@@ -280,14 +418,26 @@ export function SpeakingLessonForm() {
                   <label className="text-sm font-medium">
                     Time Limit (seconds, optional)
                   </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    {...register(
-                      `content.practiceExercises.${index}.timeLimit`,
-                      {
-                        valueAsNumber: true,
-                      }
+                  <Controller
+                    control={control}
+                    name={`content.practiceExercises.${index}.timeLimit`}
+                    render={({ field, fieldState }) => (
+                      <>
+                        <Input
+                          {...field}
+                          type="number"
+                          min="0"
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 0)
+                          }
+                          className={fieldState.error ? "border-red-500" : ""}
+                        />
+                        {fieldState.error && (
+                          <p className="text-sm text-red-500">
+                            {fieldState.error.message}
+                          </p>
+                        )}
+                      </>
                     )}
                   />
                 </div>
@@ -302,9 +452,12 @@ export function SpeakingLessonForm() {
         <h3 className="text-lg font-semibold">Discussion Topics</h3>
         {topicFields.map((field, index) => (
           <div key={field.id} className="flex gap-2">
-            <Input
-              {...register(`content.topics.${index}`)}
-              placeholder="e.g., Your favorite food"
+            <Controller
+              control={control}
+              name={`content.topics.${index}`}
+              render={({ field }) => (
+                <Input {...field} placeholder="e.g., Your favorite food" />
+              )}
             />
             <Button
               type="button"

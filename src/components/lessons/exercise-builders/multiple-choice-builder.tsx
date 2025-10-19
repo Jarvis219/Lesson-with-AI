@@ -62,7 +62,9 @@ export function MultipleChoiceBuilder({
 
       {/* Question */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Question *</label>
+        <label className="text-sm font-medium">
+          Question <span className="text-red-500">*</span>
+        </label>
         <Controller
           control={control}
           name={`${basePath}.question`}
@@ -104,7 +106,9 @@ export function MultipleChoiceBuilder({
 
       {/* Options */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Answer Options *</label>
+        <label className="text-sm font-medium">
+          Answer Options <span className="text-red-500">*</span>
+        </label>
         {options.map((option: any, optionIndex: number) => (
           <div key={optionIndex} className="flex gap-2 items-start">
             <div className="flex-1 space-y-2">
@@ -175,7 +179,9 @@ export function MultipleChoiceBuilder({
 
       {/* Correct Answer */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Correct Answer *</label>
+        <label className="text-sm font-medium">
+          Correct Answer <span className="text-red-500">*</span>
+        </label>
         <Controller
           control={control}
           name={`${basePath}.correctAnswer`}

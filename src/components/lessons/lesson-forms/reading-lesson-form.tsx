@@ -9,15 +9,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { ExerciseType } from "@/types/lesson-content";
 import { Plus, Trash2 } from "lucide-react";
+import { useEffect } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { addExerciseToLesson } from "utils/lesson.util";
+import { ReadingComprehensionExercise } from "./reading-comprehension-exercise";
 
 export function ReadingLessonForm() {
   const {
     control,
-    register,
     formState: { errors },
     watch,
+    setValue,
+    trigger,
   } = useFormContext();
 
   const {
@@ -27,6 +32,15 @@ export function ReadingLessonForm() {
   } = useFieldArray({
     control,
     name: "content.preReading.predictions",
+  });
+
+  const {
+    fields: comprehensionFields,
+    append: appendComprehension,
+    remove: removeComprehension,
+  } = useFieldArray({
+    control,
+    name: "content.postReading.comprehensionQuestions",
   });
 
   const {
@@ -48,12 +62,26 @@ export function ReadingLessonForm() {
         preReading?: {
           context?: { message?: string };
         };
+        postReading?: {
+          comprehensionQuestions?: { message?: string };
+        };
       }
     | undefined;
 
   // Auto-calculate word count
   const passageText = watch("content.passage.text");
-  const wordCount = passageText ? passageText.trim().split(/\s+/).length : 0;
+  const wordCount = +(passageText ? passageText.trim().split(/\s+/).length : 0);
+
+  useEffect(() => {
+    setValue("content.passage.wordCount", wordCount);
+    trigger("content.passage.wordCount");
+  }, [wordCount]);
+
+  const addExercise = (type: ExerciseType) => {
+    addExerciseToLesson(type, (exercise) => {
+      appendComprehension(exercise);
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -64,112 +92,164 @@ export function ReadingLessonForm() {
         </h3>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Title *</label>
-          <Input
-            placeholder="e.g., The History of Coffee"
-            {...register("content.passage.title")}
-            className={contentErrors?.passage?.title ? "border-red-500" : ""}
-          />
-          {contentErrors?.passage?.title && (
-            <p className="text-sm text-red-500">
-              {contentErrors.passage.title.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Genre *</label>
+          <label className="text-sm font-medium">
+            Title <span className="text-red-500">*</span>
+          </label>
           <Controller
             control={control}
-            name="content.passage.genre"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="article">Article</SelectItem>
-                  <SelectItem value="story">Story</SelectItem>
-                  <SelectItem value="essay">Essay</SelectItem>
-                  <SelectItem value="biography">Biography</SelectItem>
-                  <SelectItem value="news">News</SelectItem>
-                  <SelectItem value="blog">Blog</SelectItem>
-                  <SelectItem value="poem">Poem</SelectItem>
-                </SelectContent>
-              </Select>
+            name="content.passage.title"
+            render={({ field, fieldState }) => (
+              <>
+                <Input
+                  {...field}
+                  placeholder="e.g., The History of Coffee"
+                  className={fieldState.error ? "border-red-500" : ""}
+                />
+                {fieldState.error && (
+                  <p className="text-sm text-red-500">
+                    {fieldState.error.message}
+                  </p>
+                )}
+              </>
             )}
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Text *</label>
-          <textarea
-            placeholder="Enter the reading passage..."
-            {...register("content.passage.text")}
-            rows={10}
-            className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none ${
-              contentErrors?.passage?.text ? "border-red-500" : ""
-            }`}
+          <label className="text-sm font-medium">
+            Genre <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            control={control}
+            name="content.passage.genre"
+            render={({ field, fieldState }) => (
+              <>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger
+                    className={fieldState.error ? "border-red-500" : ""}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="article">Article</SelectItem>
+                    <SelectItem value="story">Story</SelectItem>
+                    <SelectItem value="essay">Essay</SelectItem>
+                    <SelectItem value="biography">Biography</SelectItem>
+                    <SelectItem value="news">News</SelectItem>
+                    <SelectItem value="blog">Blog</SelectItem>
+                    <SelectItem value="poem">Poem</SelectItem>
+                  </SelectContent>
+                </Select>
+                {fieldState.error && (
+                  <p className="text-sm text-red-500">
+                    {fieldState.error.message}
+                  </p>
+                )}
+              </>
+            )}
           />
-          {contentErrors?.passage?.text && (
-            <p className="text-sm text-red-500">
-              {contentErrors.passage.text.message}
-            </p>
-          )}
-          <p className="text-xs text-gray-600">Word count: {wordCount}</p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Text <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            control={control}
+            name="content.passage.text"
+            render={({ field, fieldState }) => (
+              <>
+                <textarea
+                  {...field}
+                  placeholder="Enter the reading passage..."
+                  rows={10}
+                  className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none ${
+                    fieldState.error ? "border-red-500" : ""
+                  }`}
+                />
+                {fieldState.error && (
+                  <p className="text-sm text-red-500">
+                    {fieldState.error.message}
+                  </p>
+                )}
+                <p className="text-xs text-gray-600">Word count: {wordCount}</p>
+              </>
+            )}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Word Count *</label>
-            <Input
-              type="number"
-              min="1"
-              {...register("content.passage.wordCount", {
-                valueAsNumber: true,
-              })}
-              value={wordCount}
-              readOnly
-              className="bg-gray-100"
+            <label className="text-sm font-medium">
+              Word Count <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              control={control}
+              name="content.passage.wordCount"
+              render={({ field, fieldState: { error } }) => (
+                <>
+                  <Input
+                    {...field}
+                    type="number"
+                    // min="1"
+                    value={wordCount}
+                    readOnly
+                    className="bg-gray-100"
+                  />
+                  {error && (
+                    <p className="text-sm text-red-500">{error.message}</p>
+                  )}
+                </>
+              )}
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Reading Time (minutes) *
+              Reading Time (minutes) <span className="text-red-500">*</span>
             </label>
-            <Input
-              type="number"
-              min="1"
-              {...register("content.passage.readingTime", {
-                valueAsNumber: true,
-              })}
-              className={
-                contentErrors?.passage?.readingTime ? "border-red-500" : ""
-              }
+            <Controller
+              control={control}
+              name="content.passage.readingTime"
+              render={({ field, fieldState: { error } }) => (
+                <>
+                  <Input
+                    {...field}
+                    type="number"
+                    // min="1"
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value) || 0)
+                    }
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && (
+                    <p className="text-sm text-red-500">{error.message}</p>
+                  )}
+                </>
+              )}
             />
-            {contentErrors?.passage?.readingTime && (
-              <p className="text-sm text-red-500">
-                {contentErrors.passage.readingTime.message}
-              </p>
-            )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Source (optional)</label>
-            <Input
-              placeholder="e.g., National Geographic"
-              {...register("content.passage.source")}
+            <Controller
+              control={control}
+              name="content.passage.source"
+              render={({ field }) => (
+                <Input {...field} placeholder="e.g., National Geographic" />
+              )}
             />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Author (optional)</label>
-            <Input
-              placeholder="e.g., John Doe"
-              {...register("content.passage.author")}
+            <Controller
+              control={control}
+              name="content.passage.author"
+              render={({ field }) => (
+                <Input {...field} placeholder="e.g., John Doe" />
+              )}
             />
           </div>
         </div>
@@ -180,29 +260,47 @@ export function ReadingLessonForm() {
         <h3 className="text-lg font-semibold text-blue-900">Pre-Reading</h3>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Context *</label>
-          <textarea
-            placeholder="Provide background information about the reading..."
-            {...register("content.preReading.context")}
-            rows={4}
-            className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none ${
-              contentErrors?.preReading?.context ? "border-red-500" : ""
-            }`}
+          <label className="text-sm font-medium">
+            Context <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            control={control}
+            name="content.preReading.context"
+            render={({ field, fieldState }) => (
+              <>
+                <textarea
+                  {...field}
+                  placeholder="Provide background information about the reading..."
+                  rows={4}
+                  className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none ${
+                    fieldState.error ? "border-red-500" : ""
+                  }`}
+                />
+                {fieldState.error && (
+                  <p className="text-sm text-red-500">
+                    {fieldState.error.message}
+                  </p>
+                )}
+              </>
+            )}
           />
-          {contentErrors?.preReading?.context && (
-            <p className="text-sm text-red-500">
-              {contentErrors.preReading.context.message}
-            </p>
-          )}
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Prediction Questions</label>
+          <label className="text-sm font-medium flex flex-col gap-2">
+            Prediction Questions
+          </label>
           {predictionFields.map((field, index) => (
             <div key={field.id} className="flex gap-2">
-              <Input
-                {...register(`content.preReading.predictions.${index}`)}
-                placeholder="e.g., What do you think this text is about?"
+              <Controller
+                control={control}
+                name={`content.preReading.predictions.${index}`}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    placeholder="e.g., What do you think this text is about?"
+                  />
+                )}
               />
               <Button
                 type="button"
@@ -218,7 +316,8 @@ export function ReadingLessonForm() {
             type="button"
             onClick={() => appendPrediction("")}
             size="sm"
-            variant="outline">
+            variant="outline"
+            className="w-fit">
             <Plus className="h-4 w-4 mr-2" />
             Add Prediction
           </Button>
@@ -229,15 +328,93 @@ export function ReadingLessonForm() {
       <div className="space-y-4 border rounded-lg p-6 bg-green-50">
         <h3 className="text-lg font-semibold text-green-900">Post-Reading</h3>
 
-        <div className="space-y-2">
+        {/* Comprehension Questions */}
+        <div className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <h4 className="text-md font-semibold">
+              Comprehension Questions
+              {contentErrors?.postReading?.comprehensionQuestions?.message && (
+                <span className="text-sm ml-2 text-red-500 font-normal">
+                  * {contentErrors.postReading.comprehensionQuestions.message}
+                </span>
+              )}
+            </h4>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                type="button"
+                onClick={() => addExercise("multiple-choice")}
+                size="sm"
+                variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Multiple Choice
+              </Button>
+              <Button
+                type="button"
+                onClick={() => addExercise("single-choice")}
+                size="sm"
+                variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Single Choice
+              </Button>
+              <Button
+                type="button"
+                onClick={() => addExercise("fill-in-the-blank")}
+                size="sm"
+                variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Fill in Blank
+              </Button>
+              <Button
+                type="button"
+                onClick={() => addExercise("true-false")}
+                size="sm"
+                variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                True False
+              </Button>
+              <Button
+                type="button"
+                onClick={() => addExercise("translation")}
+                size="sm"
+                variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Translation
+              </Button>
+            </div>
+          </div>
+
+          {comprehensionFields.length === 0 ? (
+            <div className="text-center py-8 border-2 border-dashed rounded-lg">
+              <p className="text-gray-500 mb-4">
+                No comprehension questions yet
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {comprehensionFields.map((field, index) => (
+                <ReadingComprehensionExercise
+                  key={field.id}
+                  index={index}
+                  onRemove={() => removeComprehension(index)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2 flex flex-col gap-2">
           <label className="text-sm font-medium">Discussion Questions</label>
           {discussionFields.map((field, index) => (
             <div key={field.id} className="flex gap-2">
-              <Input
-                {...register(
-                  `content.postReading.discussionQuestions.${index}`
+              <Controller
+                control={control}
+                name={`content.postReading.discussionQuestions.${index}`}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    placeholder="e.g., What is the main idea?"
+                  />
                 )}
-                placeholder="e.g., What is the main idea?"
               />
               <Button
                 type="button"
@@ -253,7 +430,8 @@ export function ReadingLessonForm() {
             type="button"
             onClick={() => appendDiscussion("")}
             size="sm"
-            variant="outline">
+            variant="outline"
+            className="w-fit">
             <Plus className="h-4 w-4 mr-2" />
             Add Discussion Question
           </Button>
@@ -261,20 +439,19 @@ export function ReadingLessonForm() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Summary Task (optional)</label>
-          <textarea
-            placeholder="Ask students to summarize what they read..."
-            {...register("content.postReading.summaryTask")}
-            rows={3}
-            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none"
+          <Controller
+            control={control}
+            name="content.postReading.summaryTask"
+            render={({ field }) => (
+              <textarea
+                {...field}
+                placeholder="Ask students to summarize what they read..."
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none"
+              />
+            )}
           />
         </div>
-      </div>
-
-      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <p className="text-sm text-yellow-800">
-          <strong>Note:</strong> Comprehension questions should be added
-          separately using the exercise builder.
-        </p>
       </div>
     </div>
   );

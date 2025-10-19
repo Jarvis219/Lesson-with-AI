@@ -111,6 +111,7 @@ export async function GET(
     const { id } = await params;
 
     const course = await Course.findById(id).populate("lessons");
+
     if (!course) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }

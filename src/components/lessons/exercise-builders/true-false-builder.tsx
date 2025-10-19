@@ -50,7 +50,9 @@ export function TrueFalseBuilder({ index, onRemove }: TrueFalseBuilderProps) {
 
       {/* Question */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Question *</label>
+        <label className="text-sm font-medium">
+          Question <span className="text-red-500">*</span>
+        </label>
         <Controller
           control={control}
           name={`${basePath}.question`}
@@ -79,7 +81,7 @@ export function TrueFalseBuilder({ index, onRemove }: TrueFalseBuilderProps) {
           name={`${basePath}.translation`}
           render={({ field, fieldState }) => (
             <>
-              <Input {...field} placeholder="Dịch câu hỏi sang tiếng Việt" />
+              <Input {...field} placeholder="Translate the question" />
               {fieldState.error && (
                 <p className="text-sm text-red-500">
                   {fieldState.error.message}
@@ -92,27 +94,31 @@ export function TrueFalseBuilder({ index, onRemove }: TrueFalseBuilderProps) {
 
       {/* Correct Answer */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Correct Answer *</label>
+        <label className="text-sm font-medium">
+          Correct Answer <span className="text-red-500">*</span>
+        </label>
         <Controller
           control={control}
           name={`${basePath}.correctAnswer`}
           render={({ field, fieldState }) => (
             <>
               <RadioGroup
-                value={field.value?.toString()}
-                onValueChange={(value) => field.onChange(value)}>
+                value={field.value.toString()}
+                onValueChange={(value: string) =>
+                  field.onChange(value === "true")
+                }>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="true" id="true" />
+                  <RadioGroupItem value="true" id={index + "true"} />
                   <label
-                    htmlFor="true"
+                    htmlFor={index + "true"}
                     className="text-sm font-medium cursor-pointer">
                     True
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="false" id="false" />
+                  <RadioGroupItem value="false" id={index + "false"} />
                   <label
-                    htmlFor="false"
+                    htmlFor={index + "false"}
                     className="text-sm font-medium cursor-pointer">
                     False
                   </label>

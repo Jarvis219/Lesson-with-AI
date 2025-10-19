@@ -83,10 +83,35 @@ export function FillInBlankBuilder({
         </Button>
       </div>
 
+      {/* Question */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          Question <span className="text-red-500">*</span>
+        </label>
+        <Controller
+          control={control}
+          name={`${basePath}.question`}
+          render={({ field, fieldState }) => (
+            <>
+              <Input
+                {...field}
+                placeholder="e.g., Complete the sentence by filling in the blanks"
+                className={fieldState.error ? "border-red-500" : ""}
+              />
+              {fieldState.error && (
+                <p className="text-sm text-red-500">
+                  {fieldState.error.message}
+                </p>
+              )}
+            </>
+          )}
+        />
+      </div>
+
       {/* Sentence with Blanks */}
       <div className="space-y-2">
         <label className="text-sm font-medium">
-          Sentence (use ___ for blanks) *
+          Sentence (use ___ for blanks) <span className="text-red-500">*</span>
         </label>
         <Controller
           control={control}
@@ -119,7 +144,7 @@ export function FillInBlankBuilder({
           name={`${basePath}.translation`}
           render={({ field, fieldState }) => (
             <>
-              <Input {...field} placeholder="Dịch câu sang tiếng Việt" />
+              <Input {...field} placeholder="Enter translation" />
               {fieldState.error && (
                 <p className="text-sm text-red-500">
                   {fieldState.error.message}
@@ -132,7 +157,9 @@ export function FillInBlankBuilder({
 
       {/* Blanks Configuration */}
       <div className="space-y-3">
-        <label className="text-sm font-medium">Blank Answers *</label>
+        <label className="text-sm font-medium">
+          Blank Answers <span className="text-red-500">*</span>
+        </label>
         {blanks.map((blank: any, blankIndex: number) => (
           <div key={blankIndex} className="border rounded p-3 space-y-3">
             <div className="flex items-center justify-between">
@@ -185,18 +212,18 @@ export function FillInBlankBuilder({
                     <Controller
                       control={control}
                       name={`${basePath}.blanks.${blankIndex}.alternatives.${altIndex}`}
-                      render={({ field, fieldState }) => (
+                      render={({ field, fieldState: { error } }) => (
                         <div className="flex-1">
                           <Input
                             {...field}
                             placeholder={`Alternative ${altIndex + 1}`}
                             className={`text-sm ${
-                              fieldState.error ? "border-red-500" : ""
+                              error ? "border-red-500" : ""
                             }`}
                           />
-                          {fieldState.error && (
+                          {error && (
                             <p className="text-sm text-red-500 mt-1">
-                              {fieldState.error.message}
+                              {error.message}
                             </p>
                           )}
                         </div>
@@ -225,6 +252,9 @@ export function FillInBlankBuilder({
             </div>
           </div>
         ))}
+        {exerciseError?.blanks?.message && (
+          <p className="text-sm text-red-500">{exerciseError.blanks.message}</p>
+        )}
         <Button
           type="button"
           variant="outline"
@@ -234,9 +264,6 @@ export function FillInBlankBuilder({
           <Plus className="h-4 w-4 mr-2" />
           Add Blank
         </Button>
-        {exerciseError?.blanks?.message && (
-          <p className="text-sm text-red-500">{exerciseError.blanks.message}</p>
-        )}
       </div>
 
       {/* Points & Difficulty */}

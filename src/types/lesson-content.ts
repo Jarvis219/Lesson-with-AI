@@ -296,8 +296,13 @@ export interface SingleChoiceExercise extends BaseExercise {
 export interface FillInBlankExercise extends BaseExercise {
   type: "fill-in-the-blank";
   sentence: string; // Sentence with blanks marked as ___
-  correctAnswers: string[]; // Multiple possible correct answers
-  hints?: string[];
+  translation?: string;
+  blanks: {
+    position: number;
+    correctAnswer: string;
+    alternatives?: string[];
+  }[];
+  hint?: string;
 }
 
 export interface TrueFalseExercise extends BaseExercise {

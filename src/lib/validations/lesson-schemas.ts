@@ -58,16 +58,23 @@ const singleChoiceExerciseSchema = baseExerciseSchema.extend({
 const fillInBlankExerciseSchema = baseExerciseSchema.extend({
   type: z.literal("fill-in-the-blank"),
   sentence: z.string().min(1, "Sentence is required"),
-  correctAnswers: z
-    .array(z.string().min(1))
-    .min(1, "At least one correct answer is required"),
-  hints: z.array(z.string()).optional(),
+  translation: z.string().optional(),
+  blanks: z
+    .array(
+      z.object({
+        position: z.number().min(0),
+        correctAnswer: z.string().min(1, "Correct answer is required"),
+        alternatives: z.array(z.string()).optional(),
+      })
+    )
+    .min(1, "At least one blank is required"),
+  hint: z.string().optional(),
 });
 
 // True/False Exercise
 const trueFalseExerciseSchema = baseExerciseSchema.extend({
   type: z.literal("true-false"),
-  correctAnswer: z.string(),
+  correctAnswer: z.boolean(),
 });
 
 // Translation Exercise
@@ -309,7 +316,7 @@ export type ReadingLessonFormData = z.infer<typeof readingLessonSchema>;
 export const writingInstructionSchema = z.object({
   prompt: z.string().min(10, "Prompt must be at least 10 characters"),
   requirements: z
-    .array(z.string())
+    .array(z.string().min(1, "Requirement cannot be empty"))
     .min(1, "At least one requirement is required"),
   audience: z.string().optional(),
   purpose: z.string().optional(),
@@ -338,7 +345,7 @@ export const usefulPhraseSchema = z.object({
 
 export const writingFrameworkSchema = z.object({
   structure: z
-    .array(z.string())
+    .array(z.string().min(1, "Structure item cannot be empty"))
     .min(1, "At least one structure item is required"),
   usefulPhrases: z.array(usefulPhraseSchema).optional(),
   grammarPoints: z.array(z.string()).optional(),

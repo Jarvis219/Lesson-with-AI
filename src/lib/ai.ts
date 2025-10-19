@@ -198,13 +198,20 @@ VOCABULARY LESSON:
     },
     {
       "type": "fill-in-the-blank",
-      "question": "Complete the sentence",
-      "translation": "Vietnamese translation",
+      "question": "Complete the sentence by filling in the blank",
+      "translation": "Hoàn thành câu bằng cách điền vào chỗ trống",
       "sentence": "I like to ___ in the morning.",
-      "correctAnswers": ["exercise", "run", "jog"],
+      "blanks": [
+        {
+          "position": 0,
+          "correctAnswer": "exercise",
+          "alternatives": ["run", "jog", "work out"]
+        }
+      ],
+      "hint": "Think about activities you do in the morning",
       "points": 10,
       "difficulty": "beginner",
-      "explanation": "These are all correct verbs"
+      "explanation": "Exercise, run, jog, and work out are all correct verbs for physical activities in the morning"
     },
     {
       "type": "true-false",
@@ -251,13 +258,42 @@ GRAMMAR LESSON:
   "exercises": [
     {
       "type": "fill-in-the-blank",
-      "question": "Complete the sentence",
-      "translation": "Vietnamese translation",
+      "question": "Complete the sentence with the correct past tense verb",
+      "translation": "Hoàn thành câu với động từ quá khứ đúng",
       "sentence": "I ___ to school yesterday.",
-      "correctAnswers": ["went"],
+      "blanks": [
+        {
+          "position": 0,
+          "correctAnswer": "went",
+          "alternatives": []
+        }
+      ],
+      "hint": "What is the past tense of 'go'?",
       "points": 10,
       "difficulty": "beginner",
-      "explanation": "Use past tense of 'go'"
+      "explanation": "The past tense of 'go' is 'went'. We use past tense for actions that happened yesterday."
+    },
+    {
+      "type": "fill-in-the-blank",
+      "question": "Fill in the blanks with appropriate words",
+      "translation": "Điền vào chỗ trống với các từ phù hợp",
+      "sentence": "She ___ a beautiful ___ to the party.",
+      "blanks": [
+        {
+          "position": 0,
+          "correctAnswer": "wore",
+          "alternatives": ["put on", "had on"]
+        },
+        {
+          "position": 1,
+          "correctAnswer": "dress",
+          "alternatives": ["gown", "outfit"]
+        }
+      ],
+      "hint": "Think about what people wear to parties",
+      "points": 15,
+      "difficulty": "intermediate",
+      "explanation": "The sentence describes someone wearing a dress to a party. 'Wore' is the past tense of 'wear', and 'dress' is appropriate clothing for a party."
     },
     {
       "type": "multiple-choice",
@@ -476,23 +512,32 @@ WRITING LESSON:
 
 **IMPORTANT RULES:**
 1. All exercises must have proper structure based on their type
-2. All exercises MUST have either "correctAnswer" (string) or "correctAnswers" (array) based on type:
+2. All exercises MUST have the correct answer format based on type:
    - Multiple-choice: use "correctAnswer" (string) - the VALUE of the correct option
    - Single-choice: use "correctAnswer" (string) - the VALUE of the correct option
-   - Fill-in-the-blank: use "correctAnswers" (array of strings) - possible correct answers
+   - Fill-in-the-blank: use "blanks" array with objects containing:
+     * position: number (0-based index indicating which blank)
+     * correctAnswer: string (the correct answer for this blank)
+     * alternatives: array of strings (optional alternative acceptable answers)
    - True-false: use "correctAnswer" (string) - either "true" or "false"
    - Translation: use "correctAnswers" (array of strings) - possible correct translations
 3. Multiple-choice and single-choice exercises MUST have options array with at least 2 options
-4. Fill-in-the-blank exercises MUST have correctAnswers array with at least one answer
+4. Fill-in-the-blank exercises MUST have:
+   - "sentence" field with the sentence containing "___" for blanks
+   - "blanks" array with at least one blank object
+   - Each blank object must have position (0 for first blank, 1 for second, etc.)
+   - Each blank object must have correctAnswer
+   - alternatives array is optional but recommended for flexibility
 5. True-false exercises MUST have correctAnswer as string "true" or "false"
 6. Translation exercises MUST have correctAnswers array with at least one translation
-7. All fields marked as required in the schema MUST be filled
-8. Content must be appropriate for ${request.difficulty} level
-9. All text must be meaningful and educational
-10. For vocabulary lessons: use "theme" and "words" (not "vocabulary")
-11. For grammar lessons: use "name" in grammarRule (not "title")
-12. For reading lessons: use "content" in passage (not "text")
-13. For speaking lessons: intonation should be an array (not object)
+7. All exercises should have "hint" field (string) for additional guidance (optional)
+8. All fields marked as required in the schema MUST be filled
+9. Content must be appropriate for ${request.difficulty} level
+10. All text must be meaningful and educational
+11. For vocabulary lessons: use "thematicGroup" and "vocabulary" array
+12. For grammar lessons: use "name" in grammarRule (not "title")
+13. For reading lessons: use "content" in passage (not "text")
+14. For speaking lessons: intonation should be an array (not object)
 
 Return ONLY the JSON object with all required fields.`;
 

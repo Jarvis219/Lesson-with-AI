@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { AIService } from "@/lib/ai-service";
 import { TeacherService } from "@/lib/teacher-service";
 import {
   grammarLessonFormSchema,
@@ -236,30 +237,20 @@ export default function NewLessonPage() {
         numberOfExercises: 5,
       };
 
-      const response = await fetch("/api/ai/generate-lesson", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate lesson");
-      }
-
-      const { lesson } = await response.json();
+      const response = await AIService.generateLesson(requestData);
 
       // Fill form with AI generated data
       reset({
-        title: lesson.title,
-        description: lesson.description,
-        type: lesson.type,
-        difficulty: lesson.difficulty,
-        estimatedTime: lesson.estimatedTime,
-        tags: lesson.tags.join(", "),
-        content: lesson.content,
+        title: response.lesson.title,
+        description: response.lesson.description,
+        type: response.lesson.type,
+        difficulty: response.lesson.difficulty,
+        estimatedTime: response.lesson.estimatedTime,
+        tags: response.lesson.tags.join(", "),
+        content: response.lesson.content,
       } as LessonFormData);
 
-      setCurrentType(lesson.type);
+      setCurrentType(response.lesson.type as LessonType);
       toast({
         title: "Success!",
         description: "Lesson content generated successfully",
@@ -331,8 +322,6 @@ export default function NewLessonPage() {
             .map((tag) => tag.trim())
             .filter((tag) => tag.length > 0)
         : [];
-
-      console.log(data);
 
       // The data is already validated by react-hook-form + zod
       await TeacherService.createLesson(params.id, {

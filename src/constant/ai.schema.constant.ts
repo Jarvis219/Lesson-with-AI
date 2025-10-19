@@ -74,7 +74,36 @@ const BaseExerciseSchema = {
       type: Type.ARRAY,
       items: { type: Type.STRING },
     },
-    hint: { type: Type.STRING, nullable: true },
+    blanks: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          position: {
+            type: Type.NUMBER,
+            description: "Position of the blank in the sentence",
+          },
+          correctAnswer: {
+            type: Type.STRING,
+            description: "The correct answer for this blank",
+          },
+          alternatives: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            nullable: true,
+            description: "Alternative acceptable answers",
+          },
+        },
+        required: ["position", "correctAnswer"],
+      },
+      nullable: true,
+      description: "Required for fill-in-the-blank exercises",
+    },
+    hints: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      nullable: true,
+    },
   },
   required: [
     "type",

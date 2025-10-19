@@ -114,10 +114,10 @@ export function VocabularyLessonForm() {
       {/* Vocabulary Words Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
+          <h3 className="text-lg font-semibold flex flex-col items-start">
             Vocabulary Words ({vocabularyFields.length})
             {vocabularyMessage && (
-              <span className="text-sm text-red-500 ml-2 font-normal">
+              <span className="text-sm text-red-500 font-normal">
                 * {vocabularyMessage}
               </span>
             )}
@@ -153,10 +153,10 @@ export function VocabularyLessonForm() {
       {/* Exercises Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
+          <h3 className="text-lg font-semibold flex flex-col items-start">
             Exercises ({exerciseFields.length})
             {contentErrors?.exercises?.message && (
-              <span className="text-sm text-red-500 ml-2 font-normal">
+              <span className="text-sm text-red-500 font-normal">
                 * {contentErrors.exercises.message}
               </span>
             )}
@@ -303,7 +303,9 @@ function VocabularyWordCard({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Word */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Word *</label>
+          <label className="text-sm font-medium">
+            Word <span className="text-red-500">*</span>
+          </label>
           <Input
             placeholder="e.g., restaurant"
             {...register(`content.vocabulary.${index}.word`)}
@@ -316,7 +318,9 @@ function VocabularyWordCard({
 
         {/* Part of Speech */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Part of Speech *</label>
+          <label className="text-sm font-medium">
+            Part of Speech <span className="text-red-500">*</span>
+          </label>
           <Controller
             control={control}
             name={`content.vocabulary.${index}.partOfSpeech`}
@@ -343,7 +347,9 @@ function VocabularyWordCard({
 
       {/* Definition */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Definition *</label>
+        <label className="text-sm font-medium">
+          Definition <span className="text-red-500">*</span>
+        </label>
         <Input
           placeholder="A place where you can eat meals"
           {...register(`content.vocabulary.${index}.definition`)}
@@ -358,7 +364,9 @@ function VocabularyWordCard({
 
       {/* Example */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Example Sentence *</label>
+        <label className="text-sm font-medium">
+          Example Sentence <span className="text-red-500">*</span>
+        </label>
         <Input
           placeholder="We went to a nice restaurant for dinner."
           {...register(`content.vocabulary.${index}.example`)}

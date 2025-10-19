@@ -65,7 +65,15 @@ export const addExerciseToLesson = (
           ...baseExercise,
           type: "fill-in-the-blank" as const,
           sentence: "",
-          correctAnswers: [""],
+          translation: "",
+          blanks: [
+            {
+              position: 0,
+              correctAnswer: "",
+              alternatives: [],
+            },
+          ],
+          hint: "",
         };
 
   callback(newExercise as Exercise);
