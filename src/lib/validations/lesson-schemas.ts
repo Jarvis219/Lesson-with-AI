@@ -115,14 +115,14 @@ export const vocabularyWordSchema = z.object({
   word: z.string().min(1, "Word is required"),
   definition: z.string().min(1, "Definition is required"),
   example: z.string().min(1, "Example is required"),
-  pronunciation: z.string().optional(),
+  pronunciation: z.string().nullable().optional(),
   partOfSpeech: z.enum(PARTS_OF_SPEECH as unknown as [string, ...string[]]),
-  synonyms: z.array(z.string()).optional(),
-  antonyms: z.array(z.string()).optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
-  audioUrl: z.string().url().optional().or(z.literal("")),
+  synonyms: z.array(z.string()).nullable().optional(),
+  antonyms: z.array(z.string()).nullable().optional(),
+  imageUrl: z.string().url().nullable().optional().or(z.literal("")),
+  audioUrl: z.string().url().nullable().optional().or(z.literal("")),
   difficulty: z.enum(DIFFICULTY_LEVELS as unknown as [string, ...string[]]),
-  collocations: z.array(z.string()).optional(),
+  collocations: z.array(z.string()).nullable().optional(),
 });
 
 export const vocabularyLessonSchema = z.object({
@@ -132,7 +132,7 @@ export const vocabularyLessonSchema = z.object({
   exercises: z
     .array(exerciseSchema)
     .min(1, "At least one exercise is required"),
-  thematicGroup: z.string().optional(),
+  thematicGroup: z.string().nullable().optional(),
 });
 
 export type VocabularyLessonFormData = z.infer<typeof vocabularyLessonSchema>;
@@ -142,8 +142,8 @@ export type VocabularyLessonFormData = z.infer<typeof vocabularyLessonSchema>;
 export const grammarExampleSchema = z.object({
   sentence: z.string().min(1, "Example sentence is required"),
   translation: z.string().min(1, "Translation is required"),
-  highlight: z.string().optional(),
-  explanation: z.string().optional(),
+  highlight: z.string().nullable().optional(),
+  explanation: z.string().nullable().optional(),
 });
 
 export const grammarRuleSchema = z.object({
@@ -154,9 +154,9 @@ export const grammarRuleSchema = z.object({
   examples: z
     .array(grammarExampleSchema)
     .min(1, "At least one example is required"),
-  notes: z.array(z.string()).optional(),
-  commonMistakes: z.array(z.string()).optional(),
-  relatedTopics: z.array(z.string()).optional(),
+  notes: z.array(z.string()).nullable().optional(),
+  commonMistakes: z.array(z.string()).nullable().optional(),
+  relatedTopics: z.array(z.string()).nullable().optional(),
 });
 
 export const grammarLessonSchema = z.object({
@@ -164,7 +164,7 @@ export const grammarLessonSchema = z.object({
   exercises: z
     .array(exerciseSchema)
     .min(1, "At least one exercise is required"),
-  visualAids: z.array(z.string()).optional(),
+  visualAids: z.array(z.string()).nullable().optional(),
 });
 
 export type GrammarLessonFormData = z.infer<typeof grammarLessonSchema>;
@@ -180,23 +180,26 @@ export const audioContentSchema = z.object({
   url: z.string().url("Please enter a valid audio URL"),
   duration: z.number().min(1, "Duration must be at least 1 second"),
   transcript: z.string().min(10, "Transcript must be at least 10 characters"),
-  timestamps: z.array(audioTimestampSchema).optional(),
+  timestamps: z.array(audioTimestampSchema).nullable().optional(),
   speed: z.enum(AUDIO_SPEEDS as unknown as [string, ...string[]]),
-  accent: z.enum(ACCENTS as unknown as [string, ...string[]]).optional(),
+  accent: z
+    .enum(ACCENTS as unknown as [string, ...string[]])
+    .nullable()
+    .optional(),
 });
 
 export const preListeningContentSchema = z.object({
-  vocabulary: z.array(vocabularyWordSchema).optional(),
+  vocabulary: z.array(vocabularyWordSchema).nullable().optional(),
   context: z.string().min(10, "Context must be at least 10 characters"),
-  predictionQuestions: z.array(z.string()).optional(),
+  predictionQuestions: z.array(z.string()).nullable().optional(),
 });
 
 export const postListeningContentSchema = z.object({
   comprehensionQuestions: z
     .array(exerciseSchema)
     .min(1, "At least one comprehension question is required"),
-  discussionQuestions: z.array(z.string()).optional(),
-  summaryTask: z.string().optional(),
+  discussionQuestions: z.array(z.string()).nullable().optional(),
+  summaryTask: z.string().nullable().optional(),
 });
 
 export const listeningLessonSchema = z.object({
@@ -216,22 +219,22 @@ export const phonemeSoundSchema = z.object({
   phoneme: z.string().min(1, "Phoneme is required"),
   description: z.string().min(1, "Description is required"),
   examples: z.array(z.string()).min(1, "At least one example is required"),
-  audioUrl: z.string().url().optional().or(z.literal("")),
-  videoUrl: z.string().url().optional().or(z.literal("")),
+  audioUrl: z.string().url().nullable().optional().or(z.literal("")),
+  videoUrl: z.string().url().nullable().optional().or(z.literal("")),
 });
 
 export const intonationPatternSchema = z.object({
   pattern: z.string().min(1, "Pattern is required"),
   description: z.string().min(1, "Description is required"),
   examples: z.array(z.string()).min(1, "At least one example is required"),
-  audioUrl: z.string().url().optional().or(z.literal("")),
+  audioUrl: z.string().url().nullable().optional().or(z.literal("")),
 });
 
 export const dialogueTurnSchema = z.object({
   speaker: z.string().min(1, "Speaker is required"),
   text: z.string().min(1, "Text is required"),
-  audioUrl: z.string().url().optional().or(z.literal("")),
-  translation: z.string().optional(),
+  audioUrl: z.string().url().nullable().optional().or(z.literal("")),
+  translation: z.string().nullable().optional(),
 });
 
 export const conversationScenarioSchema = z.object({
@@ -239,31 +242,32 @@ export const conversationScenarioSchema = z.object({
   dialogues: z
     .array(dialogueTurnSchema)
     .min(2, "At least two dialogue turns are required"),
-  usefulPhrases: z.array(z.string()).optional(),
-  culturalNotes: z.array(z.string()).optional(),
+  usefulPhrases: z.array(z.string()).nullable().optional(),
+  culturalNotes: z.array(z.string()).nullable().optional(),
 });
 
 export const speakingExerciseSchema = z.object({
   type: z.enum(SPEAKING_EXERCISE_TYPES as unknown as [string, ...string[]]),
   prompt: z.string().min(1, "Prompt is required"),
-  sampleAnswer: z.string().optional(),
-  sampleAudioUrl: z.string().url().optional().or(z.literal("")),
-  timeLimit: z.number().min(0).optional(),
-  tips: z.array(z.string()).optional(),
+  sampleAnswer: z.string().nullable().optional(),
+  sampleAudioUrl: z.string().url().nullable().optional().or(z.literal("")),
+  timeLimit: z.number().min(0).nullable().optional(),
+  tips: z.array(z.string()).nullable().optional(),
 });
 
 export const speakingLessonSchema = z.object({
   pronunciation: z
     .object({
-      sounds: z.array(phonemeSoundSchema).optional(),
-      intonation: intonationPatternSchema.optional(),
+      sounds: z.array(phonemeSoundSchema).nullable().optional(),
+      intonation: intonationPatternSchema.nullable().optional(),
     })
+    .nullable()
     .optional(),
-  conversation: conversationScenarioSchema.optional(),
+  conversation: conversationScenarioSchema.nullable().optional(),
   practiceExercises: z
     .array(speakingExerciseSchema)
     .min(1, "At least one practice exercise is required"),
-  topics: z.array(z.string()).optional(),
+  topics: z.array(z.string()).nullable().optional(),
 });
 
 export type SpeakingLessonFormData = z.infer<typeof speakingLessonSchema>;
@@ -273,7 +277,7 @@ export type SpeakingLessonFormData = z.infer<typeof speakingLessonSchema>;
 export const readingAnnotationSchema = z.object({
   paragraph: z.number().min(0, "Paragraph must be at least 0"),
   note: z.string().min(1, "Note is required"),
-  highlightedText: z.string().optional(),
+  highlightedText: z.string().nullable().optional(),
 });
 
 export const readingPassageSchema = z.object({
@@ -282,30 +286,30 @@ export const readingPassageSchema = z.object({
   wordCount: z.number().min(1, "Word count must be at least 1"),
   readingTime: z.number().min(1, "Reading time must be at least 1 minute"),
   genre: z.enum(READING_GENRES as unknown as [string, ...string[]]),
-  images: z.array(z.string().url()).optional(),
-  vocabulary: z.array(vocabularyWordSchema).optional(),
-  source: z.string().optional(),
-  author: z.string().optional(),
+  images: z.array(z.string().url()).nullable().optional(),
+  vocabulary: z.array(vocabularyWordSchema).nullable().optional(),
+  source: z.string().nullable().optional(),
+  author: z.string().nullable().optional(),
 });
 
 export const readingLessonSchema = z.object({
   passage: readingPassageSchema,
   preReading: z.object({
-    predictions: z.array(z.string()).optional(),
-    vocabulary: z.array(vocabularyWordSchema).optional(),
+    predictions: z.array(z.string()).nullable().optional(),
+    vocabulary: z.array(vocabularyWordSchema).nullable().optional(),
     context: z.string().min(10, "Context must be at least 10 characters"),
   }),
   whileReading: z.object({
-    annotations: z.array(readingAnnotationSchema).optional(),
-    questions: z.array(exerciseSchema).optional(),
+    annotations: z.array(readingAnnotationSchema).nullable().optional(),
+    questions: z.array(exerciseSchema).nullable().optional(),
   }),
   postReading: z.object({
     comprehensionQuestions: z
       .array(exerciseSchema)
       .min(1, "At least one comprehension question is required"),
-    vocabularyExercises: z.array(exerciseSchema).optional(),
-    discussionQuestions: z.array(z.string()).optional(),
-    summaryTask: z.string().optional(),
+    vocabularyExercises: z.array(exerciseSchema).nullable().optional(),
+    discussionQuestions: z.array(z.string()).nullable().optional(),
+    summaryTask: z.string().nullable().optional(),
   }),
 });
 
@@ -318,15 +322,15 @@ export const writingInstructionSchema = z.object({
   requirements: z
     .array(z.string().min(1, "Requirement cannot be empty"))
     .min(1, "At least one requirement is required"),
-  audience: z.string().optional(),
-  purpose: z.string().optional(),
-  tone: z.string().optional(),
+  audience: z.string().nullable().optional(),
+  purpose: z.string().nullable().optional(),
+  tone: z.string().nullable().optional(),
 });
 
 export const modelTextSchema = z.object({
   title: z.string().min(1, "Title is required"),
   text: z.string().min(50, "Model text must be at least 50 characters"),
-  analysis: z.string().optional(),
+  analysis: z.string().nullable().optional(),
   highlights: z
     .array(
       z.object({
@@ -334,22 +338,23 @@ export const modelTextSchema = z.object({
         explanation: z.string().min(1, "Explanation is required"),
       })
     )
+    .nullable()
     .optional(),
 });
 
 export const usefulPhraseSchema = z.object({
   category: z.string().min(1, "Category is required"),
   phrases: z.array(z.string()).min(1, "At least one phrase is required"),
-  examples: z.array(z.string()).optional(),
+  examples: z.array(z.string()).nullable().optional(),
 });
 
 export const writingFrameworkSchema = z.object({
   structure: z
     .array(z.string().min(1, "Structure item cannot be empty"))
     .min(1, "At least one structure item is required"),
-  usefulPhrases: z.array(usefulPhraseSchema).optional(),
-  grammarPoints: z.array(z.string()).optional(),
-  vocabularyBank: z.array(z.string()).optional(),
+  usefulPhrases: z.array(usefulPhraseSchema).nullable().optional(),
+  grammarPoints: z.array(z.string()).nullable().optional(),
+  vocabularyBank: z.array(z.string()).nullable().optional(),
 });
 
 export const writingRubricCriterionSchema = z.object({
@@ -361,9 +366,9 @@ export const writingRubricCriterionSchema = z.object({
 export const writingLessonSchema = z.object({
   writingType: z.enum(WRITING_TYPES as unknown as [string, ...string[]]),
   instruction: writingInstructionSchema,
-  modelText: modelTextSchema.optional(),
+  modelText: modelTextSchema.nullable().optional(),
   writingFramework: writingFrameworkSchema,
-  exercises: z.array(exerciseSchema).optional(),
+  exercises: z.array(exerciseSchema).nullable().optional(),
   rubric: z
     .object({
       criteria: z
@@ -371,8 +376,9 @@ export const writingLessonSchema = z.object({
         .min(1, "At least one rubric criterion is required"),
       totalPoints: z.number().min(1, "Total points must be at least 1"),
     })
+    .nullable()
     .optional(),
-  checklist: z.array(z.string()).optional(),
+  checklist: z.array(z.string()).nullable().optional(),
 });
 
 export type WritingLessonFormData = z.infer<typeof writingLessonSchema>;

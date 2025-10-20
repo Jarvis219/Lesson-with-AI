@@ -68,11 +68,12 @@ const BaseExerciseSchema = {
         },
       },
     },
-    correctAnswer: { type: Type.STRING },
+    correctAnswer: { type: Type.STRING, nullable: true },
     sentence: { type: Type.STRING },
     correctAnswers: {
       type: Type.ARRAY,
       items: { type: Type.STRING },
+      nullable: true,
     },
     blanks: {
       type: Type.ARRAY,
@@ -99,6 +100,7 @@ const BaseExerciseSchema = {
       nullable: true,
       description: "Required for fill-in-the-blank exercises",
     },
+    hint: { type: Type.STRING, nullable: true },
     hints: {
       type: Type.ARRAY,
       items: { type: Type.STRING },
@@ -108,11 +110,12 @@ const BaseExerciseSchema = {
   required: [
     "type",
     "question",
-    "options",
     "points",
+    "difficulty",
     "correctAnswer",
     "correctAnswers",
-    "difficulty",
+    "blanks",
+    "options",
     "sentence",
   ],
 };
@@ -133,8 +136,10 @@ const GrammarLessonContentSchema = {
     grammarRule: {
       type: Type.OBJECT,
       properties: {
-        name: { type: Type.STRING },
+        title: { type: Type.STRING },
         explanation: { type: Type.STRING },
+        structure: { type: Type.STRING },
+        usage: { type: Type.ARRAY, items: { type: Type.STRING } },
         examples: {
           type: Type.ARRAY,
           items: {
@@ -147,8 +152,23 @@ const GrammarLessonContentSchema = {
             },
           },
         },
+        notes: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          nullable: true,
+        },
+        commonMistakes: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          nullable: true,
+        },
+        relatedTopics: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          nullable: true,
+        },
       },
-      required: ["name", "explanation", "examples"],
+      required: ["title", "explanation", "structure", "usage", "examples"],
     },
     exercises: { type: Type.ARRAY, items: BaseExerciseSchema },
     visualAids: {
@@ -168,10 +188,25 @@ const ListeningLessonContentSchema = {
       properties: {
         url: { type: Type.STRING },
         duration: { type: Type.NUMBER },
-        accent: { type: Type.STRING, enum: [...ACCENTS] },
         transcript: { type: Type.STRING },
+        timestamps: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              time: { type: Type.NUMBER },
+              text: { type: Type.STRING },
+            },
+          },
+          nullable: true,
+        },
+        speed: {
+          type: Type.STRING,
+          enum: ["0.5", "0.75", "1.0", "1.25", "1.5"],
+        },
+        accent: { type: Type.STRING, enum: [...ACCENTS], nullable: true },
       },
-      required: ["url", "duration", "accent", "transcript"],
+      required: ["url", "duration", "transcript", "speed"],
     },
     preListening: {
       type: Type.OBJECT,
@@ -228,23 +263,24 @@ const SpeakingLessonContentSchema = {
               phoneme: { type: Type.STRING },
               description: { type: Type.STRING },
               examples: { type: Type.ARRAY, items: { type: Type.STRING } },
+              audioUrl: { type: Type.STRING, nullable: true },
+              videoUrl: { type: Type.STRING, nullable: true },
             },
           },
           nullable: true,
         },
         intonation: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              pattern: { type: Type.STRING },
-              description: { type: Type.STRING },
-              examples: { type: Type.ARRAY, items: { type: Type.STRING } },
-            },
+          type: Type.OBJECT,
+          properties: {
+            pattern: { type: Type.STRING },
+            description: { type: Type.STRING },
+            examples: { type: Type.ARRAY, items: { type: Type.STRING } },
+            audioUrl: { type: Type.STRING, nullable: true },
           },
           nullable: true,
         },
       },
+      nullable: true,
     },
     conversation: {
       type: Type.OBJECT,
@@ -257,8 +293,20 @@ const SpeakingLessonContentSchema = {
             properties: {
               speaker: { type: Type.STRING },
               text: { type: Type.STRING },
+              audioUrl: { type: Type.STRING, nullable: true },
+              translation: { type: Type.STRING, nullable: true },
             },
           },
+        },
+        usefulPhrases: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          nullable: true,
+        },
+        culturalNotes: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          nullable: true,
         },
       },
       nullable: true,
@@ -270,9 +318,18 @@ const SpeakingLessonContentSchema = {
         properties: {
           type: { type: Type.STRING, enum: [...SPEAKING_EXERCISE_TYPES] },
           prompt: { type: Type.STRING },
+          sampleAnswer: { type: Type.STRING, nullable: true },
+          sampleAudioUrl: { type: Type.STRING, nullable: true },
+          timeLimit: { type: Type.NUMBER, nullable: true },
+          tips: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            nullable: true,
+          },
         },
       },
     },
+    topics: { type: Type.ARRAY, items: { type: Type.STRING }, nullable: true },
   },
   required: ["practiceExercises"],
 };
@@ -284,10 +341,24 @@ const ReadingLessonContentSchema = {
       type: Type.OBJECT,
       properties: {
         title: { type: Type.STRING },
-        content: { type: Type.STRING },
+        text: { type: Type.STRING },
+        wordCount: { type: Type.NUMBER, nullable: true },
+        readingTime: { type: Type.NUMBER, nullable: true },
         genre: { type: Type.STRING, enum: [...READING_GENRES] },
+        images: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          nullable: true,
+        },
+        vocabulary: {
+          type: Type.ARRAY,
+          items: VocabularyWordSchema,
+          nullable: true,
+        },
+        source: { type: Type.STRING, nullable: true },
+        author: { type: Type.STRING, nullable: true },
       },
-      required: ["title", "content", "genre"],
+      required: ["title", "text", "genre"],
     },
     preReading: {
       type: Type.OBJECT,
@@ -309,6 +380,18 @@ const ReadingLessonContentSchema = {
     whileReading: {
       type: Type.OBJECT,
       properties: {
+        annotations: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              paragraph: { type: Type.NUMBER },
+              note: { type: Type.STRING },
+              highlightedText: { type: Type.STRING, nullable: true },
+            },
+          },
+          nullable: true,
+        },
         questions: {
           type: Type.ARRAY,
           items: BaseExerciseSchema,
@@ -320,11 +403,17 @@ const ReadingLessonContentSchema = {
       type: Type.OBJECT,
       properties: {
         comprehensionQuestions: { type: Type.ARRAY, items: BaseExerciseSchema },
+        vocabularyExercises: {
+          type: Type.ARRAY,
+          items: BaseExerciseSchema,
+          nullable: true,
+        },
         discussionQuestions: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
           nullable: true,
         },
+        summaryTask: { type: Type.STRING, nullable: true },
       },
       required: ["comprehensionQuestions"],
     },
@@ -341,6 +430,9 @@ const WritingLessonContentSchema = {
       properties: {
         prompt: { type: Type.STRING },
         requirements: { type: Type.ARRAY, items: { type: Type.STRING } },
+        audience: { type: Type.STRING, nullable: true },
+        purpose: { type: Type.STRING, nullable: true },
+        tone: { type: Type.STRING, nullable: true },
       },
       required: ["prompt", "requirements"],
     },
@@ -349,6 +441,18 @@ const WritingLessonContentSchema = {
       properties: {
         title: { type: Type.STRING },
         text: { type: Type.STRING },
+        analysis: { type: Type.STRING, nullable: true },
+        highlights: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              text: { type: Type.STRING },
+              explanation: { type: Type.STRING },
+            },
+          },
+          nullable: true,
+        },
       },
       required: ["title", "text"],
       nullable: true,
@@ -364,12 +468,51 @@ const WritingLessonContentSchema = {
             properties: {
               category: { type: Type.STRING },
               phrases: { type: Type.ARRAY, items: { type: Type.STRING } },
+              examples: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                nullable: true,
+              },
             },
           },
           nullable: true,
         },
+        grammarPoints: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          nullable: true,
+        },
+        vocabularyBank: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          nullable: true,
+        },
       },
       required: ["structure"],
+    },
+    exercises: { type: Type.ARRAY, items: BaseExerciseSchema, nullable: true },
+    rubric: {
+      type: Type.OBJECT,
+      properties: {
+        criteria: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              description: { type: Type.STRING },
+              maxPoints: { type: Type.NUMBER },
+            },
+          },
+        },
+        totalPoints: { type: Type.NUMBER },
+      },
+      nullable: true,
+    },
+    checklist: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      nullable: true,
     },
   },
   required: ["writingType", "instruction", "writingFramework"],

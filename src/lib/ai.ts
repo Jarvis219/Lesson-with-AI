@@ -4,7 +4,11 @@ import {
   LessonFeedbackRequest,
   LessonFeedbackResponse,
 } from "@/types/feedback";
-import type { LessonContent, LessonType } from "@/types/lesson-content";
+import type {
+  Exercise,
+  LessonContent,
+  LessonType,
+} from "@/types/lesson-content";
 import { GoogleGenAI, Type } from "@google/genai";
 import { getSchemaForType } from "utils/lesson.util";
 
@@ -547,7 +551,7 @@ Return ONLY the JSON object with all required fields.`;
     // Note: We use a flexible schema since content structure varies by lesson type
     // The AI will generate the appropriate content structure based on the prompt
     const response = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-pro",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -563,6 +567,27 @@ Return ONLY the JSON object with all required fields.`;
 
     const data = JSON.parse(text);
 
+    console.log("data.vocabulary", data.content.vocabulary);
+    // console.log("-------------", data.content.exercises);
+    console.dir(data.content.exercises, { depth: null });
+
+    let content = data.content as LessonContent;
+    content = {
+      ...data.content,
+      exercises: data.content.exercises?.map((exercise: Exercise) => {
+        if (exercise.type === "true-false") {
+          // replace answer string to boolean
+          return {
+            ...exercise,
+            correctAnswer:
+              (exercise.correctAnswer as unknown as string) === "true",
+          };
+        }
+
+        return exercise;
+      }),
+    };
+
     const result: AILessonGenerateResponse = {
       title: data.title || request.title || "AI Generated Lesson",
       description: data.description || request.description || "",
@@ -572,21 +597,22 @@ Return ONLY the JSON object with all required fields.`;
         request.difficulty,
       estimatedTime: data.estimatedTime || request.estimatedTime,
       tags: data?.tags?.join(", "),
-      content: data.content as LessonContent,
+      content,
     };
 
-    console.log("---------------result----------------", result);
+    // console.log("---------------result----------------", result);
 
     // Validate the response against the schema
     const validatedData = schema.parse(result);
-    console.log("Validated Data:", validatedData);
+    // console.log("Validated Data:", validatedData);
 
     return {
       ...validatedData,
       tags: validatedData?.tags?.split(", ").map((tag: string) => tag.trim()),
     } as unknown as AILessonGenerateResponse;
   } catch (error) {
-    console.error("Lesson generation error:", error);
+    // console.error("Lesson generation error:", error);
+    // console.dir(error, { depth: null });
     throw new Error("Failed to generate lesson content");
   }
 }
