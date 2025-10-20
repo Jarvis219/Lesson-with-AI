@@ -101,7 +101,7 @@ axiosInstance.interceptors.response.use(
     // Emit toast event for error notifications
     if (typeof window !== "undefined") {
       const errorMessage =
-        error.response?.data?.message || error.message || "An error occurred";
+        error.response?.data?.error || error.message || "An error occurred";
       const statusCode = error.response?.status;
 
       // Don't show toast for 401 errors (already handled with redirect)

@@ -1,3 +1,4 @@
+import { isRequireTeacher } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Course from "@/models/Course";
 import Lesson from "@/models/Lesson";
@@ -12,6 +13,22 @@ export async function GET(
 ) {
   try {
     await connectDB();
+
+    const { teacherId, isTeacher } = isRequireTeacher(request);
+
+    if (!isTeacher) {
+      return NextResponse.json(
+        { error: "You are not authorized to access this resource" },
+        { status: 403 }
+      );
+    }
+
+    if (!teacherId) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
 
     const { id, lessonId } = await params;
 
@@ -52,6 +69,22 @@ export async function PUT(
   try {
     await connectDB();
 
+    const { teacherId, isTeacher } = isRequireTeacher(request);
+
+    if (!isTeacher) {
+      return NextResponse.json(
+        { error: "You are not authorized to access this resource" },
+        { status: 403 }
+      );
+    }
+
+    if (!teacherId) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
     const { id, lessonId } = await params;
     const {
       title,
@@ -61,7 +94,6 @@ export async function PUT(
       content,
       estimatedTime,
       tags,
-      teacherId,
     } = await request.json();
 
     // Validation
@@ -71,8 +103,7 @@ export async function PUT(
       !type ||
       !difficulty ||
       !content ||
-      !estimatedTime ||
-      !teacherId
+      !estimatedTime
     ) {
       return NextResponse.json(
         { error: "All required fields must be provided" },
@@ -146,16 +177,23 @@ export async function DELETE(
   try {
     await connectDB();
 
-    const { id, lessonId } = await params;
-    const { searchParams } = new URL(request.url);
-    const teacherId = searchParams.get("teacherId");
+    const { teacherId, isTeacher } = isRequireTeacher(request);
+
+    if (!isTeacher) {
+      return NextResponse.json(
+        { error: "You are not authorized to access this resource" },
+        { status: 403 }
+      );
+    }
 
     if (!teacherId) {
       return NextResponse.json(
-        { error: "Teacher ID is required" },
-        { status: 400 }
+        { error: "Authentication required" },
+        { status: 401 }
       );
     }
+
+    const { id, lessonId } = await params;
 
     // Find lesson and verify ownership
     const lesson = await Lesson.findById(lessonId);

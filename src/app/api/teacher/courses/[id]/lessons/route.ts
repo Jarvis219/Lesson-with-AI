@@ -1,3 +1,4 @@
+import { isRequireTeacher } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Course from "@/models/Course";
 import Lesson from "@/models/Lesson";
@@ -12,6 +13,22 @@ export async function POST(
   try {
     await connectDB();
 
+    const { teacherId, isTeacher } = isRequireTeacher(request);
+
+    if (!isTeacher) {
+      return NextResponse.json(
+        { error: "You are not authorized to access this resource" },
+        { status: 403 }
+      );
+    }
+
+    if (!teacherId) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const {
       title,
@@ -21,7 +38,6 @@ export async function POST(
       content,
       estimatedTime,
       tags,
-      teacherId,
     } = await request.json();
 
     // Validation
@@ -31,8 +47,7 @@ export async function POST(
       !type ||
       !difficulty ||
       !content ||
-      !estimatedTime ||
-      !teacherId
+      !estimatedTime
     ) {
       return NextResponse.json(
         { error: "All required fields must be provided" },
@@ -108,17 +123,47 @@ export async function GET(
   try {
     await connectDB();
 
-    const { id } = await params;
+    const { teacherId, isTeacher } = isRequireTeacher(request);
 
-    const course = await Course.findById(id).populate("lessons");
-
-    if (!course) {
-      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    if (!isTeacher) {
+      return NextResponse.json(
+        { error: "You are not authorized to access this resource" },
+        { status: 403 }
+      );
     }
+
+    if (!teacherId) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+    const searchParams = await request.nextUrl.searchParams;
+    const pageNumber = parseInt(searchParams.get("page") || "1");
+    const limitNumber = parseInt(searchParams.get("limit") || "10");
+
+    const [course, lessons, total] = await Promise.all([
+      Course.findById(id).populate("enrolledStudents", "name email"),
+      Lesson.find({ course: id })
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber)
+        .sort({ createdAt: -1 }),
+      Lesson.countDocuments({ course: id }).lean(),
+    ]);
 
     return NextResponse.json(
       {
-        course,
+        course: Object.assign(course, { lessons }),
+        pagination: {
+          page: pageNumber,
+          limit: limitNumber,
+          totalPage: Math.ceil(total / limitNumber),
+          total,
+          hasNextPage: pageNumber < Math.ceil(total / limitNumber),
+          hasPreviousPage: pageNumber > 1,
+        },
       },
       { status: 200 }
     );

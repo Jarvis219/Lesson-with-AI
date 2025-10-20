@@ -35,7 +35,6 @@ export default function WeeklyGoalUpdater({
       setIsEditing(false);
     } catch (error: any) {
       console.error("Error updating weekly goal:", error);
-      alert(error.message || "Có lỗi xảy ra khi cập nhật mục tiêu");
     } finally {
       setLoading(false);
     }

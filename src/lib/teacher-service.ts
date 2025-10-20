@@ -1,4 +1,6 @@
+import { PAGINATION_DEFAULT } from "@/constant/pagination.constant";
 import { apiService } from "@/lib/axios";
+import type { IPagination } from "@/types/pagination";
 import type {
   ApproveTeacherResponse,
   Course,
@@ -48,13 +50,21 @@ export class TeacherService {
   }
 
   /**
-   * Fetch all courses for the logged-in teacher
+   * Fetch all courses for the logged-in teacher with pagination
+   * @param page - Page number (default: 1)
+   * @param limit - Items per page (default: 10)
    */
-  static async getCourses(teacherId: string): Promise<Course[]> {
+  static async getCourses(
+    page: number = PAGINATION_DEFAULT.page,
+    limit: number = PAGINATION_DEFAULT.limit
+  ): Promise<{ courses: Course[]; pagination: IPagination }> {
     const response = await apiService.get<CourseListResponse>(
-      `/api/teacher/courses?teacherId=${teacherId}`
+      `/api/teacher/courses?page=${page}&limit=${limit}`
     );
-    return response.data.courses || [];
+    return {
+      courses: response.data.courses || [],
+      pagination: response.data.pagination || PAGINATION_DEFAULT,
+    };
   }
 
   /**
@@ -77,18 +87,23 @@ export class TeacherService {
   }
 
   /**
-   * Get a specific course by ID
+   * Get a specific course by ID with pagination
    * @param courseId - The ID of the course
-   * @param teacherId - The ID of the teacher
+   * @param page - Page number (default: 1)
+   * @param limit - Items per page (default: 10)
    */
   static async getCourseById(
     courseId: string,
-    teacherId: string
-  ): Promise<Course> {
+    page: number = PAGINATION_DEFAULT.page,
+    limit: number = PAGINATION_DEFAULT.limit
+  ): Promise<{ course: Course; pagination: IPagination }> {
     const response = await apiService.get<CourseDetailResponse>(
-      `/api/teacher/courses/${courseId}/lessons?teacherId=${teacherId}`
+      `/api/teacher/courses/${courseId}?page=${page}&limit=${limit}`
     );
-    return response.data.course;
+    return {
+      course: response.data.course,
+      pagination: response.data.pagination || PAGINATION_DEFAULT,
+    };
   }
 
   /**
@@ -172,15 +187,10 @@ export class TeacherService {
    * Delete a lesson
    * @param courseId - The ID of the course
    * @param lessonId - The ID of the lesson
-   * @param teacherId - The ID of the teacher
    */
-  static async deleteLesson(
-    courseId: string,
-    lessonId: string,
-    teacherId: string
-  ): Promise<void> {
+  static async deleteLesson(courseId: string, lessonId: string): Promise<void> {
     await apiService.delete(
-      `/api/teacher/courses/${courseId}/lessons/${lessonId}?teacherId=${teacherId}`
+      `/api/teacher/courses/${courseId}/lessons/${lessonId}`
     );
   }
 

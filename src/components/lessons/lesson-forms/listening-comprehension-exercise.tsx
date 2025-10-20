@@ -83,7 +83,14 @@ export function ListeningComprehensionExercise({
 }
 
 // Multiple Choice Exercise
-function MultipleChoiceExercise({ index, basePath, onRemove }: any) {
+function MultipleChoiceExercise({
+  basePath,
+  onRemove,
+}: {
+  index: number;
+  basePath: string;
+  onRemove: () => void;
+}) {
   const {
     control,
     watch,

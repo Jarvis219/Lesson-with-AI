@@ -8,10 +8,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { InfiniteScroll } from "@/components/ui/infinite-scroll";
+import { PAGINATION_DEFAULT } from "@/constant/pagination.constant";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { TeacherService } from "@/lib/teacher-service";
 import { Lesson } from "@/types";
+import type { IPagination } from "@/types/pagination";
 import type { Course } from "@/types/teacher";
 import {
   ArrowLeft,
@@ -21,6 +32,7 @@ import {
   Globe,
   Lock,
   Plus,
+  Trash2,
   Users,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -34,6 +46,11 @@ export default function CourseDetailPage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [lessonToDelete, setLessonToDelete] = useState<Lesson | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [pagination, setPagination] = useState<IPagination>(PAGINATION_DEFAULT);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -41,17 +58,35 @@ export default function CourseDetailPage() {
     }
   }, [params.id, user?.id]);
 
-  const fetchCourse = async () => {
+  const fetchCourse = async (page: number = PAGINATION_DEFAULT.page) => {
     if (!user?.id) return;
 
     try {
-      setLoading(true);
-      const courseData = await TeacherService.getCourseById(params.id, user.id);
-      setCourse(courseData);
+      setLoading(page === PAGINATION_DEFAULT.page);
+      const { course: courseData, pagination: paginationData } =
+        await TeacherService.getCourseById(
+          params.id,
+          page,
+          PAGINATION_DEFAULT.limit
+        );
+
+      if (page === PAGINATION_DEFAULT.page) {
+        setCourse(courseData);
+      } else {
+        setCourse((prev) => {
+          if (!prev) return courseData;
+          return {
+            ...prev,
+            lessons: [...prev.lessons, ...courseData.lessons],
+          };
+        });
+      }
+      setPagination(paginationData);
     } catch (error) {
       console.error("Error fetching course:", error);
-      alert("Failed to load course");
-      router.push("/teacher/dashboard");
+      if (page === PAGINATION_DEFAULT.page) {
+        router.push("/teacher/dashboard");
+      }
     } finally {
       setLoading(false);
     }
@@ -77,13 +112,68 @@ export default function CourseDetailPage() {
       });
     } catch (error) {
       console.error("Error updating course status:", error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteLesson = (lesson: Lesson) => {
+    setLessonToDelete(lesson);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteLesson = async () => {
+    if (!lessonToDelete || !course || !user?.id) return;
+
+    try {
+      setIsDeleting(true);
+      await TeacherService.deleteLesson(params.id, lessonToDelete._id);
+
+      // Remove lesson from local state
+      setCourse((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          lessons: prev.lessons.filter(
+            (lesson) => lesson._id !== lessonToDelete._id
+          ),
+        };
+      });
+
+      toast({
+        title: "Success!",
+        description: "Lesson deleted successfully",
+      });
+
+      setDeleteDialogOpen(false);
+      setLessonToDelete(null);
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
       toast({
         title: "Error",
-        description: "Failed to update course status",
+        description: "Failed to delete lesson",
         variant: "destructive",
       });
     } finally {
-      setIsUpdating(false);
+      setIsDeleting(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (isLoadingMore || !pagination.hasNextPage) return;
+
+    try {
+      setIsLoadingMore(true);
+      await fetchCourse(pagination.page + 1);
+    } catch (error) {
+      console.error("Error loading more lessons:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load more lessons",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -101,8 +191,6 @@ export default function CourseDetailPage() {
   if (!course) {
     return null;
   }
-
-  console.log(course);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -155,7 +243,7 @@ export default function CourseDetailPage() {
                 )}
                 <Button
                   onClick={handleTogglePublish}
-                  disabled={isUpdating}
+                  disabled={isUpdating || course.lessons.length === 0}
                   variant={course.isPublished ? "outline" : "default"}
                   size="sm">
                   {isUpdating
@@ -203,63 +291,113 @@ export default function CourseDetailPage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                {course.lessons.map((lesson: Lesson, index: number) => (
-                  <div
-                    key={lesson._id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-sm font-medium text-gray-500">
-                          Lesson {index + 1}
-                        </span>
-                        <span className="text-sm font-medium text-gray-900">
-                          {lesson.title}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {lesson.description}
-                      </p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span className="capitalize">{lesson.type}</span>
-                        <span className="text-gray-400">•</span>
-                        <span className="capitalize">{lesson.difficulty}</span>
-                        <span className="text-gray-400">•</span>
-                        <span className="inline-flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {lesson.estimatedTime} min
-                        </span>
-                      </div>
-                    </div>
-                    <div className="ml-4 flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          router.push(
-                            `/teacher/courses/${params.id}/lessons/${lesson._id}/preview`
-                          )
-                        }>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Preview
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          router.push(
-                            `/teacher/courses/${params.id}/lessons/${lesson._id}/edit`
-                          )
-                        }>
-                        Edit
-                      </Button>
-                    </div>
+              <InfiniteScroll
+                onLoadMore={handleLoadMore}
+                hasMore={pagination.hasNextPage}
+                isLoading={isLoadingMore}
+                endMessage={
+                  <div className="text-center text-gray-500 py-4">
+                    <p>You've reached the end of the lessons list</p>
                   </div>
-                ))}
-              </div>
+                }>
+                <div className="space-y-3">
+                  {course.lessons.map((lesson: Lesson, index: number) => (
+                    <div
+                      key={lesson._id}
+                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-sm font-medium text-gray-500">
+                            Lesson {index + 1}
+                          </span>
+                          <span className="text-sm font-medium text-gray-900">
+                            {lesson.title}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {lesson.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <span className="capitalize">{lesson.type}</span>
+                          <span className="text-gray-400">•</span>
+                          <span className="capitalize">
+                            {lesson.difficulty}
+                          </span>
+                          <span className="text-gray-400">•</span>
+                          <span className="inline-flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {lesson.estimatedTime} min
+                          </span>
+                        </div>
+                      </div>
+                      <div className="ml-4 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            router.push(
+                              `/teacher/courses/${params.id}/lessons/${lesson._id}/preview`
+                            )
+                          }>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            router.push(
+                              `/teacher/courses/${params.id}/lessons/${lesson._id}/edit`
+                            )
+                          }>
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteLesson(lesson)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </InfiniteScroll>
             )}
           </CardContent>
         </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Lesson</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "{lessonToDelete?.title}"? This
+                action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteDialogOpen(false);
+                  setLessonToDelete(null);
+                }}
+                disabled={isDeleting}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteLesson}
+                disabled={isDeleting}>
+                {isDeleting ? "Deleting..." : "Delete Lesson"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

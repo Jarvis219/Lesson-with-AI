@@ -152,11 +152,11 @@ export function VocabularyLessonForm() {
 
       {/* Exercises Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold flex flex-col items-start">
+        <div className="flex items-start flex-col gap-2">
+          <h3 className="text-lg font-semibold ">
             Exercises ({exerciseFields.length})
             {contentErrors?.exercises?.message && (
-              <span className="text-sm text-red-500 font-normal">
+              <span className="text-sm ml-2 text-red-500 font-normal">
                 * {contentErrors.exercises.message}
               </span>
             )}

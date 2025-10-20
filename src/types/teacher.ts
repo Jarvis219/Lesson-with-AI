@@ -1,4 +1,5 @@
 import type { LessonContent } from "./lesson-content";
+import type { IPagination } from "./pagination";
 
 export interface Teacher {
   _id: string;
@@ -39,6 +40,7 @@ export interface Course {
 
 export interface CourseListResponse {
   courses: Course[];
+  pagination: IPagination;
 }
 
 export interface CourseStats {
@@ -69,7 +71,6 @@ export interface CreateCourseData {
   level: string;
   category: string;
   thumbnail?: string;
-  teacherId: string;
 }
 
 export interface CreateCourseResponse {
@@ -85,7 +86,6 @@ export interface CreateLessonData {
   estimatedTime: number;
   tags: string[];
   content: LessonContent;
-  teacherId: string;
 }
 
 export interface CreateLessonResponse {
@@ -95,4 +95,5 @@ export interface CreateLessonResponse {
 
 export interface CourseDetailResponse {
   course: Course;
+  pagination: IPagination;
 }

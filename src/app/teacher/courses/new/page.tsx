@@ -59,13 +59,11 @@ export default function NewCoursePage() {
 
       const course = await TeacherService.createCourse({
         ...formData,
-        teacherId: user.id,
       });
 
       router.push(`/teacher/courses/${course._id}`);
     } catch (error) {
       console.error("Error creating course:", error);
-      alert("Failed to create course");
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +92,7 @@ export default function NewCoursePage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="title" className="text-sm font-medium">
-                  Course Title *
+                  Course Title <span className="text-red-500">*</span>
                 </label>
                 <Input
                   id="title"
@@ -113,7 +111,7 @@ export default function NewCoursePage() {
 
               <div className="space-y-2">
                 <label htmlFor="description" className="text-sm font-medium">
-                  Description *
+                  Description <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   id="description"
@@ -135,7 +133,7 @@ export default function NewCoursePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="level" className="text-sm font-medium">
-                    Level *
+                    Level <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="level"
@@ -152,7 +150,7 @@ export default function NewCoursePage() {
 
                 <div className="space-y-2">
                   <label htmlFor="category" className="text-sm font-medium">
-                    Category *
+                    Category <span className="text-red-500">*</span>
                   </label>
                   <Input
                     id="category"

@@ -1,8 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { InfiniteScroll } from "@/components/ui/infinite-scroll";
+import { PAGINATION_DEFAULT } from "@/constant/pagination.constant";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { TeacherService } from "@/lib/teacher-service";
+import type { IPagination } from "@/types/pagination";
 import type { Course } from "@/types/teacher";
 import { BookOpen, CheckCircle, Plus, Users } from "lucide-react";
 import Link from "next/link";
@@ -12,8 +16,11 @@ import { useEffect, useState } from "react";
 export default function TeacherDashboardPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<IPagination>(PAGINATION_DEFAULT);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -33,15 +40,47 @@ export default function TeacherDashboardPage() {
     }
   }, [user, isLoading, router]);
 
-  const fetchCourses = async () => {
+  const fetchCourses = async (page: number = PAGINATION_DEFAULT.page) => {
     try {
-      setLoading(true);
-      const coursesData = await TeacherService.getCourses(user?.id || "");
-      setCourses(coursesData);
+      setLoading(page === PAGINATION_DEFAULT.page);
+      const { courses: coursesData, pagination: paginationData } =
+        await TeacherService.getCourses(page, PAGINATION_DEFAULT.limit);
+
+      if (page === PAGINATION_DEFAULT.page) {
+        setCourses(coursesData);
+      } else {
+        setCourses((prev) => [...prev, ...coursesData]);
+      }
+      setPagination(paginationData);
     } catch (error) {
       console.error("Error fetching courses:", error);
+      if (page === PAGINATION_DEFAULT.page) {
+        toast({
+          title: "Error",
+          description: "Failed to load courses",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (isLoadingMore || !pagination.hasNextPage) return;
+
+    try {
+      setIsLoadingMore(true);
+      await fetchCourses(pagination.page + 1);
+    } catch (error) {
+      console.error("Error loading more courses:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load more courses",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -196,55 +235,65 @@ export default function TeacherDashboardPage() {
               </div>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-200">
-              {courses.map((course) => (
-                <li key={course._id}>
-                  <div
-                    onClick={() =>
-                      router.push(`/teacher/courses/${course._id}`)
-                    }
-                    className="px-4 py-6 hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-medium text-gray-900">
-                            {course.title}
-                          </h3>
-                          {course.isPublished ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              Published
+            <InfiniteScroll
+              onLoadMore={handleLoadMore}
+              hasMore={pagination.hasNextPage}
+              isLoading={isLoadingMore}
+              endMessage={
+                <div className="text-center text-gray-500 py-4">
+                  <p>You've reached the end of your courses</p>
+                </div>
+              }>
+              <ul className="divide-y divide-gray-200">
+                {courses.map((course) => (
+                  <li key={course._id}>
+                    <div
+                      onClick={() =>
+                        router.push(`/teacher/courses/${course._id}`)
+                      }
+                      className="px-4 py-6 hover:bg-gray-50 cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-medium text-gray-900">
+                              {course.title}
+                            </h3>
+                            {course.isPublished ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Published
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Draft
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500 mb-2">
+                            {course.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <span className="inline-flex items-center">
+                              <BookOpen className="h-4 w-4 mr-1" />
+                              {course.lessons.length} lessons
                             </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                              Draft
+                            <span className="inline-flex items-center">
+                              <Users className="h-4 w-4 mr-1" />
+                              {course.enrolledStudents.length} students
                             </span>
-                          )}
+                            <span className="capitalize">{course.level}</span>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-500 mb-2">
-                          {course.description}
-                        </p>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span className="inline-flex items-center">
-                            <BookOpen className="h-4 w-4 mr-1" />
-                            {course.lessons.length} lessons
-                          </span>
-                          <span className="inline-flex items-center">
-                            <Users className="h-4 w-4 mr-1" />
-                            {course.enrolledStudents.length} students
-                          </span>
-                          <span className="capitalize">{course.level}</span>
+                        <div className="ml-4 flex-shrink-0">
+                          <Link href={`/teacher/courses/${course._id}`}>
+                            <Button variant="outline">Manage</Button>
+                          </Link>
                         </div>
-                      </div>
-                      <div className="ml-4 flex-shrink-0">
-                        <Link href={`/teacher/courses/${course._id}`}>
-                          <Button variant="outline">Manage</Button>
-                        </Link>
                       </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            </InfiniteScroll>
           )}
         </div>
       </div>

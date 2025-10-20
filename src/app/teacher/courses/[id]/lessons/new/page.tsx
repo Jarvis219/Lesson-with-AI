@@ -332,7 +332,6 @@ export default function NewLessonPage() {
         estimatedTime: data.estimatedTime,
         tags: tagsArray,
         content: data.content as LessonContent,
-        teacherId: user.id,
       });
 
       toast({

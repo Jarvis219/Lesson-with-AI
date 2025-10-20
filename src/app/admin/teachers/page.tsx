@@ -45,7 +45,6 @@ export default function AdminTeachersPage() {
       fetchTeachers();
     } catch (error: any) {
       console.error("Error approving teacher:", error);
-      alert(error.response?.data?.error || "Failed to update teacher status");
     }
   };
 

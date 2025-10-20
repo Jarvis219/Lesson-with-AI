@@ -46,6 +46,18 @@ export function getUserFromRequest(request: NextRequest): JWTPayload | null {
   return verifyToken(token);
 }
 
+export function isRequireTeacher(request: NextRequest): {
+  isTeacher: boolean;
+  teacherId: string | null;
+} {
+  const user = getUserFromRequest(request);
+  if (!user) {
+    return { isTeacher: false, teacherId: null };
+  }
+
+  return { isTeacher: user.role === "teacher", teacherId: user.userId };
+}
+
 export function requireAuth(handler: Function) {
   return async (request: NextRequest, context: any) => {
     const user = getUserFromRequest(request);
