@@ -17,6 +17,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { InfiniteScroll } from "@/components/ui/infinite-scroll";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { PAGINATION_DEFAULT } from "@/constant/pagination.constant";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +37,7 @@ import {
   ArrowLeft,
   BookOpen,
   Clock,
+  Edit,
   Eye,
   Globe,
   Lock,
@@ -51,6 +61,16 @@ export default function CourseDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [pagination, setPagination] = useState<IPagination>(PAGINATION_DEFAULT);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Edit course dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isUpdatingCourse, setIsUpdatingCourse] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    description: "",
+    level: "",
+    category: "",
+  });
 
   useEffect(() => {
     if (user?.id) {
@@ -114,6 +134,52 @@ export default function CourseDetailPage() {
       console.error("Error updating course status:", error);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleOpenEditDialog = () => {
+    if (!course) return;
+    setEditFormData({
+      title: course.title,
+      description: course.description,
+      level: course.level,
+      category: course.category,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateCourse = async () => {
+    if (!course) return;
+
+    // Validate form data
+    const errors = TeacherService.validateCourseForm(editFormData);
+    if (Object.keys(errors).length > 0) {
+      toast({
+        title: "Validation Error",
+        description: Object.values(errors)[0],
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUpdatingCourse(true);
+      await TeacherService.updateCourse(params.id, editFormData);
+      setCourse((prev) => (prev ? { ...prev, ...editFormData } : null));
+      setEditDialogOpen(false);
+      toast({
+        title: "Success!",
+        description: "Course updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating course:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update course",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingCourse(false);
     }
   };
 
@@ -241,6 +307,13 @@ export default function CourseDetailPage() {
                     Draft
                   </span>
                 )}
+                <Button
+                  onClick={handleOpenEditDialog}
+                  variant="outline"
+                  size="sm">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
                 <Button
                   onClick={handleTogglePublish}
                   disabled={isUpdating || course.lessons.length === 0}
@@ -394,6 +467,87 @@ export default function CourseDetailPage() {
                 onClick={confirmDeleteLesson}
                 disabled={isDeleting}>
                 {isDeleting ? "Deleting..." : "Delete Lesson"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Course Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Course Information</DialogTitle>
+              <DialogDescription>
+                Update the basic information for this course
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Title</label>
+                <Input
+                  value={editFormData.title}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, title: e.target.value })
+                  }
+                  placeholder="Enter course title"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Textarea
+                  value={editFormData.description}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Enter course description (minimum 50 characters)"
+                  rows={4}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Level</label>
+                  <Select
+                    value={editFormData.level}
+                    onValueChange={(value) =>
+                      setEditFormData({ ...editFormData, level: value })
+                    }>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Category</label>
+                  <Input
+                    value={editFormData.category}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        category: e.target.value,
+                      })
+                    }
+                    placeholder="Enter category"
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+                disabled={isUpdatingCourse}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateCourse} disabled={isUpdatingCourse}>
+                {isUpdatingCourse ? "Updating..." : "Update Course"}
               </Button>
             </DialogFooter>
           </DialogContent>

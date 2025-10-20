@@ -119,6 +119,22 @@ export class TeacherService {
   }
 
   /**
+   * Update an existing course
+   * @param courseId - The ID of the course
+   * @param courseData - The updated course data
+   */
+  static async updateCourse(
+    courseId: string,
+    courseData: CreateCourseData
+  ): Promise<Course> {
+    const response = await apiService.put<CreateCourseResponse>(
+      `/api/teacher/courses/${courseId}`,
+      courseData
+    );
+    return response.data.course;
+  }
+
+  /**
    * Create a new lesson for a course
    * @param courseId - The ID of the course
    * @param lessonData - The lesson data

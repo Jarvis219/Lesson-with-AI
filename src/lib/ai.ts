@@ -128,28 +128,32 @@ export interface AILessonGenerateResponse {
 
 // Generate complete lesson content using Google AI
 export async function generateLessonContent(
-  request: AILessonGenerateRequest
+  request: AILessonGenerateRequest,
+  maxRetries: number = 3
 ): Promise<AILessonGenerateResponse> {
-  try {
-    const lessonTypeDescriptions = {
-      vocab:
-        "vocabulary lesson with words, definitions, examples, and vocabulary exercises",
-      grammar:
-        "grammar lesson with rules, explanations, examples, and grammar exercises",
-      listening:
-        "listening lesson with audio content, pre-listening activities, and comprehension exercises",
-      speaking:
-        "speaking lesson with conversation practice, pronunciation tips, and speaking exercises",
-      reading:
-        "reading lesson with a passage, pre-reading activities, and comprehension questions",
-      writing:
-        "writing lesson with instructions, examples, framework, and writing exercises",
-    };
+  let attempts = 0;
 
-    const prompt = `
+  while (attempts < maxRetries) {
+    try {
+      const lessonTypeDescriptions = {
+        vocab:
+          "vocabulary lesson with words, definitions, examples, and vocabulary exercises",
+        grammar:
+          "grammar lesson with rules, explanations, examples, and grammar exercises",
+        listening:
+          "listening lesson with audio content, pre-listening activities, and comprehension exercises",
+        speaking:
+          "speaking lesson with conversation practice, pronunciation tips, and speaking exercises",
+        reading:
+          "reading lesson with a passage, pre-reading activities, and comprehension questions",
+        writing:
+          "writing lesson with instructions, examples, framework, and writing exercises",
+      };
+
+      const prompt = `
 You are an expert English teacher creating a ${
-      lessonTypeDescriptions[request.type]
-    } for ${request.difficulty} level students.
+        lessonTypeDescriptions[request.type]
+      } for ${request.difficulty} level students.
 
 ${request.topic ? `Topic: ${request.topic}` : ""}
 ${request.title ? `Suggested Title: ${request.title}` : ""}
@@ -549,164 +553,184 @@ WRITING LESSON:
 
 Return ONLY the JSON object with all required fields.`;
 
-    // Get the appropriate schema for validation
-    const schema = getSchemaForType(request.type);
+      // Get the appropriate schema for validation
+      const schema = getSchemaForType(request.type);
 
-    // Note: We use a flexible schema since content structure varies by lesson type
-    // The AI will generate the appropriate content structure based on the prompt
-    const response = await genAI.models.generateContent({
-      model: "gemini-2.5-pro",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: AILessonGenerateResponseSchema(request.type),
-      },
-    });
+      // Note: We use a flexible schema since content structure varies by lesson type
+      // The AI will generate the appropriate content structure based on the prompt
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.5-pro",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: AILessonGenerateResponseSchema(request.type),
+        },
+      });
 
-    const text = response.text?.trim();
+      const text = response.text?.trim();
 
-    if (!text) {
-      throw new Error("No response text received from AI");
-    }
+      if (!text) {
+        throw new Error("No response text received from AI");
+      }
 
-    const data = JSON.parse(text);
+      const data = JSON.parse(text);
 
-    // console.dir(data.content, { depth: null });
+      // console.dir(data.content, { depth: null });
 
-    let content = data.content as LessonContent;
-    content = {
-      ...data.content,
-      exercises: data.content.exercises?.map((exercise: Exercise) => {
-        if (exercise.type === "true-false") {
-          // replace answer string to boolean
-          return {
-            ...exercise,
-            correctAnswer:
-              (exercise.correctAnswer as unknown as string) === "true",
-          };
-        }
-
-        return exercise;
-      }),
-    };
-
-    if (data.type === "listening") {
-      const listeningContent = content as ListeningLessonContent;
+      let content = data.content as LessonContent;
       content = {
-        ...content,
-        audio: {
-          ...listeningContent.audio,
-          duration: Math.floor(listeningContent.audio.duration),
-        },
-        postListening: {
-          ...listeningContent.postListening,
-          comprehensionQuestions:
-            listeningContent.postListening.comprehensionQuestions.map(
-              (question) => {
-                if (question.type === "true-false") {
-                  return {
-                    ...question,
-                    correctAnswer:
-                      ((question as TrueFalseExercise)
-                        .correctAnswer as unknown as string) === "true",
-                  };
-                }
-
-                return question;
-              }
-            ),
-        },
-        whileListening: {
-          ...listeningContent.whileListening,
-          exercises: listeningContent.whileListening.exercises.map(
-            (exercise) => {
-              if (exercise?.type === "true-false") {
-                return {
-                  ...exercise,
-                  correctAnswer:
-                    ((exercise as TrueFalseExercise)
-                      .correctAnswer as unknown as string) === "true",
-                };
-              }
-
-              return exercise;
-            }
-          ),
-        },
-      };
-    }
-
-    if (data.type === "reading") {
-      const readingContent = content as ReadingLessonContent;
-      content = {
-        ...content,
-        postReading: {
-          ...readingContent.postReading,
-          comprehensionQuestions:
-            readingContent.postReading.comprehensionQuestions.map(
-              (question) => {
-                if (question.type === "true-false") {
-                  return {
-                    ...question,
-                    correctAnswer:
-                      ((question as TrueFalseExercise)
-                        .correctAnswer as unknown as string) === "true",
-                  };
-                }
-
-                return question;
-              }
-            ),
-        },
-      };
-    }
-
-    if (data.type === "writing") {
-      const writingContent = content as WritingLessonContent;
-      content = {
-        ...content,
-        exercises: (writingContent.exercises || [])?.map((exercise) => {
+        ...data.content,
+        exercises: data.content.exercises?.map((exercise: Exercise) => {
           if (exercise.type === "true-false") {
+            // replace answer string to boolean
             return {
               ...exercise,
               correctAnswer:
-                ((exercise as TrueFalseExercise)
-                  .correctAnswer as unknown as string) === "true",
+                (exercise.correctAnswer as unknown as string) === "true",
             };
           }
 
           return exercise;
         }),
       };
+
+      if (data.type === "listening") {
+        const listeningContent = content as ListeningLessonContent;
+        content = {
+          ...content,
+          audio: {
+            ...listeningContent.audio,
+            duration: Math.floor(listeningContent.audio.duration),
+          },
+          postListening: {
+            ...listeningContent.postListening,
+            comprehensionQuestions:
+              listeningContent.postListening.comprehensionQuestions.map(
+                (question) => {
+                  if (question.type === "true-false") {
+                    return {
+                      ...question,
+                      correctAnswer:
+                        ((question as TrueFalseExercise)
+                          .correctAnswer as unknown as string) === "true",
+                    };
+                  }
+
+                  return question;
+                }
+              ),
+          },
+          whileListening: {
+            ...listeningContent.whileListening,
+            exercises: listeningContent.whileListening.exercises.map(
+              (exercise) => {
+                if (exercise?.type === "true-false") {
+                  return {
+                    ...exercise,
+                    correctAnswer:
+                      ((exercise as TrueFalseExercise)
+                        .correctAnswer as unknown as string) === "true",
+                  };
+                }
+
+                return exercise;
+              }
+            ),
+          },
+        };
+      }
+
+      if (data.type === "reading") {
+        const readingContent = content as ReadingLessonContent;
+        content = {
+          ...content,
+          postReading: {
+            ...readingContent.postReading,
+            comprehensionQuestions:
+              readingContent.postReading.comprehensionQuestions.map(
+                (question) => {
+                  if (question.type === "true-false") {
+                    return {
+                      ...question,
+                      correctAnswer:
+                        ((question as TrueFalseExercise)
+                          .correctAnswer as unknown as string) === "true",
+                    };
+                  }
+
+                  return question;
+                }
+              ),
+          },
+        };
+      }
+
+      if (data.type === "writing") {
+        const writingContent = content as WritingLessonContent;
+        content = {
+          ...content,
+          exercises: (writingContent.exercises || [])?.map((exercise) => {
+            if (exercise.type === "true-false") {
+              return {
+                ...exercise,
+                correctAnswer:
+                  ((exercise as TrueFalseExercise)
+                    .correctAnswer as unknown as string) === "true",
+              };
+            }
+
+            return exercise;
+          }),
+        };
+      }
+
+      const result: AILessonGenerateResponse = {
+        title: data.title || request.title || "AI Generated Lesson",
+        description: data.description || request.description || "",
+        type: request.type,
+        difficulty:
+          (data.difficulty as "beginner" | "intermediate" | "advanced") ||
+          request.difficulty,
+        estimatedTime: data.estimatedTime || request.estimatedTime,
+        tags: data?.tags?.join(", "),
+        content,
+      };
+
+      // console.log("---------------result----------------", result);
+
+      // Validate the response against the schema
+      const validatedData = schema.parse(result);
+      // console.log("Validated Data:", validatedData);
+
+      return {
+        ...validatedData,
+        tags: validatedData?.tags?.split(", ").map((tag: string) => tag.trim()),
+      } as unknown as AILessonGenerateResponse;
+    } catch (error) {
+      attempts++;
+      console.error(
+        `Lesson generation error (attempt ${attempts}/${maxRetries}):`,
+        error
+      );
+
+      if (attempts >= maxRetries) {
+        console.error(
+          "Max retries reached. Failed to generate lesson content."
+        );
+        throw new Error(
+          "Failed to generate lesson content after multiple attempts"
+        );
+      }
+
+      // Continue to next attempt
+      console.log(
+        `Retrying lesson generation... (attempt ${attempts + 1}/${maxRetries})`
+      );
     }
-
-    const result: AILessonGenerateResponse = {
-      title: data.title || request.title || "AI Generated Lesson",
-      description: data.description || request.description || "",
-      type: request.type,
-      difficulty:
-        (data.difficulty as "beginner" | "intermediate" | "advanced") ||
-        request.difficulty,
-      estimatedTime: data.estimatedTime || request.estimatedTime,
-      tags: data?.tags?.join(", "),
-      content,
-    };
-
-    // console.log("---------------result----------------", result);
-
-    // Validate the response against the schema
-    const validatedData = schema.parse(result);
-    // console.log("Validated Data:", validatedData);
-
-    return {
-      ...validatedData,
-      tags: validatedData?.tags?.split(", ").map((tag: string) => tag.trim()),
-    } as unknown as AILessonGenerateResponse;
-  } catch (error) {
-    // console.error("Lesson generation error:", error);
-    // console.dir(error, { depth: null });
-    throw new Error("Failed to generate lesson content");
   }
+
+  // This should never be reached, but TypeScript requires it
+  throw new Error("Failed to generate lesson content");
 }
 
 // Grammar correction using Google AI
