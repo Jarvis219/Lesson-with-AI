@@ -8,6 +8,10 @@ import type {
   Exercise,
   LessonContent,
   LessonType,
+  ListeningLessonContent,
+  ReadingLessonContent,
+  TrueFalseExercise,
+  WritingLessonContent,
 } from "@/types/lesson-content";
 import { GoogleGenAI, Type } from "@google/genai";
 import { getSchemaForType } from "utils/lesson.util";
@@ -567,9 +571,7 @@ Return ONLY the JSON object with all required fields.`;
 
     const data = JSON.parse(text);
 
-    console.log("data.vocabulary", data.content.vocabulary);
-    // console.log("-------------", data.content.exercises);
-    console.dir(data.content.exercises, { depth: null });
+    // console.dir(data.content, { depth: null });
 
     let content = data.content as LessonContent;
     content = {
@@ -587,6 +589,96 @@ Return ONLY the JSON object with all required fields.`;
         return exercise;
       }),
     };
+
+    if (data.type === "listening") {
+      const listeningContent = content as ListeningLessonContent;
+      content = {
+        ...content,
+        audio: {
+          ...listeningContent.audio,
+          duration: Math.floor(listeningContent.audio.duration),
+        },
+        postListening: {
+          ...listeningContent.postListening,
+          comprehensionQuestions:
+            listeningContent.postListening.comprehensionQuestions.map(
+              (question) => {
+                if (question.type === "true-false") {
+                  return {
+                    ...question,
+                    correctAnswer:
+                      ((question as TrueFalseExercise)
+                        .correctAnswer as unknown as string) === "true",
+                  };
+                }
+
+                return question;
+              }
+            ),
+        },
+        whileListening: {
+          ...listeningContent.whileListening,
+          exercises: listeningContent.whileListening.exercises.map(
+            (exercise) => {
+              if (exercise?.type === "true-false") {
+                return {
+                  ...exercise,
+                  correctAnswer:
+                    ((exercise as TrueFalseExercise)
+                      .correctAnswer as unknown as string) === "true",
+                };
+              }
+
+              return exercise;
+            }
+          ),
+        },
+      };
+    }
+
+    if (data.type === "reading") {
+      const readingContent = content as ReadingLessonContent;
+      content = {
+        ...content,
+        postReading: {
+          ...readingContent.postReading,
+          comprehensionQuestions:
+            readingContent.postReading.comprehensionQuestions.map(
+              (question) => {
+                if (question.type === "true-false") {
+                  return {
+                    ...question,
+                    correctAnswer:
+                      ((question as TrueFalseExercise)
+                        .correctAnswer as unknown as string) === "true",
+                  };
+                }
+
+                return question;
+              }
+            ),
+        },
+      };
+    }
+
+    if (data.type === "writing") {
+      const writingContent = content as WritingLessonContent;
+      content = {
+        ...content,
+        exercises: (writingContent.exercises || [])?.map((exercise) => {
+          if (exercise.type === "true-false") {
+            return {
+              ...exercise,
+              correctAnswer:
+                ((exercise as TrueFalseExercise)
+                  .correctAnswer as unknown as string) === "true",
+            };
+          }
+
+          return exercise;
+        }),
+      };
+    }
 
     const result: AILessonGenerateResponse = {
       title: data.title || request.title || "AI Generated Lesson",

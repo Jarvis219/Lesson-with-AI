@@ -15,15 +15,15 @@ import { z } from "zod";
 
 // Base Exercise Schema
 const baseExerciseSchema = z.object({
-  id: z.string().optional(),
+  id: z.string().nullable().optional(),
   type: z.enum(EXERCISE_TYPES as unknown as [string, ...string[]]),
   question: z.string().min(1, "Question is required"),
-  translation: z.string().optional(),
+  translation: z.string().nullable().optional(),
   points: z.number().min(0, "Points must be at least 0"),
   difficulty: z.enum(DIFFICULTY_LEVELS as unknown as [string, ...string[]]),
-  explanation: z.string().optional(),
-  audioUrl: z.string().url().optional().or(z.literal("")),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  explanation: z.string().nullable().optional(),
+  audioUrl: z.string().url().nullable().optional().or(z.literal("")),
+  imageUrl: z.string().url().nullable().optional().or(z.literal("")),
 });
 
 // Multiple Choice Exercise
@@ -33,7 +33,7 @@ const multipleChoiceExerciseSchema = baseExerciseSchema.extend({
     .array(
       z.object({
         value: z.string().min(1, "Option value is required"),
-        translate: z.string().optional(),
+        translate: z.string().nullable().optional(),
       })
     )
     .min(2, "At least 2 options are required"),
@@ -47,7 +47,7 @@ const singleChoiceExerciseSchema = baseExerciseSchema.extend({
     .array(
       z.object({
         value: z.string().min(1, "Option value is required"),
-        translate: z.string().optional(),
+        translate: z.string().nullable().optional(),
       })
     )
     .min(2, "At least 2 options are required"),
@@ -58,17 +58,17 @@ const singleChoiceExerciseSchema = baseExerciseSchema.extend({
 const fillInBlankExerciseSchema = baseExerciseSchema.extend({
   type: z.literal("fill-in-the-blank"),
   sentence: z.string().min(1, "Sentence is required"),
-  translation: z.string().optional(),
+  translation: z.string().nullable().optional(),
   blanks: z
     .array(
       z.object({
         position: z.number().min(0),
         correctAnswer: z.string().min(1, "Correct answer is required"),
-        alternatives: z.array(z.string()).optional(),
+        alternatives: z.array(z.string()).nullable().optional(),
       })
     )
     .min(1, "At least one blank is required"),
-  hint: z.string().optional(),
+  hint: z.string().nullable().optional(),
 });
 
 // True/False Exercise
@@ -84,7 +84,7 @@ const translationExerciseSchema = baseExerciseSchema.extend({
   correctAnswers: z
     .array(z.string().min(1))
     .min(1, "At least one correct answer is required"),
-  hints: z.array(z.string()).optional(),
+  hints: z.array(z.string()).nullable().optional(),
 });
 
 // Union of all exercise types
@@ -104,7 +104,7 @@ export const lessonBasicInfoSchema = z.object({
   type: z.enum(LESSON_TYPES as unknown as [string, ...string[]]),
   difficulty: z.enum(DIFFICULTY_LEVELS as unknown as [string, ...string[]]),
   estimatedTime: z.number().min(1, "Estimated time must be at least 1 minute"),
-  tags: z.string().optional(),
+  tags: z.string().nullable().optional(),
 });
 
 export type LessonBasicInfo = z.infer<typeof lessonBasicInfoSchema>;

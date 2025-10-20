@@ -442,7 +442,7 @@ export default function NewLessonPage() {
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <label htmlFor="title" className="text-sm font-medium">
-                        Lesson Title *
+                        Lesson Title <span className="text-red-500">*</span>
                       </label>
                       <Input
                         id="title"
@@ -462,7 +462,7 @@ export default function NewLessonPage() {
                       <label
                         htmlFor="description"
                         className="text-sm font-medium">
-                        Description *
+                        Description <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         id="description"
@@ -483,7 +483,7 @@ export default function NewLessonPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <label htmlFor="type" className="text-sm font-medium">
-                          Lesson Type *
+                          Lesson Type <span className="text-red-500">*</span>
                         </label>
                         <select
                           id="type"
@@ -502,7 +502,7 @@ export default function NewLessonPage() {
                         <label
                           htmlFor="difficulty"
                           className="text-sm font-medium">
-                          Difficulty *
+                          Difficulty <span className="text-red-500">*</span>
                         </label>
                         <select
                           id="difficulty"
@@ -518,7 +518,7 @@ export default function NewLessonPage() {
                         <label
                           htmlFor="estimatedTime"
                           className="text-sm font-medium">
-                          Time (minutes) *
+                          Time (minutes) <span className="text-red-500">*</span>
                         </label>
                         <Input
                           id="estimatedTime"

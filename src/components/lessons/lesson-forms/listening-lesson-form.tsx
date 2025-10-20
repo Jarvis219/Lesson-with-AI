@@ -201,7 +201,7 @@ export function ListeningLessonForm() {
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 flex flex-col">
           <label className="text-sm font-medium">Prediction Questions</label>
           {predictionFields.map((field, index) => (
             <div key={field.id} className="flex gap-2">
@@ -225,7 +225,8 @@ export function ListeningLessonForm() {
             type="button"
             onClick={() => appendPrediction("")}
             size="sm"
-            variant="outline">
+            variant="outline"
+            className="w-fit">
             <Plus className="h-4 w-4 mr-2" />
             Add Prediction Question
           </Button>
