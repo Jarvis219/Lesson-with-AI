@@ -37,6 +37,8 @@ export interface Course {
     _id: string;
     name: string;
     email: string;
+    teacherBio?: string;
+    teacherQualification?: string;
   };
   lessons: any[];
   enrolledStudents: any[];

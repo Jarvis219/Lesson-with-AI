@@ -11,11 +11,14 @@ import {
 } from "@/lib/student-courses-service";
 import { IPagination } from "@/types/pagination";
 import { Course } from "@/types/teacher";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function StudentCoursesPage() {
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
   const { toast } = useToast();
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState<"available" | "enrolled">(
     "available"
   );
@@ -116,7 +119,8 @@ export default function StudentCoursesPage() {
 
   const handleViewCourse = (courseId: string) => {
     // Navigate to course detail page
-    window.location.href = `/student/courses/${courseId}`;
+    // window.location.href = `/student/courses/${courseId}`;
+    router.push(`/student/courses/${courseId}`);
   };
 
   // Show loading if auth is still loading

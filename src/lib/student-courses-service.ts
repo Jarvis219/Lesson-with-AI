@@ -48,3 +48,21 @@ export async function fetchEnrolledCourses(
 export async function enrollInCourse(courseId: string): Promise<void> {
   await apiService.post(`/api/student/courses/${courseId}/enroll`);
 }
+
+export async function fetchCourseDetail(
+  courseId: string
+): Promise<{ course: Course }> {
+  const response = await apiService.get<{ course: Course }>(
+    `/api/student/courses/${courseId}`
+  );
+  return response.data;
+}
+
+export async function fetchLessonDetail(
+  lessonId: string
+): Promise<{ lesson: any }> {
+  const response = await apiService.get<{ lesson: any }>(
+    `/api/student/lessons/${lessonId}`
+  );
+  return response.data;
+}

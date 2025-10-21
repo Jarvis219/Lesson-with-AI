@@ -1,400 +1,774 @@
 "use client";
 
-import LessonResultModal from "@/components/lessons/lesson-result-modal";
-import LessonTimer, { LessonTimerRef } from "@/components/lessons/lesson-timer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
-import { Tooltip } from "@/components/ui/tooltip";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { useRequireAuth } from "@/hooks/useAuth";
-import { apiClient } from "@/lib/api-client";
-import { ILessonProgressStats } from "@/models/Progress";
-import { Exercise, Lesson } from "@/types";
-import { QuestionAnswer } from "@/types/feedback";
+import { fetchLessonDetail } from "@/lib/student-courses-service";
 import {
   ArrowLeft,
   BookOpen,
   CheckCircle,
+  Clock,
+  Edit3,
   Eye,
-  EyeOff,
+  Headphones,
+  Lightbulb,
+  Mic,
+  MicOff,
+  Pause,
+  PenTool,
   Play,
-  RotateCcw,
-  Target,
   XCircle,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-interface LessonProgress {
-  currentQuestion: number;
-  score: number;
-  timeSpentSeconds: number;
-  answers: Record<string, string | string[]>;
-  startTime: Date;
+interface Lesson {
+  _id: string;
+  title: string;
+  description: string;
+  type: string;
+  difficulty: string;
+  estimatedTime: number;
+  content: any;
+  course?: {
+    _id: string;
+    title: string;
+  };
+  teacher?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
 }
 
-export default function LessonDetailPage() {
+export default function StudentLessonPage() {
+  const params = useParams<{ id: string }>();
   const { isAuthenticated, isLoading: authLoading } = useRequireAuth();
   const router = useRouter();
-  const params = useParams();
-  const lessonId = params.id as string;
-
+  const { toast } = useToast();
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState<LessonProgress>({
-    currentQuestion: 0,
-    score: 0,
-    timeSpentSeconds: 0,
-    answers: {},
-    startTime: new Date(),
-  });
-  const [questionsData, setQuestionsData] = useState<QuestionAnswer[]>([]);
-  const [showResult, setShowResult] = useState(false);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [isTimerActive, setIsTimerActive] = useState(true);
-  const [hasCompletedLesson, setHasCompletedLesson] = useState(false);
-  const [previousResult, setPreviousResult] = useState<any>(null);
-  const [isRetaking, setIsRetaking] = useState(false);
-  const timerRef = useRef<LessonTimerRef>(null);
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<Record<string, any>>({});
+  const [showResults, setShowResults] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated && lessonId) {
+    if (isAuthenticated && params.id) {
       fetchLesson();
-      checkPreviousResult();
     }
-  }, [isAuthenticated, lessonId]);
+  }, [isAuthenticated, params.id]);
 
   const fetchLesson = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.getLesson(lessonId);
-      setLesson(response.lesson);
-    } catch (error) {
+      const { lesson: lessonData } = await fetchLessonDetail(params.id);
+      setLesson(lessonData);
+    } catch (error: any) {
       console.error("Error fetching lesson:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Failed to load lesson",
+        variant: "destructive",
+      });
+      router.push("/student/courses");
     } finally {
       setLoading(false);
     }
   };
 
-  const checkPreviousResult = async () => {
-    try {
-      const data = await apiClient.getLessonResult(lessonId);
-      setPreviousResult(data.result);
-      setHasCompletedLesson(true);
-    } catch (error) {
-      // Lesson result not found, user hasn't completed this lesson yet
-      console.log("No previous result found");
+  const handleAnswerChange = (exerciseId: string, answer: any) => {
+    setUserAnswers((prev) => ({
+      ...prev,
+      [exerciseId]: answer,
+    }));
+  };
+
+  const handleSubmitExercise = () => {
+    setShowResults(true);
+    toast({
+      title: "Exercise Submitted",
+      description: "Check your results below!",
+    });
+  };
+
+  const handleNextExercise = () => {
+    if (
+      lesson?.content?.exercises &&
+      currentExerciseIndex < lesson.content.exercises.length - 1
+    ) {
+      setCurrentExerciseIndex((prev) => prev + 1);
+      setShowResults(false);
     }
   };
 
-  const handleAnswerSelect = (
-    questionId: string,
-    answer: string | string[]
-  ) => {
-    setProgress((prev) => ({
-      ...prev,
-      answers: {
-        ...prev.answers,
-        [questionId]: answer,
-      },
-    }));
-  };
-
-  const handleNextQuestion = () => {
-    setProgress((prev) => ({
-      ...prev,
-      currentQuestion: prev.currentQuestion + 1,
-    }));
-    setShowAnswer(false);
-  };
-
-  const handlePreviousQuestion = () => {
-    setProgress((prev) => ({
-      ...prev,
-      currentQuestion: Math.max(0, prev.currentQuestion - 1),
-    }));
-    setShowAnswer(false);
-  };
-
-  const handleFinishLesson = async () => {
-    try {
-      // Calculate score
-      let correctAnswers = 0;
-      let totalQuestions = lesson?.content.exercises.length || 0;
-
-      lesson?.content.exercises.forEach((question) => {
-        const userAnswer: string | string[] = progress.answers[question._id];
-        const correctAnswer = question.correctAnswer;
-
-        if (Array.isArray(correctAnswer) && Array.isArray(userAnswer)) {
-          if (
-            correctAnswer.length === userAnswer.length &&
-            correctAnswer.every((ans) => userAnswer.includes(ans))
-          ) {
-            correctAnswers++;
-          }
-        } else {
-          if (userAnswer === correctAnswer.join("")) {
-            correctAnswers++;
-          }
-        }
-      });
-
-      const finalScore = Math.round((correctAnswers / totalQuestions) * 100);
-      // Get final time from timer before stopping
-      const finalTime =
-        timerRef.current?.getCurrentTime() || progress.timeSpentSeconds;
-
-      const stats: ILessonProgressStats = {
-        totalQuestionsAnswered: totalQuestions,
-        totalCorrectAnswers: correctAnswers,
-        totalIncorrectAnswers: totalQuestions - correctAnswers,
-      };
-
-      // Store detailed question data for AI feedback
-      const questionsData: QuestionAnswer[] = (
-        lesson?.content.exercises ?? []
-      ).map((question) => {
-        const userAnswer: string | string[] = progress.answers[question._id];
-        let isCorrect = false;
-
-        if (
-          Array.isArray(question.correctAnswer) &&
-          Array.isArray(userAnswer)
-        ) {
-          isCorrect =
-            question.correctAnswer.length === userAnswer.length &&
-            question.correctAnswer.every((ans) => userAnswer.includes(ans));
-        } else {
-          if (userAnswer === question.correctAnswer.join("")) {
-            isCorrect = true;
-          }
-        }
-
-        return {
-          question: question.question.text,
-          userAnswer: userAnswer || "",
-          correctAnswer: Array.isArray(question.correctAnswer)
-            ? question.correctAnswer.join(", ")
-            : question.correctAnswer,
-          isCorrect,
-          questionType: question.type,
-          explanation: question.explanation,
-        };
-      });
-
-      // Store questions data for AI feedback
-      setQuestionsData(questionsData);
-
-      // Update progress with question results
-      await apiClient.updateProgress({
-        lessonId: lessonId,
-        score: finalScore,
-        timeSpent: finalTime,
-        skill: lesson?.type,
-        stats,
-        questionResults: questionsData.map((q, index) => ({
-          questionId:
-            lesson?.content.exercises[index]._id || `question-${index}`,
-          question: q.question,
-          userAnswer: q.userAnswer,
-          correctAnswer: q.correctAnswer,
-          isCorrect: q.isCorrect,
-          questionType: q.questionType,
-          explanation: q.explanation,
-        })),
-      });
-
-      setProgress((prev) => ({
-        ...prev,
-        score: finalScore,
-        timeSpentSeconds: finalTime,
-      }));
-
-      // Stop the timer when lesson is completed
-      setIsTimerActive(false);
-
-      setShowResult(true);
-    } catch (error) {
-      console.error("Error finishing lesson:", error);
+  const handlePreviousExercise = () => {
+    if (currentExerciseIndex > 0) {
+      setCurrentExerciseIndex((prev) => prev - 1);
+      setShowResults(false);
     }
   };
 
-  const getSkillInfo = (skill: string) => {
-    const skills = {
-      vocab: {
-        label: "Vocabulary",
-        icon: "📚",
-        color: "bg-blue-100 text-blue-700",
-      },
-      grammar: {
-        label: "Grammar",
-        icon: "📝",
-        color: "bg-green-100 text-green-700",
-      },
-      listening: {
-        label: "Listening",
-        icon: "👂",
-        color: "bg-purple-100 text-purple-700",
-      },
-      speaking: {
-        label: "Speaking",
-        icon: "🗣️",
-        color: "bg-orange-100 text-orange-700",
-      },
-      reading: {
-        label: "Reading",
-        icon: "📖",
-        color: "bg-indigo-100 text-indigo-700",
-      },
-      writing: {
-        label: "Writing",
-        icon: "✍️",
-        color: "bg-pink-100 text-pink-700",
-      },
-    };
-    return (
-      skills[skill as keyof typeof skills] || {
-        label: skill,
-        icon: "📚",
-        color: "bg-gray-100 text-gray-700",
-      }
-    );
+  const toggleAudio = () => {
+    setIsPlaying(!isPlaying);
+    // TODO: Implement actual audio playback
   };
 
-  const getDifficultyInfo = (difficulty: string) => {
-    const difficulties = {
-      beginner: { label: "Beginner", color: "bg-green-100 text-green-700" },
-      intermediate: {
-        label: "Intermediate",
-        color: "bg-yellow-100 text-yellow-700",
-      },
-      advanced: { label: "Advanced", color: "bg-red-100 text-red-700" },
-    };
-    return (
-      difficulties[difficulty as keyof typeof difficulties] || {
-        label: difficulty,
-        color: "bg-gray-100 text-gray-700",
-      }
-    );
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    // TODO: Implement actual recording functionality
   };
 
-  const renderQuestion = (question: Exercise) => {
-    const userAnswer = progress.answers[question._id];
-
-    switch (question.type) {
-      case "multiple-choice":
-        return (
-          <div className="space-y-3">
-            {question.options?.map((option, index) => (
-              <label
-                key={index}
-                className={`w-full p-4 text-left rounded-lg transition-colors cursor-pointer`}>
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    checked={
-                      Array.isArray(userAnswer) &&
-                      userAnswer.includes(option.value)
-                    }
-                    onCheckedChange={(checked) => {
-                      const currentAnswers = Array.isArray(userAnswer)
-                        ? userAnswer
-                        : [];
-                      let newAnswers;
-                      if (checked) {
-                        newAnswers = [...currentAnswers, option.value];
-                      } else {
-                        newAnswers = currentAnswers.filter(
-                          (ans: string) => ans !== option.value
-                        );
-                      }
-                      handleAnswerSelect(question._id, newAnswers);
-                    }}
-                  />
-                  <Tooltip content={option.translate}>
-                    <span className="font-medium">{option.value}</span>
-                  </Tooltip>
-                </div>
-              </label>
-            ))}
-          </div>
-        );
-
-      case "fill-in-the-blank":
-      case "translation":
-        return (
-          <div className="space-y-3">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">Enter your answer:</p>
-              <input
-                type="text"
-                value={(userAnswer as string) || ""}
-                onChange={(e) =>
-                  handleAnswerSelect(question._id, e.target.value)
-                }
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Type your answer..."
-              />
-            </div>
-          </div>
-        );
-
-      case "true-false":
-        return (
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => handleAnswerSelect(question._id, "true")}
-              className={`p-6 rounded-lg border-2 transition-colors ${
-                userAnswer === "true"
-                  ? "border-green-500 bg-green-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}>
-              <div className="flex items-center justify-center gap-2">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-                <span className="font-medium text-green-700">True</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => handleAnswerSelect(question._id, "false")}
-              className={`p-6 rounded-lg border-2 transition-colors ${
-                userAnswer === "false"
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}>
-              <div className="flex items-center justify-center gap-2">
-                <XCircle className="h-6 w-6 text-red-600" />
-                <span className="font-medium text-red-700">False</span>
-              </div>
-            </button>
-          </div>
-        );
-
-      case "essay":
-        return (
-          <div className="space-y-3">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">Write your answer:</p>
-              <textarea
-                value={(userAnswer as string) || ""}
-                onChange={(e) =>
-                  handleAnswerSelect(question._id, e.target.value)
-                }
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows={4}
-                placeholder="Type a detailed answer..."
-              />
-            </div>
-          </div>
-        );
-
+  const getLessonIcon = (type: string) => {
+    switch (type) {
+      case "vocab":
+        return <BookOpen className="h-5 w-5" />;
+      case "grammar":
+        return <Edit3 className="h-5 w-5" />;
+      case "listening":
+        return <Headphones className="h-5 w-5" />;
+      case "speaking":
+        return <Mic className="h-5 w-5" />;
+      case "reading":
+        return <Eye className="h-5 w-5" />;
+      case "writing":
+        return <PenTool className="h-5 w-5" />;
       default:
-        return <div>Unsupported question type</div>;
+        return <BookOpen className="h-5 w-5" />;
     }
   };
 
+  const renderVocabularyLesson = () => {
+    if (!lesson?.content?.vocabulary) return null;
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Vocabulary Words
+            </CardTitle>
+            <CardDescription>
+              Learn these vocabulary words and their meanings
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              {lesson.content.vocabulary.map((word: any, index: number) => (
+                <div
+                  key={index}
+                  className="border rounded-lg p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{word.word}</h3>
+                      <p className="text-gray-600 mb-2">{word.definition}</p>
+                      <p className="text-sm text-gray-500 italic">
+                        "{word.example}"
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          {word.partOfSpeech}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {word.difficulty}
+                        </Badge>
+                      </div>
+                    </div>
+                    {word.audioUrl && (
+                      <Button variant="outline" size="sm" onClick={toggleAudio}>
+                        {isPlaying ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  const renderGrammarLesson = () => {
+    if (!lesson?.content?.grammarRule) return null;
+
+    const rule = lesson.content.grammarRule;
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Edit3 className="h-5 w-5" />
+              Grammar Rule: {rule.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h4 className="font-semibold mb-2">Explanation</h4>
+              <p className="text-gray-700">{rule.explanation}</p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-2">Structure</h4>
+              <code className="bg-gray-100 p-2 rounded text-sm font-mono">
+                {rule.structure}
+              </code>
+            </div>
+
+            {rule.usage && rule.usage.length > 0 && (
+              <div>
+                <h4 className="font-semibold mb-2">Usage</h4>
+                <ul className="list-disc list-inside space-y-1">
+                  {rule.usage.map((usage: string, index: number) => (
+                    <li key={index} className="text-gray-700">
+                      {usage}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {rule.examples && rule.examples.length > 0 && (
+              <div>
+                <h4 className="font-semibold mb-2">Examples</h4>
+                <div className="space-y-3">
+                  {rule.examples.map((example: any, index: number) => (
+                    <div
+                      key={index}
+                      className="border-l-4 border-blue-200 pl-4">
+                      <p className="font-medium">{example.sentence}</p>
+                      <p className="text-gray-600 italic">
+                        {example.translation}
+                      </p>
+                      {example.explanation && (
+                        <p className="text-sm text-gray-500">
+                          {example.explanation}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  const renderListeningLesson = () => {
+    if (!lesson?.content?.audio) return null;
+
+    const audio = lesson.content.audio;
+
+    return (
+      <div className="space-y-6">
+        {lesson.content.preListening && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Pre-Listening</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 mb-4">
+                {lesson.content.preListening.context}
+              </p>
+              {lesson.content.preListening.vocabulary && (
+                <div>
+                  <h4 className="font-semibold mb-2">Key Vocabulary</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {lesson.content.preListening.vocabulary.map(
+                      (word: any, index: number) => (
+                        <Badge key={index} variant="outline">
+                          {word.word}
+                        </Badge>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Headphones className="h-5 w-5" />
+              Audio Content
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Button onClick={toggleAudio} size="lg">
+                  {isPlaying ? (
+                    <Pause className="h-5 w-5" />
+                  ) : (
+                    <Play className="h-5 w-5" />
+                  )}
+                </Button>
+                <div>
+                  <p className="font-medium">
+                    Duration: {audio.duration} seconds
+                  </p>
+                  <p className="text-sm text-gray-600">Speed: {audio.speed}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2">Transcript</h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-gray-700">{audio.transcript}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  const renderSpeakingLesson = () => {
+    return (
+      <div className="space-y-6">
+        {lesson?.content?.pronunciation && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mic className="h-5 w-5" />
+                Pronunciation Practice
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {lesson.content.pronunciation.sounds && (
+                <div className="space-y-4">
+                  {lesson.content.pronunciation.sounds.map(
+                    (sound: any, index: number) => (
+                      <div key={index} className="border rounded-lg p-4">
+                        <h4 className="font-semibold">{sound.phoneme}</h4>
+                        <p className="text-gray-600 mb-2">
+                          {sound.description}
+                        </p>
+                        <div className="space-y-2">
+                          <p className="font-medium">Examples:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {sound.examples.map(
+                              (example: string, exIndex: number) => (
+                                <Badge key={exIndex} variant="outline">
+                                  {example}
+                                </Badge>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {lesson?.content?.practiceExercises && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Speaking Exercises</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {lesson.content.practiceExercises.map(
+                  (exercise: any, index: number) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <h4 className="font-semibold mb-2">{exercise.prompt}</h4>
+                      {exercise.sampleAnswer && (
+                        <div className="mb-4">
+                          <p className="text-sm text-gray-600 mb-2">
+                            Sample Answer:
+                          </p>
+                          <p className="italic text-gray-700">
+                            {exercise.sampleAnswer}
+                          </p>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4">
+                        <Button
+                          onClick={toggleRecording}
+                          variant={isRecording ? "destructive" : "default"}>
+                          {isRecording ? (
+                            <MicOff className="h-4 w-4 mr-2" />
+                          ) : (
+                            <Mic className="h-4 w-4 mr-2" />
+                          )}
+                          {isRecording ? "Stop Recording" : "Start Recording"}
+                        </Button>
+                        {exercise.timeLimit && (
+                          <p className="text-sm text-gray-600">
+                            Time limit: {exercise.timeLimit} seconds
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
+
+  const renderReadingLesson = () => {
+    if (!lesson?.content?.passage) return null;
+
+    const passage = lesson.content.passage;
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Reading Passage
+            </CardTitle>
+            <CardDescription>
+              {passage.genre} • {passage.wordCount} words •{" "}
+              {passage.readingTime} min read
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold">{passage.title}</h3>
+              <div className="prose max-w-none">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  {passage.text}
+                </p>
+              </div>
+              {passage.author && (
+                <p className="text-sm text-gray-500 italic">
+                  By {passage.author}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {lesson.content.postReading && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Comprehension Questions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {lesson.content.postReading.comprehensionQuestions?.map(
+                  (question: any, index: number) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <p className="font-medium mb-3">{question.question}</p>
+                      {question.type === "multiple-choice" && (
+                        <RadioGroup>
+                          {question.options.map(
+                            (option: any, optIndex: number) => (
+                              <div
+                                key={optIndex}
+                                className="flex items-center space-x-2">
+                                <RadioGroupItem
+                                  value={option.value}
+                                  id={`${index}-${optIndex}`}
+                                />
+                                <label
+                                  htmlFor={`${index}-${optIndex}`}
+                                  className="text-sm">
+                                  {option.value}
+                                </label>
+                              </div>
+                            )
+                          )}
+                        </RadioGroup>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
+
+  const renderWritingLesson = () => {
+    if (!lesson?.content?.instruction) return null;
+
+    const instruction = lesson.content.instruction;
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PenTool className="h-5 w-5" />
+              Writing Task
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2">Prompt</h4>
+                <p className="text-gray-700">{instruction.prompt}</p>
+              </div>
+
+              {instruction.requirements &&
+                instruction.requirements.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Requirements</h4>
+                    <ul className="list-disc list-inside space-y-1">
+                      {instruction.requirements.map(
+                        (req: string, index: number) => (
+                          <li key={index} className="text-gray-700">
+                            {req}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+              {instruction.audience && (
+                <div>
+                  <h4 className="font-semibold mb-2">Target Audience</h4>
+                  <p className="text-gray-700">{instruction.audience}</p>
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-semibold mb-2">Your Response</h4>
+                <Textarea
+                  placeholder="Write your response here..."
+                  className="min-h-[200px]"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {lesson.content.modelText && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Model Text</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <h4 className="font-semibold">
+                  {lesson.content.modelText.title}
+                </h4>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-gray-700 whitespace-pre-line">
+                    {lesson.content.modelText.text}
+                  </p>
+                </div>
+                {lesson.content.modelText.analysis && (
+                  <div>
+                    <h5 className="font-medium mb-2">Analysis</h5>
+                    <p className="text-gray-600">
+                      {lesson.content.modelText.analysis}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
+
+  const renderExercises = () => {
+    if (!lesson?.content?.exercises || lesson.content.exercises.length === 0) {
+      return null;
+    }
+
+    const exercise = lesson.content.exercises[currentExerciseIndex];
+    const userAnswer = userAnswers[exercise._id || currentExerciseIndex];
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>
+              Exercise {currentExerciseIndex + 1} of{" "}
+              {lesson.content.exercises.length}
+            </span>
+            <Badge variant="outline">{exercise.type}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold mb-2">{exercise.question}</h4>
+              {exercise.translation && (
+                <p className="text-gray-600 italic">{exercise.translation}</p>
+              )}
+            </div>
+
+            {exercise.type === "multiple-choice" && (
+              <RadioGroup
+                value={userAnswer}
+                onValueChange={(value) =>
+                  handleAnswerChange(
+                    exercise._id || currentExerciseIndex,
+                    value
+                  )
+                }>
+                {exercise.options.map((option: any, index: number) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value={option.value}
+                      id={`${currentExerciseIndex}-${index}`}
+                    />
+                    <label
+                      htmlFor={`${currentExerciseIndex}-${index}`}
+                      className="text-sm">
+                      {option.value}
+                    </label>
+                  </div>
+                ))}
+              </RadioGroup>
+            )}
+
+            {exercise.type === "fill-in-the-blank" && (
+              <div className="space-y-2">
+                <p className="text-gray-700">{exercise.sentence}</p>
+                <Input
+                  placeholder="Your answer..."
+                  value={userAnswer || ""}
+                  onChange={(e) =>
+                    handleAnswerChange(
+                      exercise._id || currentExerciseIndex,
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+            )}
+
+            {exercise.type === "true-false" && (
+              <RadioGroup
+                value={userAnswer}
+                onValueChange={(value) =>
+                  handleAnswerChange(
+                    exercise._id || currentExerciseIndex,
+                    value === "true"
+                  )
+                }>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value="true"
+                    id={`${currentExerciseIndex}-true`}
+                  />
+                  <label htmlFor={`${currentExerciseIndex}-true`}>True</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value="false"
+                    id={`${currentExerciseIndex}-false`}
+                  />
+                  <label htmlFor={`${currentExerciseIndex}-false`}>False</label>
+                </div>
+              </RadioGroup>
+            )}
+
+            {exercise.type === "translation" && (
+              <div className="space-y-2">
+                <p className="text-gray-700">{exercise.sentence}</p>
+                <Textarea
+                  placeholder="Your translation..."
+                  value={userAnswer || ""}
+                  onChange={(e) =>
+                    handleAnswerChange(
+                      exercise._id || currentExerciseIndex,
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+            )}
+
+            {showResults && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  {userAnswer === exercise.correctAnswer ? (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-red-600" />
+                  )}
+                  <span className="font-medium">
+                    {userAnswer === exercise.correctAnswer
+                      ? "Correct!"
+                      : "Incorrect"}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Correct answer: {exercise.correctAnswer}
+                </p>
+                {exercise.explanation && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded">
+                    <div className="flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">
+                        Explanation
+                      </span>
+                    </div>
+                    <p className="text-sm text-blue-700 mt-1">
+                      {exercise.explanation}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-4">
+              <Button
+                variant="outline"
+                onClick={handlePreviousExercise}
+                disabled={currentExerciseIndex === 0}>
+                Previous
+              </Button>
+
+              <div className="flex gap-2">
+                {!showResults ? (
+                  <Button onClick={handleSubmitExercise}>Submit Answer</Button>
+                ) : (
+                  <Button onClick={handleNextExercise}>Next Exercise</Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // Show loading if auth is still loading
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -410,18 +784,25 @@ export default function LessonDetailPage() {
     );
   }
 
-  if (!isAuthenticated || !lesson) {
+  // Don't render if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (!lesson) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center py-12">
-            <BookOpen className="h-16 w-16 mx-auto mb-4 text-gray-300" />
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
               Lesson not found
             </h1>
-            <Button onClick={() => router.push("/dashboard/lessons")}>
+            <p className="text-gray-600 mb-6">
+              The lesson you're looking for doesn't exist or is not available.
+            </p>
+            <Button onClick={() => router.push("/student/courses")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to list
+              Back to Courses
             </Button>
           </div>
         </div>
@@ -429,281 +810,69 @@ export default function LessonDetailPage() {
     );
   }
 
-  // console.log(lesson);
-  const currentQuestion = lesson?.content.exercises[progress.currentQuestion];
-  const progressPercentage =
-    ((progress.currentQuestion + 1) / lesson.content.exercises.length) * 100;
-  const skillInfo = getSkillInfo(lesson.type);
-  const difficultyInfo = getDifficultyInfo(lesson.difficulty);
-  // console.log(difficultyInfo);
-
-  const handleViewPreviousResult = () => {
-    if (previousResult) {
-      setProgress({
-        currentQuestion: 0,
-        score: previousResult.score,
-        timeSpentSeconds: previousResult.timeSpent,
-        answers: {},
-        startTime: new Date(),
-      });
-      setQuestionsData(
-        previousResult.questionResults.map((q: any) => ({
-          question: q.question,
-          userAnswer: q.userAnswer,
-          correctAnswer: q.correctAnswer,
-          isCorrect: q.isCorrect,
-          questionType: q.questionType,
-          explanation: q.explanation,
-        }))
-      );
-      setShowResult(true);
-    }
-  };
-
-  const handleRetakeLesson = () => {
-    // Reset all states to allow retaking the lesson
-    setProgress({
-      currentQuestion: 0,
-      score: 0,
-      timeSpentSeconds: 0,
-      answers: {},
-      startTime: new Date(),
-    });
-    setQuestionsData([]);
-    setShowResult(false);
-    setShowAnswer(false);
-    setIsRetaking(true);
-    setIsTimerActive(true);
-    // Reset timer if ref exists
-    if (timerRef.current) {
-      timerRef.current.reset();
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.push("/dashboard/lessons")}
-            className="mb-4 text-gray-600 hover:text-gray-900">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to lessons
-          </Button>
+        {/* Back Button */}
+        <button
+          onClick={() =>
+            router.push(
+              lesson.course
+                ? `/student/courses/${lesson.course._id}`
+                : "/student/courses"
+            )
+          }
+          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to {lesson.course ? lesson.course.title : "Courses"}
+        </button>
 
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Badge className={`${skillInfo.color} border-0`}>
-                  {skillInfo.icon} {skillInfo.label}
-                </Badge>
-                <Badge className={`${difficultyInfo.color} border-0`}>
-                  {difficultyInfo.label}
-                </Badge>
+        {/* Lesson Header */}
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    {getLessonIcon(lesson.type)}
+                    <Badge variant="outline" className="capitalize">
+                      {lesson.type}
+                    </Badge>
+                  </div>
+                  <Badge variant="secondary" className="capitalize">
+                    {lesson.difficulty}
+                  </Badge>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Clock className="h-4 w-4 mr-1" />
+                    {lesson.estimatedTime} min
+                  </div>
+                </div>
+
+                <CardTitle className="text-3xl font-bold mb-4 text-gray-900">
+                  {lesson.title}
+                </CardTitle>
+
+                <CardDescription className="text-lg text-gray-600">
+                  {lesson.description}
+                </CardDescription>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {lesson.title}
-              </h1>
-              <p className="text-gray-600 mt-1">{lesson.description}</p>
             </div>
-          </div>
+          </CardHeader>
+        </Card>
 
-          {/* Previous Result Banner */}
-          {hasCompletedLesson && previousResult && !isRetaking && (
-            <Card className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-green-100 rounded-full">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      You've completed this lesson!
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Score: {previousResult.score}% • Time:{" "}
-                      {Math.floor(previousResult.timeSpent / 60)} minutes
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handleViewPreviousResult}
-                    variant="outline"
-                    className="border-green-300 text-green-700 hover:bg-green-50">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Result
-                  </Button>
-                  <Button
-                    onClick={handleRetakeLesson}
-                    className="bg-blue-600 hover:bg-blue-700">
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Retake Lesson
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
+        {/* Lesson Content */}
+        <div className="space-y-6">
+          {lesson.type === "vocab" && renderVocabularyLesson()}
+          {lesson.type === "grammar" && renderGrammarLesson()}
+          {lesson.type === "listening" && renderListeningLesson()}
+          {lesson.type === "speaking" && renderSpeakingLesson()}
+          {lesson.type === "reading" && renderReadingLesson()}
+          {lesson.type === "writing" && renderWritingLesson()}
 
-          {/* Progress - Only show when not completed or retaking */}
-          {(!hasCompletedLesson || isRetaking) && (
-            <Card className="p-4 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">
-                  Question {progress.currentQuestion + 1} /{" "}
-                  {lesson.content.exercises.length}
-                </span>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <LessonTimer ref={timerRef} isActive={isTimerActive} />
-                </div>
-              </div>
-              <Progress value={progressPercentage} className="h-2" />
-            </Card>
-          )}
+          {/* Exercises */}
+          {renderExercises()}
         </div>
-
-        {/* Question - Only show when not completed or retaking */}
-        {(!hasCompletedLesson || isRetaking) && (
-          <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg mb-6">
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  <Tooltip content={currentQuestion.question.translate}>
-                    {currentQuestion.question.text}
-                  </Tooltip>
-                </h2>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowAnswer(!showAnswer)}>
-                  {showAnswer ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                  {showAnswer ? "Hide answer" : "Show answer"}
-                </Button>
-              </div>
-
-              {showAnswer && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
-                  <p className="text-sm font-medium text-green-800 mb-1">
-                    Correct answer:
-                  </p>
-                  <p className="text-green-700">
-                    {Array.isArray(currentQuestion.correctAnswer)
-                      ? currentQuestion.correctAnswer.join(", ")
-                      : currentQuestion.correctAnswer}
-                  </p>
-                  {currentQuestion.explanation && (
-                    <div className="mt-2">
-                      <p className="text-sm font-medium text-green-800 mb-1">
-                        Explanation:
-                      </p>
-                      <p className="text-sm text-green-700">
-                        {currentQuestion.explanation}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {renderQuestion(currentQuestion)}
-            </div>
-
-            {/* Navigation */}
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-              <Button
-                variant="outline"
-                onClick={handlePreviousQuestion}
-                disabled={progress.currentQuestion === 0}>
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-
-              <div className="flex items-center gap-2">
-                {progress.currentQuestion ===
-                lesson.content.exercises.length - 1 ? (
-                  <Button
-                    onClick={handleFinishLesson}
-                    className="bg-green-600 hover:bg-green-700">
-                    <Target className="h-4 w-4 mr-2" />
-                    Finish
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleNextQuestion}
-                    disabled={!progress.answers[currentQuestion._id]}>
-                    Next
-                    <Play className="h-4 w-4 ml-2" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Completed Lesson View - Show when completed and not retaking */}
-        {hasCompletedLesson && !isRetaking && previousResult && (
-          <Card className="p-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg text-center">
-            <div className="max-w-md mx-auto">
-              <div className="p-4 bg-green-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-                <CheckCircle className="h-12 w-12 text-green-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                Lesson Completed!
-              </h2>
-              <p className="text-gray-600 mb-6">
-                You've already completed this lesson. You can view your previous
-                result or retake the lesson to improve your score.
-              </p>
-              <div className="flex flex-col gap-3">
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Score</p>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {previousResult.score}%
-                    </p>
-                  </div>
-                  <div className="p-4 bg-purple-50 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Time</p>
-                    <p className="text-2xl font-bold text-purple-600">
-                      {Math.floor(previousResult.timeSpent / 60)}m
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={handleViewPreviousResult}
-                  variant="outline"
-                  className="w-full border-green-300 text-green-700 hover:bg-green-50">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Previous Result
-                </Button>
-                <Button
-                  onClick={handleRetakeLesson}
-                  className="w-full bg-blue-600 hover:bg-blue-700">
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Retake Lesson
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
       </div>
-
-      {/* Result Modal */}
-      {showResult && (
-        <LessonResultModal
-          lesson={lesson}
-          score={progress.score}
-          timeSpent={Math.floor(progress.timeSpentSeconds / 60)}
-          questionsData={questionsData}
-          onClose={() => setShowResult(false)}
-          onContinue={() => router.push("/dashboard/lessons")}
-        />
-      )}
     </div>
   );
 }
