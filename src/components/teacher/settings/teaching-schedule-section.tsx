@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { teacherProfileService } from "@/lib/teacher-profile-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Calendar, Clock, Loader2 } from "lucide-react";
@@ -49,10 +50,10 @@ const defaultSchedule = [
 
 export function TeachingScheduleSection() {
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
   const {
-    register,
     handleSubmit,
     formState: { errors, isSubmitting },
     watch,
@@ -90,8 +91,8 @@ export function TeachingScheduleSection() {
       }
     };
 
-    fetchSchedule();
-  }, [reset, toast]);
+    isAuthenticated && fetchSchedule();
+  }, [reset, toast, isAuthenticated]);
 
   const handleTimeChange = (
     index: number,
@@ -157,7 +158,7 @@ export function TeachingScheduleSection() {
   }
 
   return (
-    <Card className="mb-8">
+    <Card>
       <CardHeader className="flex flex-row items-center space-y-0">
         <Calendar className="h-5 w-5 mr-2 text-gray-500" />
         <CardTitle>Teaching Schedule</CardTitle>

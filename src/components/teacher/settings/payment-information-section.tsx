@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { teacherProfileService } from "@/lib/teacher-profile-service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, CreditCard, Edit2, Plus, Star, Trash2 } from "lucide-react";
@@ -63,9 +64,9 @@ const defaultValues: PaymentMethodFormData = {
 };
 
 export function PaymentInformationSection() {
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(
     null
@@ -96,8 +97,8 @@ export function PaymentInformationSection() {
   };
 
   useEffect(() => {
-    fetchPaymentMethods();
-  }, []);
+    isAuthenticated && fetchPaymentMethods();
+  }, [isAuthenticated]);
 
   const onSubmit = async (data: PaymentMethodFormData) => {
     try {

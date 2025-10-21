@@ -149,7 +149,7 @@ export function ProfileSection() {
   };
 
   return (
-    <Card className="mb-8">
+    <Card>
       <CardHeader className="flex flex-row items-center space-y-0">
         <User className="h-5 w-5 mr-2 text-gray-500" />
         <CardTitle>Profile Information</CardTitle>

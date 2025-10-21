@@ -4,6 +4,7 @@ import { imageConstants } from "@/constant/image.constant";
 import { useRequireAuth } from "@/hooks/useAuth";
 import {
   BarChart3,
+  BookDashed,
   BookOpen,
   Home,
   Menu,
@@ -30,31 +31,37 @@ interface NavItem {
 const navigation: NavItem[] = [
   {
     name: "Overview",
-    href: "/dashboard",
+    href: "/student",
     icon: Home,
     description: "Progress and recent activity",
   },
   {
+    name: "Courses",
+    href: "/student/courses",
+    icon: BookDashed,
+    description: "Courses and progress",
+  },
+  {
     name: "Lessons",
-    href: "/dashboard/lessons",
+    href: "/student/lessons",
     icon: BookOpen,
     description: "Lessons and progress",
   },
   {
     name: "Statistics",
-    href: "/dashboard/statistics",
+    href: "/student/statistics",
     icon: BarChart3,
     description: "Charts and analytics",
   },
   {
     name: "Profile",
-    href: "/dashboard/profile",
+    href: "/student/profile",
     icon: User,
     description: "Personal information and goals",
   },
   {
     name: "Settings",
-    href: "/dashboard/settings",
+    href: "/student/settings",
     icon: Settings,
     description: "Account settings",
   },

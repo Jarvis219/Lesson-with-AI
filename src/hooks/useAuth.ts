@@ -218,5 +218,6 @@ export function useRequireAdmin() {
   }, [isAuthenticated, isLoading, user]);
 
   const isAdmin = Boolean(user && user.role === "admin");
+
   return { isAdmin, isLoading };
 }
