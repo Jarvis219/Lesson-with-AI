@@ -1,4 +1,5 @@
 import { apiService } from "@/lib/axios";
+import { LessonDetailResponse } from "@/types";
 import { IPagination } from "@/types/pagination";
 import { Course } from "@/types/teacher";
 
@@ -60,8 +61,8 @@ export async function fetchCourseDetail(
 
 export async function fetchLessonDetail(
   lessonId: string
-): Promise<{ lesson: any }> {
-  const response = await apiService.get<{ lesson: any }>(
+): Promise<{ lesson: LessonDetailResponse }> {
+  const response = await apiService.get<{ lesson: LessonDetailResponse }>(
     `/api/student/lessons/${lessonId}`
   );
   return response.data;

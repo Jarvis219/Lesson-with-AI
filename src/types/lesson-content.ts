@@ -375,13 +375,22 @@ export interface WritingLessonFormData extends BaseLessonFormData {
   content: WritingLessonContent;
 }
 
-export type LessonFormData =
-  | VocabularyLessonFormData
-  | GrammarLessonFormData
-  | ListeningLessonFormData
-  | SpeakingLessonFormData
-  | ReadingLessonFormData
-  | WritingLessonFormData;
+// export type LessonFormData =
+//   | VocabularyLessonFormData
+//   | GrammarLessonFormData
+//   | ListeningLessonFormData
+//   | SpeakingLessonFormData
+//   | ReadingLessonFormData
+//   | WritingLessonFormData;
+
+// export type VocabularyFormData = z.infer<typeof vocabularyLessonFormSchema>;
+// export type GrammarFormData = z.infer<typeof grammarLessonFormSchema>;
+// export type ListeningFormData = z.infer<typeof listeningLessonFormSchema>;
+// export type SpeakingFormData = z.infer<typeof speakingLessonFormSchema>;
+// export type ReadingFormData = z.infer<typeof readingLessonFormSchema>;
+// export type WritingFormData = z.infer<typeof writingLessonFormSchema>;
+
+// export type LessonFormData = CreateLessonFormData;
 
 export interface Skill {
   value: string;

@@ -53,7 +53,6 @@ export async function GET(request: NextRequest) {
     const [courses, total] = await Promise.all([
       Course.find(query)
         .populate("teacher", "name email")
-        .populate("lessons", "_id title")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)

@@ -21,14 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { AIService } from "@/lib/ai-service";
 import { TeacherService } from "@/lib/teacher-service";
-import {
-  grammarLessonFormSchema,
-  listeningLessonFormSchema,
-  readingLessonFormSchema,
-  speakingLessonFormSchema,
-  vocabularyLessonFormSchema,
-  writingLessonFormSchema,
-} from "@/lib/validations/lesson-schemas";
+import { LessonFormData } from "@/lib/validations/lesson-schemas";
 import type {
   GrammarLessonContent,
   LessonContent,
@@ -45,7 +38,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { getSchemaForType } from "utils/lesson.util";
-import type { z } from "zod";
 
 // Helper to initialize empty content based on lesson type
 const initializeContentForType = (type: LessonType): LessonContent => {
@@ -151,23 +143,6 @@ const initializeContentForType = (type: LessonType): LessonContent => {
   }
 };
 
-// Type for lesson form data based on lesson type
-type VocabularyFormData = z.infer<typeof vocabularyLessonFormSchema>;
-type GrammarFormData = z.infer<typeof grammarLessonFormSchema>;
-type ListeningFormData = z.infer<typeof listeningLessonFormSchema>;
-type SpeakingFormData = z.infer<typeof speakingLessonFormSchema>;
-type ReadingFormData = z.infer<typeof readingLessonFormSchema>;
-type WritingFormData = z.infer<typeof writingLessonFormSchema>;
-
-// Union type for all lesson form data
-type LessonFormData =
-  | VocabularyFormData
-  | GrammarFormData
-  | ListeningFormData
-  | SpeakingFormData
-  | ReadingFormData
-  | WritingFormData;
-
 export default function NewLessonPage() {
   const params = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -193,7 +168,7 @@ export default function NewLessonPage() {
       estimatedTime: 30,
       tags: "",
       content: initializeContentForType("vocab"),
-    } as VocabularyFormData,
+    } as LessonFormData,
   });
 
   const {

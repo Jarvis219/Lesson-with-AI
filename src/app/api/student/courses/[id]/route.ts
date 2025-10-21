@@ -1,6 +1,8 @@
 import { isRequireAuth } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Course from "@/models/Course";
+import Lesson from "@/models/Lesson";
+import { Course as ICourse } from "@/types/teacher";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET - Get course detail for student
@@ -22,21 +24,23 @@ export async function GET(
 
     const courseId = params.id;
 
-    // Get course with populated data
-    const course = (await Course.findById(courseId)
-      .populate("teacher", "name email teacherBio teacherQualification")
-      .populate(
-        "lessons",
-        "_id title description type difficulty estimatedTime"
-      )
-      .lean()) as any;
+    const [course, lessons] = await Promise.all([
+      Course.findOne({
+        _id: courseId,
+      })
+        .populate("teacher", "name email teacherBio teacherQualification")
+        .lean() as unknown as ICourse,
+      Lesson.find({ course: courseId })
+        .select("_id title description type difficulty estimatedTime")
+        .lean(),
+    ]);
 
     if (!course) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
     // Check if course is published
-    if (!course.isPublished) {
+    if (!course?.isPublished) {
       return NextResponse.json(
         { error: "Course is not available" },
         { status: 403 }
@@ -46,8 +50,9 @@ export async function GET(
     // Add isEnrolled field
     const courseWithEnrollmentStatus = {
       ...course,
+      lessons,
       isEnrolled: course.enrolledStudents.some(
-        (studentId: any) => studentId.toString() === userId
+        (studentId: string) => studentId.toString() === userId
       ),
     };
 

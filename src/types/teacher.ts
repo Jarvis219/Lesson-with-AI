@@ -33,15 +33,9 @@ export interface Course {
   level: string;
   category: string;
   thumbnail?: string;
-  teacher: {
-    _id: string;
-    name: string;
-    email: string;
-    teacherBio?: string;
-    teacherQualification?: string;
-  };
-  lessons: any[];
-  enrolledStudents: any[];
+  teacher: Teacher;
+  lessons: Lesson[];
+  enrolledStudents: string[];
   isPublished: boolean;
   isEnrolled?: boolean;
   createdAt: string;

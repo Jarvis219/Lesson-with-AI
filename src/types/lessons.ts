@@ -1,5 +1,7 @@
+import { LessonFormData } from "@/lib/validations/lesson-schemas";
 import { ILessonProgress } from "@/models/Progress";
 import { DifficultyLevel, EXERCISE_TYPES, LessonType } from "./lesson-enums";
+import { Course, Teacher } from "./teacher";
 
 interface Options {
   value: string;
@@ -100,3 +102,9 @@ export interface LessonsFilterParams {
   status?: string;
   tags?: string;
 }
+
+// Student
+export type LessonDetailResponse = LessonFormData & {
+  teacher: Teacher;
+  course: Course;
+};

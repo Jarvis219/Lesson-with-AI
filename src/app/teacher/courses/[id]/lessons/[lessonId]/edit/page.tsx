@@ -20,21 +20,13 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { TeacherService } from "@/lib/teacher-service";
-import {
-  grammarLessonFormSchema,
-  listeningLessonFormSchema,
-  readingLessonFormSchema,
-  speakingLessonFormSchema,
-  vocabularyLessonFormSchema,
-  writingLessonFormSchema,
-} from "@/lib/validations/lesson-schemas";
+import { LessonFormData } from "@/lib/validations/lesson-schemas";
 import type { LessonContent, LessonType } from "@/types/lesson-content";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, CheckCircle, Eye, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import type { z } from "zod";
 
 // Import Select components
 import {
@@ -45,22 +37,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getSchemaForType } from "utils/lesson.util";
-
-// Define form data types
-type VocabularyFormData = z.infer<typeof vocabularyLessonFormSchema>;
-type GrammarFormData = z.infer<typeof grammarLessonFormSchema>;
-type ListeningFormData = z.infer<typeof listeningLessonFormSchema>;
-type SpeakingFormData = z.infer<typeof speakingLessonFormSchema>;
-type ReadingFormData = z.infer<typeof readingLessonFormSchema>;
-type WritingFormData = z.infer<typeof writingLessonFormSchema>;
-
-type LessonFormData =
-  | VocabularyFormData
-  | GrammarFormData
-  | ListeningFormData
-  | SpeakingFormData
-  | ReadingFormData
-  | WritingFormData;
 
 export default function EditLessonPage() {
   const params = useParams();
@@ -211,7 +187,6 @@ export default function EditLessonPage() {
           estimatedTime: data.estimatedTime,
           tags: tagsArray,
           content: data.content as LessonContent,
-          teacherId: user.id,
         }
       );
 

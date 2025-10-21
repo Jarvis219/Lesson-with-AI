@@ -426,4 +426,4 @@ export const createLessonSchema = z.discriminatedUnion("type", [
   writingLessonFormSchema,
 ]);
 
-export type CreateLessonFormData = z.infer<typeof createLessonSchema>;
+export type LessonFormData = z.infer<typeof createLessonSchema>;
