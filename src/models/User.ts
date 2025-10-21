@@ -25,6 +25,8 @@ export interface IUser extends Document {
   teacherBio?: string;
   teacherQualification?: string;
   coursesCreated?: mongoose.Types.ObjectId[];
+  // Student specific fields
+  enrolledCourses?: mongoose.Types.ObjectId[];
 }
 
 const UserSchema = new Schema<IUser>(
@@ -112,6 +114,12 @@ const UserSchema = new Schema<IUser>(
       maxlength: [200, "Qualification cannot be more than 200 characters"],
     },
     coursesCreated: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
+    enrolledCourses: [
       {
         type: Schema.Types.ObjectId,
         ref: "Course",

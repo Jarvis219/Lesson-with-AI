@@ -14,7 +14,7 @@ export default function AdminLessonsPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 sm:p-4 lg:p-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="">
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -33,7 +33,7 @@ export default function AdminLessonsPage() {
   return (
     <AdminLessonsProvider>
       <div className="p-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="">
           {/* Header Section */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 lg:mb-8 gap-4">
             <div className="flex-1">

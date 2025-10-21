@@ -382,3 +382,17 @@ export type LessonFormData =
   | SpeakingLessonFormData
   | ReadingLessonFormData
   | WritingLessonFormData;
+
+export interface Skill {
+  value: string;
+  label: string;
+  icon: string;
+  description: string;
+}
+
+export interface Difficulty {
+  value: string;
+  label: string;
+  icon: string;
+  description: string;
+}

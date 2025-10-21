@@ -130,7 +130,7 @@ const HomePage: React.FC = () => {
       <section
         className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20"
         aria-label="Hero">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge className="mb-4 bg-blue-100 text-blue-800 border-blue-200">
               <Sparkles className="w-3 h-3 mr-1" />
@@ -170,7 +170,7 @@ const HomePage: React.FC = () => {
 
       {/* Stats Section */}
       <section className="py-16 bg-white" aria-label="Key statistics">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -186,7 +186,7 @@ const HomePage: React.FC = () => {
 
       {/* Features Section */}
       <section className="py-20 bg-gray-50" aria-label="Features">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Why Choose Lean English AI?
@@ -223,7 +223,7 @@ const HomePage: React.FC = () => {
 
       {/* How It Works Section */}
       <section className="py-20 bg-white" aria-label="How it works">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               How It Works
@@ -270,7 +270,7 @@ const HomePage: React.FC = () => {
 
       {/* Testimonials Section */}
       <section className="py-20 bg-gray-50" aria-label="Testimonials">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               What Our Learners Say

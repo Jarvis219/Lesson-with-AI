@@ -12,7 +12,12 @@ import {
   writingLessonFormSchema,
   writingLessonSchema,
 } from "@/lib/validations/lesson-schemas";
-import { Exercise, ExerciseType, LessonType } from "@/types/lesson-content";
+import {
+  DifficultyLevel,
+  Exercise,
+  ExerciseType,
+  LessonType,
+} from "@/types/lesson-content";
 
 export const addExerciseToLesson = (
   type: ExerciseType,
@@ -110,5 +115,31 @@ export const getAISchemaForType = (type: LessonType) => {
       return readingLessonSchema;
     case "writing":
       return writingLessonSchema;
+  }
+};
+
+export const getLevelColor = (level: DifficultyLevel) => {
+  switch (level.toLowerCase()) {
+    case "beginner":
+      return "bg-gradient-to-r from-emerald-400 to-green-500 text-white";
+    case "intermediate":
+      return "bg-gradient-to-r from-cyan-400 to-blue-500 text-white";
+    case "advanced":
+      return "bg-gradient-to-r from-purple-400 to-pink-500 text-white";
+    default:
+      return "bg-gradient-to-r from-gray-400 to-gray-500 text-white";
+  }
+};
+
+export const getLevelIcon = (level: DifficultyLevel) => {
+  switch (level.toLowerCase()) {
+    case "beginner":
+      return "🌱";
+    case "intermediate":
+      return "📚";
+    case "advanced":
+      return "🚀";
+    default:
+      return "📖";
   }
 };

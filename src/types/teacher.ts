@@ -32,10 +32,18 @@ export interface Course {
   description: string;
   level: string;
   category: string;
+  thumbnail?: string;
+  teacher: {
+    _id: string;
+    name: string;
+    email: string;
+  };
   lessons: any[];
   enrolledStudents: any[];
   isPublished: boolean;
+  isEnrolled?: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CourseListResponse {

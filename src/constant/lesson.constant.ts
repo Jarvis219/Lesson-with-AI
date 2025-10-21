@@ -1,6 +1,7 @@
 import { EXERCISE_QUESTION_TYPES } from "@/types";
+import { Difficulty, Skill } from "@/types/lesson-content";
 
-export const skills = [
+export const skills: Skill[] = [
   {
     value: "vocab",
     label: "Vocabulary",
@@ -39,20 +40,23 @@ export const skills = [
   },
 ];
 
-export const difficulties = [
+export const difficulties: Difficulty[] = [
   {
     value: "beginner",
     label: "Beginner",
+    icon: "🌱",
     description: "Appropriate for beginners in English",
   },
   {
     value: "intermediate",
     label: "Intermediate",
+    icon: "📚",
     description: "Basic knowledge of English",
   },
   {
     value: "advanced",
     label: "Advanced",
+    icon: "🚀",
     description: "Advanced level of English",
   },
 ];
