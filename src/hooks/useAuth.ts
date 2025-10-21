@@ -13,6 +13,7 @@ import React, {
 // Auth context interface
 interface AuthContextType {
   user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
@@ -160,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value: AuthContextType = {
     user,
+    setUser,
     isLoading,
     isAuthenticated,
     error,

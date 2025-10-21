@@ -5,6 +5,7 @@ export const USER_ROLES = ["student", "teacher", "admin"] as const;
 export interface IUser extends Document {
   name: string;
   email: string;
+  avatar?: string;
   passwordHash: string;
   role: (typeof USER_ROLES)[number];
   level: "beginner" | "intermediate" | "advanced";
@@ -43,6 +44,11 @@ const UserSchema = new Schema<IUser>(
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
         "Please enter a valid email",
       ],
+    },
+    avatar: {
+      type: String,
+      required: [false, "Avatar is not required"],
+      default: null,
     },
     passwordHash: {
       type: String,

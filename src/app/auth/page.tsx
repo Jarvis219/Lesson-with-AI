@@ -17,7 +17,7 @@ const AuthPage: React.FC = () => {
 
   useEffect(() => {
     if (user?.role === "teacher" && !user?.isTeacherApproved) {
-      router.push("/teacher/dashboard");
+      router.push("/teacher/courses");
       return;
     }
 

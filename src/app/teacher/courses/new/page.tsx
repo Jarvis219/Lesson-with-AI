@@ -73,7 +73,7 @@ export default function NewCoursePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
-          onClick={() => router.push("/teacher/dashboard")}
+          onClick={() => router.push("/teacher/courses")}
           className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
@@ -187,7 +187,7 @@ export default function NewCoursePage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push("/teacher/dashboard")}
+                  onClick={() => router.push("/teacher/courses")}
                   className="flex-1"
                   disabled={isLoading}>
                   Cancel

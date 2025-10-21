@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     const userResponse = {
       id: user._id,
       name: user.name,
+      avatar: user.avatar,
       email: user.email,
       role: user.role,
       level: user.level,

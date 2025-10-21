@@ -22,7 +22,7 @@ export default function PendingApprovalPage() {
     if (!isLoading && user) {
       // If user is approved, redirect to teacher dashboard
       if (user.isTeacherApproved) {
-        router.push("/teacher/dashboard");
+        router.push("/teacher/courses");
       }
       // If user is not a teacher, redirect to regular dashboard
       if (user.role !== "teacher") {

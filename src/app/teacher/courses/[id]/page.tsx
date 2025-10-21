@@ -105,7 +105,7 @@ export default function CourseDetailPage() {
     } catch (error) {
       console.error("Error fetching course:", error);
       if (page === PAGINATION_DEFAULT.page) {
-        router.push("/teacher/dashboard");
+        router.push("/teacher/courses");
       }
     } finally {
       setLoading(false);
@@ -262,7 +262,7 @@ export default function CourseDetailPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
-          onClick={() => router.push("/teacher/dashboard")}
+          onClick={() => router.push("/teacher/courses")}
           className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
