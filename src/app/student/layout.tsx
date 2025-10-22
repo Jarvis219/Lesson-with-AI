@@ -1,4 +1,4 @@
-import StudentDashboardLayout from "@/components/dashboard/dashboard-layout";
+import StudentDashboardLayout from "@/components/student/dashboard-layout";
 
 export default function DashboardLayoutWrapper({
   children,

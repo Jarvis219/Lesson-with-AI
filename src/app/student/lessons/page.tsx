@@ -1,6 +1,6 @@
 "use client";
 
-import { LessonCard } from "@/components/dashboard/lesson-card";
+import { LessonCard } from "@/components/student/lesson-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

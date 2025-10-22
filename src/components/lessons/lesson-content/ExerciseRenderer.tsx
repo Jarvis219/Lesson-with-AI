@@ -16,7 +16,7 @@ import {
   Lightbulb,
   XCircle,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { getLevelColor, getLevelIcon } from "utils/lesson.util";
 import { isEmpty } from "utils/lodash.util";
@@ -44,6 +44,7 @@ export function ExerciseRenderer({
 }: ExerciseRendererProps) {
   const [hoveredOption, setHoveredOption] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout[]>([]);
 
   if (exercises.length === 0) {
     return null;
@@ -55,19 +56,30 @@ export function ExerciseRenderer({
 
   const handleNextExercise = () => {
     setIsAnimating(true);
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       onNextExercise();
       setIsAnimating(false);
     }, 200);
+
+    timeoutRef.current.push(timeout);
   };
 
   const handlePreviousExercise = () => {
     setIsAnimating(true);
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       onPreviousExercise();
       setIsAnimating(false);
     }, 200);
+
+    timeoutRef.current.push(timeout);
   };
+
+  useEffect(() => {
+    return () => {
+      timeoutRef.current.forEach((timeout) => clearTimeout(timeout));
+      timeoutRef.current = [];
+    };
+  }, []);
 
   const renderExerciseContent = () => {
     switch ((exercise as any).type) {

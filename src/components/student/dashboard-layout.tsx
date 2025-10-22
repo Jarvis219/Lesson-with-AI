@@ -71,6 +71,7 @@ export default function StudentDashboardLayout({
   children,
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const { isAuthenticated, isLoading } = useRequireAuth();
 
@@ -121,8 +122,10 @@ export default function StudentDashboardLayout({
             <nav className="mt-5 px-2 space-y-1">
               {navigation.map((item) => {
                 const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(item.href + "/");
+                  pathname === "/student" && item.href === "/student"
+                    ? true
+                    : pathname.includes(item.href) && item.href !== "/student";
+
                 return (
                   <Link
                     key={item.name}
@@ -154,49 +157,58 @@ export default function StudentDashboardLayout({
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
-        <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
-          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex items-center justify-center flex-shrink-0 px-4">
-              <Link href="/" className="cursor-pointer">
-                <Image
-                  src={imageConstants.logo}
-                  alt="logo"
-                  width={120}
-                  height={120}
-                />
-              </Link>
-            </div>
+      <div
+        className={`hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 transition-all duration-300 ${
+          desktopSidebarCollapsed ? "lg:w-16" : "lg:w-64"
+        }`}>
+        <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200 shadow-lg">
+          {/* Header with logo and toggle button */}
+          <div className="mx-auto">
+            <Link
+              href="/"
+              className="cursor-pointer transition-opacity duration-300">
+              <Image
+                src={imageConstants.logo}
+                alt="logo"
+                width={120}
+                height={120}
+              />
+            </Link>
+          </div>
+
+          <div className="flex-1 flex flex-col pt-4 pb-4 overflow-y-auto">
             <nav className="flex-1 px-2 space-y-1">
               {navigation.map((item) => {
                 const isActive =
-                  pathname === "/dashboard" && item.href === "/dashboard"
+                  pathname === "/student" && item.href === "/student"
                     ? true
-                    : pathname.includes(item.href) &&
-                      item.href !== "/dashboard";
+                    : pathname.includes(item.href) && item.href !== "/student";
 
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`group flex items-center px-2 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                       isActive
-                        ? "bg-blue-100 text-blue-900"
+                        ? "bg-blue-100 text-blue-900 shadow-sm"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    }`}>
+                    }`}
+                    title={desktopSidebarCollapsed ? item.name : undefined}>
                     <item.icon
-                      className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                      className={`flex-shrink-0 h-5 w-5 transition-colors duration-200 ${
                         isActive
                           ? "text-blue-500"
                           : "text-gray-400 group-hover:text-gray-500"
-                      }`}
+                      } ${desktopSidebarCollapsed ? "mx-auto" : "mr-3"}`}
                     />
-                    <div>
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {item.description}
+                    {!desktopSidebarCollapsed && (
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">{item.name}</div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {item.description}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </Link>
                 );
               })}
@@ -206,15 +218,46 @@ export default function StudentDashboardLayout({
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64 flex flex-col flex-1">
+      <div
+        className={`flex flex-col flex-1 transition-all duration-300 ${
+          desktopSidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
+        }`}>
         {/* Top bar */}
-        <div className="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50">
-          <button
-            type="button"
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-            onClick={() => setSidebarOpen(true)}>
-            <Menu className="h-6 w-6" />
-          </button>
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between px-4 py-3">
+            {/* Mobile menu button */}
+            <button
+              type="button"
+              className="lg:hidden -ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              onClick={() => setSidebarOpen(true)}>
+              <Menu className="h-6 w-6" />
+            </button>
+
+            {/* Desktop sidebar toggle */}
+            <button
+              type="button"
+              className="hidden lg:flex items-center justify-center h-10 w-10 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors duration-200"
+              onClick={() =>
+                setDesktopSidebarCollapsed(!desktopSidebarCollapsed)
+              }
+              title={
+                desktopSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+              }>
+              <Menu className="h-5 w-5" />
+            </button>
+
+            {/* Page title or breadcrumb can go here */}
+            <div className="flex-1 lg:ml-4">
+              <h1 className="text-lg font-semibold text-gray-900">
+                Student Dashboard
+              </h1>
+            </div>
+
+            {/* User info or actions can go here */}
+            <div className="flex items-center space-x-4">
+              {/* Add user avatar, notifications, etc. here */}
+            </div>
+          </div>
         </div>
 
         {/* Page content */}
