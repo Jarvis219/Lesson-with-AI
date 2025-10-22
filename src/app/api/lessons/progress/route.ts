@@ -1,9 +1,10 @@
 import { getUserFromRequest } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import LessonResult from "@/models/LessonResult";
-import Progress from "@/models/Progress";
-import User from "@/models/User";
+import Progress, { IQuestionAnswer } from "@/models/Progress";
+import { LessonProgressSubmitResponse } from "@/types/lessons";
 import { NextRequest, NextResponse } from "next/server";
+import { isEmpty } from "utils/lodash.util";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,120 +18,180 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const {
-      lessonId,
-      score,
-      timeSpent,
-      skill,
-      stats,
-      questionResults,
-      feedback,
-    } = await request.json();
+    const { lessonId, timeSpent, userAnswers, exercises, lessonType } =
+      await request.json();
 
     // Validation
-    if (!lessonId || score === undefined || !timeSpent) {
+    if (!lessonId || timeSpent === undefined) {
       return NextResponse.json(
-        { error: "Lesson ID, score, and time spent are required" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Find user's progress
-    let progress = await Progress.findOne({ userId: userPayload.userId });
+    // Helper function to check if answer is correct
+    const checkAnswerCorrectness = (exercise: any, userAnswer: any) => {
+      const userAnswersArray = (
+        Array.isArray(userAnswer) ? userAnswer : [userAnswer]
+      )
+        ?.filter((val) => val !== undefined && val !== null)
+        .map((val) => val.toString().toLowerCase().trim());
 
-    if (!progress) {
-      // Create new progress record if doesn't exist
-      progress = new Progress({
+      const correctAnswers =
+        isEmpty(exercise.correctAnswers) && !isEmpty(exercise.correctAnswer)
+          ? [exercise.correctAnswer]
+          : exercise.correctAnswers;
+
+      if (exercise.type === "multiple-choice") {
+        return (
+          correctAnswers.length === userAnswersArray.length &&
+          correctAnswers.every((answer: string) =>
+            userAnswersArray.includes(answer.toLowerCase().trim())
+          )
+        );
+      }
+
+      return correctAnswers.some((answer: string) =>
+        userAnswersArray.includes(answer.toLowerCase().trim())
+      );
+    };
+
+    // Calculate detailed stats and create question answers data
+    const totalQuestions = exercises?.length || 0;
+    const questionAnswers: IQuestionAnswer[] =
+      exercises?.map((exercise: any, index: number) => {
+        const userAnswer = userAnswers[exercise.id || index.toString()];
+        const correctAnswer = exercise.correctAnswers || exercise.correctAnswer;
+        const isCorrect = checkAnswerCorrectness(exercise, userAnswer);
+
+        return {
+          questionId: exercise.id || index.toString(),
+          question: exercise.question,
+          questionType: exercise.type,
+          userAnswer: userAnswer,
+          correctAnswer: correctAnswer,
+          isCorrect: isCorrect,
+          explanation: exercise.explanation,
+          points: exercise.points || 1,
+          difficulty: exercise.difficulty || "beginner",
+          answeredAt: new Date(),
+        };
+      }) || [];
+
+    // Calculate stats from question answers
+    const correctAnswers = questionAnswers.filter(
+      (qa: IQuestionAnswer) => qa.isCorrect
+    ).length;
+    const incorrectAnswers = totalQuestions - correctAnswers;
+
+    // Calculate score percentage
+    const score =
+      totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
+
+    const stats = {
+      totalQuestionsAnswered: totalQuestions,
+      totalCorrectAnswers: correctAnswers,
+      totalIncorrectAnswers: incorrectAnswers,
+      questionAnswers: questionAnswers,
+    };
+
+    // Find or create user progress
+    let userProgress = await Progress.findOne({ userId: userPayload.userId });
+
+    if (!userProgress) {
+      userProgress = new Progress({
         userId: userPayload.userId,
         lessonsCompleted: [],
         streak: 0,
         totalTimeSpent: 0,
-        scores: [
-          { skill: "vocab", score: 0, lastUpdated: new Date() },
-          { skill: "grammar", score: 0, lastUpdated: new Date() },
-          { skill: "listening", score: 0, lastUpdated: new Date() },
-          { skill: "speaking", score: 0, lastUpdated: new Date() },
-          { skill: "reading", score: 0, lastUpdated: new Date() },
-          { skill: "writing", score: 0, lastUpdated: new Date() },
-        ],
+        scores: [],
         lessonProgress: [],
         achievements: [],
+        lastLogin: new Date(),
         weeklyGoal: 5,
         weeklyProgress: 0,
       });
     }
 
-    // Add lesson progress with stats if provided
-    await progress.addLessonProgress(lessonId, score, timeSpent, stats);
+    // Add lesson progress
+    await userProgress.addLessonProgress(lessonId, score, timeSpent, stats);
 
-    // Update skill score if provided
-    if (skill) {
-      await progress.updateScore(skill, score);
+    // Update skill score
+    if (lessonType) {
+      await userProgress.updateScore(lessonType, score);
     }
 
     // Update total time spent
-    progress.totalTimeSpent += timeSpent;
+    userProgress.totalTimeSpent += timeSpent;
+    userProgress.lastLogin = new Date();
 
-    // Check for achievements
-    const newAchievements = checkAchievements(progress);
-    if (newAchievements.length > 0) {
-      progress.achievements.push(...newAchievements);
+    // Update weekly progress if lesson is completed (score >= 70)
+    if (score >= 70) {
+      userProgress.weeklyProgress += 1;
     }
 
-    await progress.save();
+    await userProgress.save();
 
-    // Update user streak
-    const user = await User.findById(userPayload.userId);
-    if (user) {
-      user.streak = progress.streak;
-      await user.save();
-    }
+    console.dir(questionAnswers, { depth: null });
 
-    // Save lesson result to database
-    if (questionResults && Array.isArray(questionResults)) {
-      const correctAnswers = questionResults.filter(
-        (q: any) => q.isCorrect
-      ).length;
+    // Create or update Lesson Result for detailed tracking
+    const lessonResultData = {
+      userId: userPayload.userId,
+      lessonId: lessonId,
+      score: score,
+      totalQuestions: totalQuestions,
+      correctAnswers: correctAnswers,
+      timeSpent: timeSpent * 60, // Convert minutes to seconds
+      completedAt: new Date(),
+      questionResults: questionAnswers.map((qa) => ({
+        questionId: qa.questionId || "",
+        question: qa.question,
+        userAnswer: qa.userAnswer || "",
+        correctAnswer: qa.correctAnswer,
+        isCorrect: qa.isCorrect,
+        questionType: qa.questionType,
+        explanation: qa.explanation,
+      })),
+      // reset feedback
+      feedback: null,
+    };
 
-      // Check if result already exists
-      const existingResult = await LessonResult.findOne({
+    // Use findOneAndUpdate with upsert to create or update
+    await LessonResult.findOneAndUpdate(
+      {
         userId: userPayload.userId,
         lessonId: lessonId,
-      });
-
-      if (existingResult) {
-        // Update existing result if new score is better
-        if (score > existingResult.score) {
-          existingResult.score = score;
-          existingResult.correctAnswers = correctAnswers;
-          existingResult.timeSpent = timeSpent;
-          existingResult.questionResults = questionResults;
-          existingResult.completedAt = new Date();
-          if (feedback) {
-            existingResult.feedback = feedback;
-          }
-          await existingResult.save();
-        }
-      } else {
-        // Create new lesson result
-        await LessonResult.create({
-          userId: userPayload.userId,
-          lessonId: lessonId,
-          score: score,
-          totalQuestions: questionResults.length,
-          correctAnswers: correctAnswers,
-          timeSpent: timeSpent,
-          questionResults: questionResults,
-          feedback: feedback || undefined,
-        });
+      },
+      lessonResultData,
+      {
+        upsert: true,
+        new: true,
+        runValidators: true,
       }
-    }
+    );
 
-    return NextResponse.json({
-      message: "Progress updated successfully",
-    });
+    const response: LessonProgressSubmitResponse = {
+      success: true,
+      score,
+      questionAnswers,
+      progress: {
+        lessonId,
+        score,
+        timeSpent,
+        completed: score >= 70,
+        stats,
+        questionAnswers: questionAnswers,
+        totalLessonsCompleted: userProgress.lessonsCompleted.length,
+        weeklyProgress: userProgress.weeklyProgress,
+        weeklyGoal: userProgress.weeklyGoal,
+      },
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
-    console.error("Update progress error:", error);
+    console.error("Submit lesson progress error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -138,46 +199,52 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function checkAchievements(progress: any): string[] {
-  const achievements: string[] = [];
-  const currentAchievements = progress.achievements || [];
+export async function GET(request: NextRequest) {
+  try {
+    await connectDB();
 
-  // First lesson
-  if (
-    progress.lessonsCompleted.length === 1 &&
-    !currentAchievements.includes("first_lesson")
-  ) {
-    achievements.push("first_lesson");
-  }
-
-  // Week streak
-  if (progress.streak >= 7 && !currentAchievements.includes("week_streak")) {
-    achievements.push("week_streak");
-  }
-
-  // Month streak
-  if (progress.streak >= 30 && !currentAchievements.includes("month_streak")) {
-    achievements.push("month_streak");
-  }
-
-  // Perfect score
-  const recentLessons = progress.lessonProgress.slice(-5);
-  const hasPerfectScore = recentLessons.some(
-    (lesson: any) => lesson.score === 100
-  );
-  if (hasPerfectScore && !currentAchievements.includes("perfect_score")) {
-    achievements.push("perfect_score");
-  }
-
-  // Skill-specific achievements
-  progress.scores.forEach((score: any) => {
-    if (score.score >= 90) {
-      const achievementKey = `${score.skill}_master`;
-      if (!currentAchievements.includes(achievementKey)) {
-        achievements.push(achievementKey);
-      }
+    const userPayload = getUserFromRequest(request);
+    if (!userPayload) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
     }
-  });
 
-  return achievements;
+    const { searchParams } = new URL(request.url);
+    const lessonId = searchParams.get("lessonId");
+
+    if (!lessonId) {
+      return NextResponse.json(
+        { error: "Lesson ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const userProgress = await Progress.findOne({ userId: userPayload.userId });
+
+    if (!userProgress) {
+      return NextResponse.json({
+        progress: null,
+      });
+    }
+
+    const lessonProgress = userProgress.lessonProgress.find(
+      (progress: any) => progress.lessonId.toString() === lessonId
+    );
+
+    return NextResponse.json({
+      progress: lessonProgress || null,
+      questionAnswers: lessonProgress?.stats?.questionAnswers || [],
+      totalLessonsCompleted: userProgress.lessonsCompleted.length,
+      weeklyProgress: userProgress.weeklyProgress,
+      weeklyGoal: userProgress.weeklyGoal,
+    });
+  } catch (error) {
+    console.error("Get lesson progress error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }

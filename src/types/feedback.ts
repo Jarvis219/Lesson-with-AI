@@ -1,7 +1,7 @@
 export interface QuestionAnswer {
   question: string;
-  userAnswer: string | string[];
-  correctAnswer: string | string[];
+  userAnswer: string | string[] | boolean | number;
+  correctAnswer: string | string[] | boolean;
   isCorrect: boolean;
   questionType: string;
   explanation?: string;

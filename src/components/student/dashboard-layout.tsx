@@ -6,6 +6,7 @@ import {
   BarChart3,
   BookDashed,
   BookOpen,
+  History,
   Home,
   Menu,
   Settings,
@@ -46,6 +47,12 @@ const navigation: NavItem[] = [
     href: "/student/lessons",
     icon: BookOpen,
     description: "Lessons and progress",
+  },
+  {
+    name: "History",
+    href: "/student/history",
+    icon: History,
+    description: "Lesson history and results",
   },
   {
     name: "Statistics",

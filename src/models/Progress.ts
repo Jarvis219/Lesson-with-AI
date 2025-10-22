@@ -6,10 +6,24 @@ export interface IScore {
   lastUpdated: Date;
 }
 
+export interface IQuestionAnswer {
+  questionId?: string;
+  question: string;
+  questionType: string;
+  userAnswer: string | string[] | boolean;
+  correctAnswer: string | string[] | boolean;
+  isCorrect: boolean;
+  explanation?: string;
+  points: number;
+  difficulty: string;
+  answeredAt: Date;
+}
+
 export interface ILessonProgressStats {
   totalQuestionsAnswered: number;
   totalCorrectAnswers: number;
   totalIncorrectAnswers: number;
+  questionAnswers: IQuestionAnswer[];
 }
 
 export interface ILessonProgress {
@@ -37,6 +51,37 @@ export interface IProgress extends Document {
   updatedAt: Date;
 }
 
+const QuestionAnswerSchema = new Schema<IQuestionAnswer>({
+  questionId: String,
+  question: {
+    type: String,
+    required: true,
+  },
+  questionType: {
+    type: String,
+    required: true,
+  },
+  userAnswer: Schema.Types.Mixed,
+  correctAnswer: Schema.Types.Mixed,
+  isCorrect: {
+    type: Boolean,
+    required: true,
+  },
+  explanation: String,
+  points: {
+    type: Number,
+    default: 1,
+  },
+  difficulty: {
+    type: String,
+    required: true,
+  },
+  answeredAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const LessonProgressStatsSchema = new Schema<ILessonProgressStats>({
   totalQuestionsAnswered: {
     type: Number,
@@ -50,6 +95,7 @@ const LessonProgressStatsSchema = new Schema<ILessonProgressStats>({
     type: Number,
     default: 0,
   },
+  questionAnswers: [QuestionAnswerSchema],
 });
 
 const ScoreSchema = new Schema<IScore>({
@@ -200,7 +246,15 @@ ProgressSchema.methods.addLessonProgress = function (
       existingProgress.completedAt = new Date();
     }
     if (stats) {
-      existingProgress.stats = stats;
+      // Merge question answers instead of replacing
+      if (stats.questionAnswers && stats.questionAnswers.length > 0) {
+        existingProgress.stats.questionAnswers = stats.questionAnswers;
+      }
+      existingProgress.stats.totalQuestionsAnswered =
+        stats.totalQuestionsAnswered;
+      existingProgress.stats.totalCorrectAnswers = stats.totalCorrectAnswers;
+      existingProgress.stats.totalIncorrectAnswers =
+        stats.totalIncorrectAnswers;
     }
   } else {
     this.lessonProgress.push({
@@ -214,6 +268,7 @@ ProgressSchema.methods.addLessonProgress = function (
         totalQuestionsAnswered: 0,
         totalCorrectAnswers: 0,
         totalIncorrectAnswers: 0,
+        questionAnswers: [],
       },
     });
   }

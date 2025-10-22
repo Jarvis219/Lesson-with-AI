@@ -11,6 +11,7 @@ import {
   DashboardStats,
   Lesson,
   LessonProgressRequest,
+  LessonProgressSubmitResponse,
   LessonResultResponse,
   LessonsFilterParams,
   LessonsResponse,
@@ -216,6 +217,52 @@ export class ApiClient {
     const response = await apiService.get<ApiResponse<LessonResultResponse>>(
       `/api/lessons/${id}/result`
     );
+    return response.data;
+  }
+
+  // Lesson Progress APIs
+  async submitLessonProgress(progressData: {
+    lessonId: string;
+    timeSpent: number;
+    userAnswers: Record<string, any>;
+    exercises: any[];
+    lessonType: string;
+  }): Promise<LessonProgressSubmitResponse> {
+    const response = await apiService.post<
+      ApiResponse<LessonProgressSubmitResponse>
+    >("/api/lessons/progress", progressData);
+    return response.data;
+  }
+
+  async getLessonProgress(lessonId: string): Promise<any> {
+    const response = await apiService.get<ApiResponse<{ progress: any }>>(
+      `/api/lessons/progress?lessonId=${lessonId}`
+    );
+    return response.data.progress;
+  }
+
+  // Lesson History APIs
+  async getLessonHistory(params?: {
+    limit?: number;
+    offset?: number;
+    lessonId?: string;
+  }): Promise<{
+    lessonHistory: any[];
+    totalCount: number;
+    hasMore: boolean;
+  }> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.offset) queryParams.append("offset", params.offset.toString());
+    if (params?.lessonId) queryParams.append("lessonId", params.lessonId);
+
+    const response = await apiService.get<
+      ApiResponse<{
+        lessonHistory: any[];
+        totalCount: number;
+        hasMore: boolean;
+      }>
+    >(`/api/lessons/history?${queryParams.toString()}`);
     return response.data;
   }
 }

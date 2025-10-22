@@ -1,5 +1,5 @@
 import { LessonFormData } from "@/lib/validations/lesson-schemas";
-import { ILessonProgress } from "@/models/Progress";
+import { ILessonProgress, IQuestionAnswer } from "@/models/Progress";
 import { DifficultyLevel, EXERCISE_TYPES, LessonType } from "./lesson-enums";
 import { Course, Teacher } from "./teacher";
 
@@ -10,6 +10,29 @@ interface Options {
 
 // Sync with centralized EXERCISE_TYPES
 export const EXERCISE_QUESTION_TYPES = EXERCISE_TYPES as unknown as string[];
+
+// Lesson Progress Submit Response
+export interface LessonProgressSubmitResponse {
+  success: boolean;
+  score: number;
+  questionAnswers: IQuestionAnswer[];
+  progress: {
+    lessonId: string;
+    score: number;
+    timeSpent: number;
+    completed: boolean;
+    stats: {
+      totalQuestionsAnswered: number;
+      totalCorrectAnswers: number;
+      totalIncorrectAnswers: number;
+      questionAnswers: IQuestionAnswer[];
+    };
+    questionAnswers: IQuestionAnswer[];
+    totalLessonsCompleted: number;
+    weeklyProgress: number;
+    weeklyGoal: number;
+  };
+}
 
 // Re-export for convenience
 export type { DifficultyLevel, LessonType };
@@ -105,6 +128,7 @@ export interface LessonsFilterParams {
 
 // Student
 export type LessonDetailResponse = LessonFormData & {
+  _id: string;
   teacher: Teacher;
   course: Course;
 };

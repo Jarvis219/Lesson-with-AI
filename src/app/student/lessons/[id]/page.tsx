@@ -10,13 +10,15 @@ import {
   VocabularyLessonContent,
   WritingLessonContent,
 } from "@/components/lessons/lesson-content";
+import LessonResultModal from "@/components/lessons/lesson-result-modal";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useRequireAuth } from "@/hooks/useAuth";
+import { apiClient } from "@/lib/api-client";
 import { fetchLessonDetail } from "@/lib/student-courses-service";
-import { LessonDetailResponse } from "@/types";
+import { LessonDetailResponse, LessonProgressSubmitResponse } from "@/types";
 import { BaseExercise } from "@/types/lesson-content";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Clock, Target, Trophy } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -32,12 +34,33 @@ export default function StudentLessonPage() {
   const [showResults, setShowResults] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [lessonCompleted, setLessonCompleted] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
+  const [timeSpent, setTimeSpent] = useState(0);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [startTime, setStartTime] = useState<Date | null>(null);
 
   useEffect(() => {
     if (isAuthenticated && params.id) {
       fetchLesson();
+      setStartTime(new Date());
     }
   }, [isAuthenticated, params.id]);
+
+  // Track time spent
+  useEffect(() => {
+    if (startTime && !lessonCompleted) {
+      const interval = setInterval(() => {
+        const now = new Date();
+        const diffInMinutes = Math.floor(
+          (now.getTime() - startTime.getTime()) / (1000 * 60)
+        );
+        setTimeSpent(diffInMinutes);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [startTime, lessonCompleted]);
 
   const fetchLesson = async () => {
     try {
@@ -72,6 +95,50 @@ export default function StudentLessonPage() {
     });
   };
 
+  // Removed calculateScore function - now handled by backend
+
+  const submitLessonProgress = async (): Promise<
+    LessonProgressSubmitResponse | undefined
+  > => {
+    try {
+      const exercises = getExercises();
+
+      const result = await apiClient.submitLessonProgress({
+        lessonId: lesson?._id || "",
+        timeSpent,
+        userAnswers,
+        exercises,
+        lessonType: lesson?.type || "",
+      });
+
+      console.log("Lesson progress saved:", result);
+
+      // Extract score and questions data from backend response
+      const { score, questionAnswers } = result;
+
+      setFinalScore(score);
+      setLessonCompleted(true);
+      setShowResultModal(true);
+
+      toast({
+        title: "Lesson Completed!",
+        description: `Your score: ${score}% - ${
+          score >= 70 ? "Congratulations!" : "Keep practicing!"
+        }`,
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error submitting lesson progress:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save lesson progress",
+        variant: "destructive",
+      });
+      return undefined;
+    }
+  };
+
   const handleNextExercise = () => {
     // Get exercises from the lesson content based on lesson type
     let exercises: BaseExercise[] = [];
@@ -86,22 +153,12 @@ export default function StudentLessonPage() {
     if (currentExerciseIndex < exercises.length - 1) {
       setCurrentExerciseIndex((prev) => prev + 1);
       setShowResults(false);
-    }
+    } else {
+      // Finished all exercises, submit to backend for calculation
+      setLessonCompleted(true);
 
-    //  when finished all exercises, submit the lesson
-    if (currentExerciseIndex === exercises.length - 1) {
-      // calculate the score
-      // const correctAnswers = exercises.filter(
-      //   (exercise: BaseExercise) =>
-      //     exercise?.correctAnswer ===
-      //     userAnswers[exercise.id || exercise.question]
-      // ).length;
-      // const totalQuestions = exercises.length;
-      // console.log(totalQuestions, correctAnswers);
-      // const score = (correctAnswers / totalQuestions) * 100;
-      // console.log("Score:", score);
-      // submit the lesson
-      // submitLesson(score);
+      // Submit lesson progress - backend will calculate score and return results
+      submitLessonProgress();
     }
   };
 
@@ -123,6 +180,19 @@ export default function StudentLessonPage() {
   };
 
   const handleBackClick = () => {
+    router.push(
+      lesson?.course
+        ? `/student/courses/${lesson.course._id}`
+        : "/student/courses"
+    );
+  };
+
+  const handleCloseResultModal = () => {
+    setShowResultModal(false);
+  };
+
+  const handleContinueLearning = () => {
+    setShowResultModal(false);
     router.push(
       lesson?.course
         ? `/student/courses/${lesson.course._id}`
@@ -220,6 +290,43 @@ export default function StudentLessonPage() {
             <WritingLessonContent content={lesson.content as any} />
           )}
 
+          {/* Progress Indicator */}
+          {!lessonCompleted && (
+            <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Target className="h-4 w-4" />
+                    <span>
+                      Progress: {currentExerciseIndex + 1} /{" "}
+                      {getExercises().length}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Clock className="h-4 w-4" />
+                    <span>Time: {timeSpent} min</span>
+                  </div>
+                </div>
+                {finalScore > 0 && (
+                  <div className="flex items-center gap-2 text-sm font-medium text-green-600">
+                    <Trophy className="h-4 w-4" />
+                    <span>Score: {finalScore}%</span>
+                  </div>
+                )}
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${
+                      ((currentExerciseIndex + 1) / getExercises().length) * 100
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Exercises */}
           <ExerciseRenderer
             exercises={getExercises()}
@@ -232,6 +339,15 @@ export default function StudentLessonPage() {
             onSubmitExercise={handleSubmitExercise}
           />
         </div>
+
+        {/* Lesson Result Modal */}
+        {showResultModal && lesson._id && (
+          <LessonResultModal
+            lessonId={lesson._id}
+            onClose={handleCloseResultModal}
+            onContinue={handleContinueLearning}
+          />
+        )}
       </div>
     </div>
   );
