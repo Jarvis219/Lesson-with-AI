@@ -104,7 +104,7 @@ export default function StudentCoursesPage() {
       });
 
       // Refresh courses
-      fetchCourses();
+      router.push(`/student/courses/${courseId}`);
     } catch (error: any) {
       toast({
         title: "Error",

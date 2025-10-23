@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     if (!result) {
       return NextResponse.json(
         { error: "Lesson result not found" },
-        { status: 404 }
+        { status: 200 }
       );
     }
 

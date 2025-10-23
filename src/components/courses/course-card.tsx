@@ -23,7 +23,7 @@ export default function CourseCard({
   onView,
 }: CourseCardProps) {
   return (
-    <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-0 bg-white hover:-translate-y-2">
+    <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-0 bg-white hover:-translate-y-2 max-w-md">
       {/* Course Thumbnail */}
       <div className="relative h-56 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 overflow-hidden">
         {course.thumbnail ? (

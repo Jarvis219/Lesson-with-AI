@@ -3,8 +3,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  BaseExercise,
+  ReadingAnnotation,
   ReadingLessonContent as ReadingContent,
-  ReadingPassage,
   VocabularyWord,
 } from "@/types/lesson-content";
 import { BookOpen, Clock, Eye, Lightbulb, Target } from "lucide-react";
@@ -41,31 +42,26 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
             <div className="flex items-center gap-4 mt-4">
               <Badge variant="outline" className="text-sm px-3 py-1">
                 <BookOpen className="h-4 w-4 mr-1" />
-                {(content.passage as ReadingPassage).genre || "Article"}
+                {content.passage.genre || "Article"}
               </Badge>
               <Badge variant="outline" className="text-sm px-3 py-1">
                 <Clock className="h-4 w-4 mr-1" />
-                {(content.passage as ReadingPassage).wordCount || 0} words
+                {content.passage.wordCount} words
               </Badge>
               <Badge variant="outline" className="text-sm px-3 py-1">
                 <Target className="h-4 w-4 mr-1" />
-                {(content.passage as ReadingPassage).readingTime || 5} min read
+                {content.passage.readingTime} min read
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-6">
               {/* Passage Title */}
-              {(content.passage as ReadingPassage).title && (
+              {content.passage.title && (
                 <div className="text-center">
                   <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                    {(content.passage as ReadingPassage).title}
+                    {content.passage.title}
                   </h2>
-                  {(content.passage as any).subtitle && (
-                    <p className="text-xl text-gray-600 italic">
-                      {(content.passage as any).subtitle}
-                    </p>
-                  )}
                 </div>
               )}
 
@@ -73,43 +69,31 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
               <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-8 rounded-xl border-l-4 border-blue-400">
                 <div className="prose prose-lg max-w-none">
                   <p className="text-gray-800 leading-relaxed text-lg whitespace-pre-line">
-                    {(content.passage as any).content ||
-                      (content.passage as any).text}
+                    {content.passage.text}
                   </p>
                 </div>
               </div>
 
               {/* Passage Metadata */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {(content.passage as ReadingPassage).author && (
+                {content.passage.author && (
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-l-4 border-green-400">
                     <h4 className="text-sm font-semibold text-gray-600 mb-1">
                       Author
                     </h4>
                     <p className="text-gray-800 font-medium">
-                      {(content.passage as ReadingPassage).author}
+                      {content.passage.author}
                     </p>
                   </div>
                 )}
 
-                {(content.passage as ReadingPassage).source && (
+                {content.passage.source && (
                   <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-l-4 border-purple-400">
                     <h4 className="text-sm font-semibold text-gray-600 mb-1">
                       Source
                     </h4>
                     <p className="text-gray-800 font-medium">
-                      {(content.passage as ReadingPassage).source}
-                    </p>
-                  </div>
-                )}
-
-                {(content.passage as any).publicationDate && (
-                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border-l-4 border-orange-400">
-                    <h4 className="text-sm font-semibold text-gray-600 mb-1">
-                      Published
-                    </h4>
-                    <p className="text-gray-800 font-medium">
-                      {(content.passage as any).publicationDate}
+                      {content.passage.source}
                     </p>
                   </div>
                 )}
@@ -135,31 +119,29 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
           <CardContent className="p-6">
             <div className="space-y-6">
               {/* Background Information */}
-              {(content.preReading as any).backgroundInfo && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border-l-4 border-blue-400">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-3">
-                    Background Information
-                  </h4>
-                  <p className="text-gray-700 leading-relaxed text-lg">
-                    {(content.preReading as any).backgroundInfo}
-                  </p>
-                </div>
-              )}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border-l-4 border-blue-400">
+                <h4 className="text-lg font-semibold text-gray-800 mb-3">
+                  Background Information
+                </h4>
+                <p className="text-gray-700 leading-relaxed text-lg">
+                  {content.preReading.context}
+                </p>
+              </div>
 
               {/* Key Vocabulary */}
-              {(content.preReading as any).keyVocabulary &&
-                (content.preReading as any).keyVocabulary.length > 0 && (
+              {content.preReading.vocabulary &&
+                content.preReading.vocabulary.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-lg font-semibold text-gray-800">
                         Key Vocabulary
                       </h4>
                       <Badge variant="outline" className="text-sm">
-                        {(content.preReading as any).keyVocabulary.length} words
+                        {content.preReading.vocabulary.length} words
                       </Badge>
                     </div>
                     <div className="grid gap-4">
-                      {(content.preReading as any).keyVocabulary.map(
+                      {content.preReading.vocabulary.map(
                         (word: VocabularyWord, index: number) => (
                           <div
                             key={index}
@@ -209,14 +191,14 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
                 )}
 
               {/* Prediction Questions */}
-              {(content.preReading as any).predictionQuestions &&
-                (content.preReading as any).predictionQuestions.length > 0 && (
+              {content.preReading.predictions &&
+                content.preReading.predictions.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800">
                       Prediction Questions
                     </h4>
                     <div className="space-y-3">
-                      {(content.preReading as any).predictionQuestions.map(
+                      {content.preReading.predictions.map(
                         (question: string, index: number) => (
                           <div
                             key={index}
@@ -254,24 +236,31 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
           <CardContent className="p-6">
             <div className="space-y-6">
               {/* Reading Strategies */}
-              {(content.whileReading as any).strategies &&
-                (content.whileReading as any).strategies.length > 0 && (
+              {content.whileReading.annotations &&
+                content.whileReading.annotations.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800">
-                      Reading Strategies
+                      Reading Annotations
                     </h4>
                     <div className="space-y-3">
-                      {(content.whileReading as any).strategies.map(
-                        (strategy: string, index: number) => (
+                      {content.whileReading.annotations.map(
+                        (annotation: ReadingAnnotation, index: number) => (
                           <div
                             key={index}
                             className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400 hover:bg-purple-100 transition-colors">
                             <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                              {index + 1}
+                              {annotation.paragraph}
                             </div>
-                            <p className="text-gray-700 leading-relaxed">
-                              {strategy}
-                            </p>
+                            <div className="flex-1">
+                              <p className="text-gray-700 leading-relaxed">
+                                {annotation.note}
+                              </p>
+                              {annotation.highlightedText && (
+                                <p className="text-sm text-purple-600 mt-1 italic">
+                                  "{annotation.highlightedText}"
+                                </p>
+                              )}
+                            </div>
                           </div>
                         )
                       )}
@@ -280,16 +269,15 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
                 )}
 
               {/* Comprehension Questions */}
-              {(content.whileReading as any).comprehensionQuestions &&
-                (content.whileReading as any).comprehensionQuestions.length >
-                  0 && (
+              {content.whileReading.questions &&
+                content.whileReading.questions.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800">
                       Comprehension Questions
                     </h4>
                     <div className="space-y-4">
-                      {(content.whileReading as any).comprehensionQuestions.map(
-                        (question: any, index: number) => (
+                      {content.whileReading.questions.map(
+                        (question: BaseExercise, index: number) => (
                           <div
                             key={index}
                             className="border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
@@ -305,20 +293,20 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
 
                               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
                                 <p className="text-gray-800 font-medium text-lg">
-                                  {question.question || question.text}
+                                  {question.question}
                                 </p>
                               </div>
 
-                              {question.hint && (
+                              {question.explanation && (
                                 <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border-l-4 border-yellow-400">
                                   <div className="flex items-center gap-2">
                                     <Lightbulb className="h-4 w-4 text-yellow-600" />
                                     <span className="text-sm font-semibold text-yellow-700">
-                                      Hint:
+                                      Explanation:
                                     </span>
                                   </div>
                                   <p className="text-yellow-700 mt-1">
-                                    {question.hint}
+                                    {question.explanation}
                                   </p>
                                 </div>
                               )}
@@ -350,14 +338,14 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
           <CardContent className="p-6">
             <div className="space-y-6">
               {/* Discussion Questions */}
-              {(content.postReading as any).discussionQuestions &&
-                (content.postReading as any).discussionQuestions.length > 0 && (
+              {content.postReading.discussionQuestions &&
+                content.postReading.discussionQuestions.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800">
                       Discussion Questions
                     </h4>
                     <div className="space-y-3">
-                      {(content.postReading as any).discussionQuestions.map(
+                      {content.postReading.discussionQuestions.map(
                         (question: string, index: number) => (
                           <div
                             key={index}
@@ -376,65 +364,60 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
                 )}
 
               {/* Summary Activity */}
-              {(content.postReading as any).summaryActivity && (
+              {content.postReading.summaryTask && (
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border-l-4 border-green-400">
                   <h4 className="text-lg font-semibold text-gray-800 mb-3">
                     Summary Activity
                   </h4>
                   <p className="text-gray-700 leading-relaxed">
-                    {(content.postReading as any).summaryActivity}
+                    {content.postReading.summaryTask}
                   </p>
                 </div>
               )}
 
-              {/* Critical Thinking Questions */}
-              {(content.postReading as any).criticalThinkingQuestions &&
-                (content.postReading as any).criticalThinkingQuestions.length >
-                  0 && (
+              {/* Comprehension Questions */}
+              {content.postReading.comprehensionQuestions &&
+                content.postReading.comprehensionQuestions.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800">
-                      Critical Thinking Questions
+                      Comprehension Questions
                     </h4>
-                    <div className="space-y-3">
-                      {(
-                        content.postReading as any
-                      ).criticalThinkingQuestions.map(
-                        (question: string, index: number) => (
+                    <div className="space-y-4">
+                      {content.postReading.comprehensionQuestions.map(
+                        (question: BaseExercise, index: number) => (
                           <div
                             key={index}
-                            className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border-l-4 border-red-400 hover:bg-red-100 transition-colors">
-                            <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                              💭
-                            </div>
-                            <p className="text-gray-700 leading-relaxed">
-                              {question}
-                            </p>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
+                            className="border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                  {index + 1}
+                                </div>
+                                <h5 className="text-lg font-semibold text-gray-800">
+                                  Question {index + 1}
+                                </h5>
+                              </div>
 
-              {/* Follow-up Activities */}
-              {(content.postReading as any).followUpActivities &&
-                (content.postReading as any).followUpActivities.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      Follow-up Activities
-                    </h4>
-                    <div className="space-y-3">
-                      {(content.postReading as any).followUpActivities.map(
-                        (activity: string, index: number) => (
-                          <div
-                            key={index}
-                            className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400 hover:bg-purple-100 transition-colors">
-                            <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                              ✓
+                              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
+                                <p className="text-gray-800 font-medium text-lg">
+                                  {question.question}
+                                </p>
+                              </div>
+
+                              {question.explanation && (
+                                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border-l-4 border-yellow-400">
+                                  <div className="flex items-center gap-2">
+                                    <Lightbulb className="h-4 w-4 text-yellow-600" />
+                                    <span className="text-sm font-semibold text-yellow-700">
+                                      Explanation:
+                                    </span>
+                                  </div>
+                                  <p className="text-yellow-700 mt-1">
+                                    {question.explanation}
+                                  </p>
+                                </div>
+                              )}
                             </div>
-                            <p className="text-gray-700 leading-relaxed">
-                              {activity}
-                            </p>
                           </div>
                         )
                       )}

@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  DialogueTurn,
+  PhonemeSound,
   SpeakingLessonContent as SpeakingContent,
   SpeakingExercise,
 } from "@/types/lesson-content";
@@ -19,7 +21,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { getLevelColor, getLevelIcon } from "utils/lesson.util";
 
 interface SpeakingLessonContentProps {
   content: SpeakingContent;
@@ -38,9 +39,20 @@ export function SpeakingLessonContent({
 }: SpeakingLessonContentProps) {
   const [hoveredExercise, setHoveredExercise] = useState<number | null>(null);
   const [expandedExercise, setExpandedExercise] = useState<number | null>(null);
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
 
   const toggleExercise = (index: number) => {
     setExpandedExercise(expandedExercise === index ? null : index);
+  };
+
+  const handleAudioPlay = (audioUrl: string) => {
+    if (playingAudio === audioUrl) {
+      setPlayingAudio(null);
+      onToggleAudio();
+    } else {
+      setPlayingAudio(audioUrl);
+      onToggleAudio();
+    }
   };
 
   return (
@@ -66,49 +78,63 @@ export function SpeakingLessonContent({
                   Scenario
                 </h4>
                 <p className="text-gray-700 leading-relaxed text-lg">
-                  {(content.conversation as any).scenario ||
-                    "Practice your speaking skills in this conversation scenario."}
+                  {content.conversation.scenario}
                 </p>
               </div>
 
-              {/* Participants */}
-              {(content.conversation as any).participants &&
-                (content.conversation as any).participants.length > 0 && (
+              {/* Dialogues */}
+              {content.conversation.dialogues &&
+                content.conversation.dialogues.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800">
-                      Participants
+                      Conversation Dialogues
                     </h4>
-                    <div className="grid gap-4">
-                      {(content.conversation as any).participants.map(
-                        (participant: any, index: number) => (
+                    <div className="space-y-3">
+                      {content.conversation.dialogues.map(
+                        (dialogue: DialogueTurn, index: number) => (
                           <div
                             key={index}
-                            className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200">
-                            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full flex items-center justify-center text-lg font-bold">
-                              {participant.name?.charAt(0) || index + 1}
+                            className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400 hover:bg-purple-100 transition-colors">
+                            <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+                              {dialogue.speaker.charAt(0)}
                             </div>
                             <div className="flex-1">
-                              <h5 className="text-lg font-semibold text-gray-800">
-                                {participant.name || `Participant ${index + 1}`}
-                              </h5>
-                              <p className="text-gray-600">
-                                {participant.role || "Conversation partner"}
-                              </p>
-                            </div>
-                            {participant.characteristics && (
-                              <div className="flex flex-wrap gap-2">
-                                {participant.characteristics.map(
-                                  (char: string, charIndex: number) => (
-                                    <Badge
-                                      key={charIndex}
-                                      variant="outline"
-                                      className="text-xs px-2 py-1 bg-blue-50 text-blue-700">
-                                      {char}
-                                    </Badge>
-                                  )
+                              <div className="flex items-center gap-2 mb-2">
+                                <h5 className="font-semibold text-gray-800">
+                                  {dialogue.speaker}
+                                </h5>
+                                {dialogue.audioUrl && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      handleAudioPlay(dialogue.audioUrl!)
+                                    }
+                                    className={twMerge(
+                                      "rounded-full w-8 h-8 transition-all duration-300 hover:scale-110",
+                                      playingAudio === dialogue.audioUrl
+                                        ? "bg-green-100 text-green-600 border-green-300"
+                                        : "bg-blue-50 text-blue-600 border-blue-200"
+                                    )}>
+                                    {playingAudio === dialogue.audioUrl ? (
+                                      <Pause className="h-3 w-3" />
+                                    ) : (
+                                      <Play className="h-3 w-3" />
+                                    )}
+                                  </Button>
                                 )}
                               </div>
-                            )}
+                              <p className="text-gray-700 leading-relaxed">
+                                {dialogue.text}
+                              </p>
+                              {dialogue.translation && (
+                                <div className="mt-2 p-3 bg-white rounded-lg border">
+                                  <p className="text-sm text-gray-600 italic">
+                                    "{dialogue.translation}"
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )
                       )}
@@ -116,28 +142,16 @@ export function SpeakingLessonContent({
                   </div>
                 )}
 
-              {/* Setting */}
-              {(content.conversation as any).setting && (
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border-l-4 border-green-400">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-3">
-                    Setting
-                  </h4>
-                  <p className="text-gray-700 leading-relaxed">
-                    {(content.conversation as any).setting}
-                  </p>
-                </div>
-              )}
-
-              {/* Objectives */}
-              {(content.conversation as any).objectives &&
-                (content.conversation as any).objectives.length > 0 && (
+              {/* Useful Phrases */}
+              {content.conversation.usefulPhrases &&
+                content.conversation.usefulPhrases.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800">
-                      Learning Objectives
+                      Useful Phrases
                     </h4>
                     <div className="space-y-3">
-                      {(content.conversation as any).objectives.map(
-                        (objective: string, index: number) => (
+                      {content.conversation.usefulPhrases.map(
+                        (phrase: string, index: number) => (
                           <div
                             key={index}
                             className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border-l-4 border-green-400 hover:bg-green-100 transition-colors">
@@ -145,7 +159,7 @@ export function SpeakingLessonContent({
                               ✓
                             </div>
                             <p className="text-gray-700 leading-relaxed">
-                              {objective}
+                              "{phrase}"
                             </p>
                           </div>
                         )
@@ -154,37 +168,25 @@ export function SpeakingLessonContent({
                   </div>
                 )}
 
-              {/* Conversation Flow */}
-              {(content.conversation as any).conversationFlow &&
-                (content.conversation as any).conversationFlow.length > 0 && (
+              {/* Cultural Notes */}
+              {content.conversation.culturalNotes &&
+                content.conversation.culturalNotes.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800">
-                      Conversation Flow
+                      Cultural Notes
                     </h4>
                     <div className="space-y-3">
-                      {(content.conversation as any).conversationFlow.map(
-                        (step: any, index: number) => (
+                      {content.conversation.culturalNotes.map(
+                        (note: string, index: number) => (
                           <div
                             key={index}
-                            className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400 hover:bg-purple-100 transition-colors">
-                            <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                              {index + 1}
+                            className="flex items-start gap-3 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400 hover:bg-yellow-100 transition-colors">
+                            <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+                              💡
                             </div>
-                            <div className="flex-1">
-                              <h5 className="font-semibold text-gray-800 mb-1">
-                                {step.title || `Step ${index + 1}`}
-                              </h5>
-                              <p className="text-gray-700 leading-relaxed">
-                                {step.description}
-                              </p>
-                              {step.example && (
-                                <div className="mt-2 p-3 bg-white rounded-lg border">
-                                  <p className="text-sm text-gray-600 italic">
-                                    "{step.example}"
-                                  </p>
-                                </div>
-                              )}
-                            </div>
+                            <p className="text-gray-700 leading-relaxed">
+                              {note}
+                            </p>
                           </div>
                         )
                       )}
@@ -212,48 +214,72 @@ export function SpeakingLessonContent({
           <CardContent className="p-6">
             <div className="space-y-6">
               {/* Phoneme Sounds */}
-              {(content.pronunciation as any).sounds &&
-                (content.pronunciation as any).sounds.length > 0 && (
+              {content.pronunciation?.sounds &&
+                content.pronunciation.sounds.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="text-lg font-semibold text-gray-800">
                       Phoneme Sounds
                     </h4>
                     <div className="grid gap-4">
-                      {(content.pronunciation as any).sounds.map(
-                        (sound: any, index: number) => (
+                      {content.pronunciation.sounds.map(
+                        (sound: PhonemeSound, index: number) => (
                           <div
                             key={index}
                             className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200">
                             <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center text-lg font-bold">
-                              {sound.symbol ||
-                                sound.phoneme?.charAt(0) ||
-                                index + 1}
+                              {sound.phoneme.charAt(0)}
                             </div>
                             <div className="flex-1">
                               <h5 className="text-lg font-semibold text-gray-800">
-                                {sound.phoneme || `Sound ${index + 1}`}
+                                {sound.phoneme}
                               </h5>
                               <p className="text-gray-600">
-                                {sound.description || "Practice this sound"}
+                                {sound.description}
                               </p>
+                              {sound.examples && sound.examples.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-sm text-gray-500 mb-1">
+                                    Examples:
+                                  </p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {sound.examples.map(
+                                      (
+                                        example: string,
+                                        exampleIndex: number
+                                      ) => (
+                                        <Badge
+                                          key={exampleIndex}
+                                          variant="outline"
+                                          className="text-xs px-2 py-1 bg-purple-50 text-purple-700">
+                                          {example}
+                                        </Badge>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={onToggleAudio}
-                                className={twMerge(
-                                  "rounded-full w-10 h-10 transition-all duration-300 hover:scale-110",
-                                  isPlaying
-                                    ? "bg-green-100 text-green-600 border-green-300"
-                                    : "bg-blue-50 text-blue-600 border-blue-200"
-                                )}>
-                                {isPlaying ? (
-                                  <Pause className="h-4 w-4" />
-                                ) : (
-                                  <Play className="h-4 w-4" />
-                                )}
-                              </Button>
+                              {sound.audioUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleAudioPlay(sound.audioUrl!)
+                                  }
+                                  className={twMerge(
+                                    "rounded-full w-10 h-10 transition-all duration-300 hover:scale-110",
+                                    playingAudio === sound.audioUrl
+                                      ? "bg-green-100 text-green-600 border-green-300"
+                                      : "bg-blue-50 text-blue-600 border-blue-200"
+                                  )}>
+                                  {playingAudio === sound.audioUrl ? (
+                                    <Pause className="h-4 w-4" />
+                                  ) : (
+                                    <Play className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         )
@@ -263,30 +289,51 @@ export function SpeakingLessonContent({
                 )}
 
               {/* Intonation Patterns */}
-              {(content.pronunciation as any).intonation && (
+              {content.pronunciation?.intonation && (
                 <div className="space-y-4">
                   <h4 className="text-lg font-semibold text-gray-800">
                     Intonation Patterns
                   </h4>
                   <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl border-l-4 border-yellow-400">
-                    <h5 className="text-lg font-semibold text-gray-800 mb-3">
-                      {(content.pronunciation as any).intonation.pattern ||
-                        "Intonation Pattern"}
-                    </h5>
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="text-lg font-semibold text-gray-800">
+                        {content.pronunciation.intonation.pattern}
+                      </h5>
+                      {content.pronunciation?.intonation?.audioUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleAudioPlay(
+                              content.pronunciation!.intonation!.audioUrl!
+                            )
+                          }
+                          className={twMerge(
+                            "rounded-full w-10 h-10 transition-all duration-300 hover:scale-110",
+                            playingAudio ===
+                              content.pronunciation?.intonation?.audioUrl
+                              ? "bg-green-100 text-green-600 border-green-300"
+                              : "bg-blue-50 text-blue-600 border-blue-200"
+                          )}>
+                          {playingAudio ===
+                          content.pronunciation?.intonation?.audioUrl ? (
+                            <Pause className="h-4 w-4" />
+                          ) : (
+                            <Play className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+                    </div>
                     <p className="text-gray-700 leading-relaxed mb-4">
-                      {(content.pronunciation as any).intonation.description ||
-                        "Practice the intonation pattern"}
+                      {content.pronunciation.intonation.description}
                     </p>
-                    {(content.pronunciation as any).intonation.examples &&
-                      (content.pronunciation as any).intonation.examples
-                        .length > 0 && (
+                    {content.pronunciation.intonation.examples &&
+                      content.pronunciation.intonation.examples.length > 0 && (
                         <div className="space-y-3">
                           <h6 className="font-semibold text-gray-800">
                             Examples:
                           </h6>
-                          {(
-                            content.pronunciation as any
-                          ).intonation.examples.map(
+                          {content.pronunciation.intonation.examples.map(
                             (example: string, index: number) => (
                               <div
                                 key={index}
@@ -346,76 +393,37 @@ export function SpeakingLessonContent({
                               Exercise {index + 1}
                             </h4>
                             <p className="text-sm text-gray-600">
-                              {(exercise as any).type?.replace("-", " ") ||
-                                "Speaking Exercise"}
+                              {exercise.type.replace("-", " ")}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge
-                            className={twMerge(
-                              "text-xs px-2 py-1 !text-foreground",
-                              getLevelColor(
-                                (exercise as any).difficulty || "intermediate"
-                              )
-                            )}>
-                            {getLevelIcon(
-                              (exercise as any).difficulty || "intermediate"
-                            )}{" "}
-                            {(exercise as any).difficulty || "intermediate"}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {(exercise as any).points || 10} pts
-                          </Badge>
                           <Badge variant="outline" className="text-xs">
                             <Clock className="h-3 w-3 mr-1" />
-                            {(exercise as any).estimatedTime || "5"} min
+                            {exercise.timeLimit
+                              ? `${Math.round(exercise.timeLimit / 60)}`
+                              : "5"}{" "}
+                            min
                           </Badge>
                         </div>
                       </div>
 
                       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
                         <p className="text-gray-800 font-medium text-lg">
-                          {(exercise as any).instruction ||
-                            "Complete this speaking exercise"}
+                          {exercise.prompt}
                         </p>
                       </div>
 
-                      {(exercise as any).example && (
+                      {exercise.sampleAnswer && (
                         <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-l-4 border-green-400">
                           <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                            Example:
+                            Sample Answer:
                           </h5>
                           <p className="text-gray-700 italic">
-                            "{(exercise as any).example}"
+                            "{exercise.sampleAnswer}"
                           </p>
                         </div>
                       )}
-
-                      {(exercise as any).prompts &&
-                        (exercise as any).prompts.length > 0 && (
-                          <div className="space-y-3">
-                            <h5 className="text-sm font-semibold text-gray-600">
-                              Prompts:
-                            </h5>
-                            <div className="space-y-2">
-                              {(exercise as any).prompts.map(
-                                (prompt: string, promptIndex: number) => (
-                                  <div
-                                    key={promptIndex}
-                                    className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
-                                    <div className="w-5 h-5 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                                      {promptIndex + 1}
-                                    </div>
-                                    <p className="text-gray-700 text-sm">
-                                      {prompt}
-                                    </p>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </div>
-                        )}
 
                       {/* Recording Section */}
                       <div className="bg-gradient-to-r from-red-50 to-pink-50 p-4 rounded-lg border-l-4 border-red-400">
@@ -467,56 +475,58 @@ export function SpeakingLessonContent({
                             : "max-h-0 opacity-0"
                         )}>
                         <div className="space-y-4 pt-4 border-t border-gray-200">
-                          {(exercise as any).tips &&
-                            (exercise as any).tips.length > 0 && (
-                              <div className="space-y-2">
-                                <h5 className="text-sm font-semibold text-gray-600">
-                                  Tips:
-                                </h5>
-                                <ul className="space-y-1">
-                                  {(exercise as any).tips.map(
-                                    (tip: string, tipIndex: number) => (
-                                      <li
-                                        key={tipIndex}
-                                        className="flex items-start gap-2 text-sm text-gray-600">
-                                        <span className="text-blue-500 mt-1">
-                                          •
-                                        </span>
-                                        {tip}
-                                      </li>
-                                    )
-                                  )}
-                                </ul>
-                              </div>
-                            )}
+                          {exercise.tips && exercise.tips.length > 0 && (
+                            <div className="space-y-2">
+                              <h5 className="text-sm font-semibold text-gray-600">
+                                Tips:
+                              </h5>
+                              <ul className="space-y-1">
+                                {exercise.tips.map(
+                                  (tip: string, tipIndex: number) => (
+                                    <li
+                                      key={tipIndex}
+                                      className="flex items-start gap-2 text-sm text-gray-600">
+                                      <span className="text-blue-500 mt-1">
+                                        •
+                                      </span>
+                                      {tip}
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            </div>
+                          )}
 
-                          {(exercise as any).evaluationCriteria &&
-                            (exercise as any).evaluationCriteria.length > 0 && (
-                              <div className="space-y-2">
-                                <h5 className="text-sm font-semibold text-gray-600">
-                                  Evaluation Criteria:
-                                </h5>
-                                <div className="space-y-2">
-                                  {(exercise as any).evaluationCriteria.map(
-                                    (
-                                      criteria: string,
-                                      criteriaIndex: number
-                                    ) => (
-                                      <div
-                                        key={criteriaIndex}
-                                        className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg">
-                                        <span className="text-green-500 mt-1">
-                                          ✓
-                                        </span>
-                                        <span className="text-sm text-gray-600">
-                                          {criteria}
-                                        </span>
-                                      </div>
-                                    )
+                          {exercise.sampleAudioUrl && (
+                            <div className="space-y-2">
+                              <h5 className="text-sm font-semibold text-gray-600">
+                                Sample Audio:
+                              </h5>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleAudioPlay(exercise.sampleAudioUrl!)
+                                  }
+                                  className={twMerge(
+                                    "rounded-full w-10 h-10 transition-all duration-300 hover:scale-110",
+                                    playingAudio === exercise.sampleAudioUrl
+                                      ? "bg-green-100 text-green-600 border-green-300"
+                                      : "bg-blue-50 text-blue-600 border-blue-200"
+                                  )}>
+                                  {playingAudio === exercise.sampleAudioUrl ? (
+                                    <Pause className="h-4 w-4" />
+                                  ) : (
+                                    <Play className="h-4 w-4" />
                                   )}
-                                </div>
+                                </Button>
+                                <span className="text-sm text-gray-600">
+                                  Listen to the sample answer
+                                </span>
                               </div>
-                            )}
+                            </div>
+                          )}
                         </div>
                       </div>
 

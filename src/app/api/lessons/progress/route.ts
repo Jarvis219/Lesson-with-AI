@@ -134,8 +134,6 @@ export async function POST(request: NextRequest) {
 
     await userProgress.save();
 
-    console.dir(questionAnswers, { depth: null });
-
     // Create or update Lesson Result for detailed tracking
     const lessonResultData = {
       userId: userPayload.userId,

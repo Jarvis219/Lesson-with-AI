@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Lightbulb,
+  Loader2,
   XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +23,7 @@ import { getLevelColor, getLevelIcon } from "utils/lesson.util";
 import { isEmpty } from "utils/lodash.util";
 
 interface ExerciseRendererProps {
+  isLoading: boolean;
   exercises: BaseExercise[];
   currentExerciseIndex: number;
   userAnswers: Record<string, any>;
@@ -33,6 +35,7 @@ interface ExerciseRendererProps {
 }
 
 export function ExerciseRenderer({
+  isLoading,
   exercises,
   currentExerciseIndex,
   userAnswers,
@@ -417,15 +420,44 @@ export function ExerciseRenderer({
       return (
         correctAnswers.length === userAnswersArray.length &&
         correctAnswers.every((answer: string) =>
-          userAnswersArray.includes(answer.toLowerCase().trim())
+          userAnswersArray.includes(answer?.toLowerCase().trim())
         )
       );
     }
 
     return correctAnswers.some((answer: string) =>
-      userAnswersArray.includes(answer.toLowerCase().trim())
+      userAnswersArray.includes(answer?.toLowerCase().trim())
     );
   }, [correctAnswers, userAnswersArray, exercise.type]);
+
+  // Check if current exercise has an answer
+  const hasAnswer = useMemo(() => {
+    if (exercise.type === "multiple-choice") {
+      return Array.isArray(userAnswer) && userAnswer.length > 0;
+    }
+    if (
+      exercise.type === "fill-in-the-blank" ||
+      exercise.type === "translation"
+    ) {
+      return userAnswer && userAnswer.toString().trim().length > 0;
+    }
+    return userAnswer !== undefined && userAnswer !== null && userAnswer !== "";
+  }, [userAnswer, exercise.type]);
+
+  // Check if all exercises have answers
+  const allExercisesAnswered = useMemo(() => {
+    return exercises.every((ex, index) => {
+      const answer = userAnswers[ex.id || index.toString()];
+
+      if (ex.type === "multiple-choice") {
+        return Array.isArray(answer) && answer.length > 0;
+      }
+      if (ex.type === "fill-in-the-blank" || ex.type === "translation") {
+        return answer && answer.toString().trim().length > 0;
+      }
+      return answer !== undefined && answer !== null && answer !== "";
+    });
+  }, [exercises, userAnswers]);
 
   return (
     <Card
@@ -481,6 +513,18 @@ export function ExerciseRenderer({
           <div className="transition-all duration-300">
             {renderExerciseContent()}
           </div>
+
+          {/* Answer Required Message */}
+          {!hasAnswer && (
+            <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-l-4 border-yellow-400">
+              <div className="flex items-center gap-2">
+                <XCircle className="h-5 w-5 text-yellow-600" />
+                <span className="text-yellow-800 font-medium">
+                  Please provide an answer before proceeding
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Results Section */}
           {showResults && (
@@ -610,14 +654,31 @@ export function ExerciseRenderer({
               {!showResults ? (
                 <Button
                   onClick={onSubmitExercise}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 hover:scale-105">
+                  disabled={!hasAnswer}
+                  className={twMerge(
+                    "px-8 py-3 transition-all duration-200 hover:scale-105",
+                    hasAnswer
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  )}>
                   Submit Answer
                 </Button>
               ) : (
                 <Button
+                  disabled={isLoading || !hasAnswer}
                   onClick={handleNextExercise}
-                  className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 transition-all duration-200 hover:scale-105">
-                  {currentExerciseIndex < exercises.length - 1 ? (
+                  className={twMerge(
+                    "px-8 py-3 transition-all duration-200 hover:scale-105",
+                    hasAnswer && !isLoading
+                      ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  )}>
+                  {isLoading ? (
+                    <p className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+                      Submitting...
+                    </p>
+                  ) : currentExerciseIndex < exercises.length - 1 ? (
                     <>
                       Next Exercise
                       <ChevronRight className="h-4 w-4 ml-2" />
