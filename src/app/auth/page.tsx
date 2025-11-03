@@ -21,8 +21,13 @@ const AuthPage: React.FC = () => {
       return;
     }
 
+    if (user?.role === "admin") {
+      router.push("/admin/dashboard");
+      return;
+    }
+
     if (user) {
-      router.push("/dashboard");
+      router.push("/student");
     }
   }, [user, router]);
 

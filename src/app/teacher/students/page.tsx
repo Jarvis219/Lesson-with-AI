@@ -1,6 +1,9 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress as UiProgress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
 import { TeacherService } from "@/lib/teacher-service";
@@ -11,7 +14,10 @@ import type {
 } from "@/types/teacher-students";
 import {
   BarChart,
+  Eye,
   Filter,
+  Mail,
+  MoreHorizontal,
   Search,
   Target,
   TrendingDown,
@@ -101,15 +107,15 @@ export default function StudentsManagementPage() {
             </div>
             <div className="hidden sm:flex items-center gap-2">
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-200" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-indigo-200" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search students..."
-                  className="pl-8 pr-3 py-2 rounded-lg bg-white/10 text-white placeholder:text-indigo-200 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  className="pl-9 pr-3 py-2 rounded-xl bg-white/10 text-white placeholder:text-indigo-200 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm"
                 />
               </div>
-              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 text-white border border-white/20 text-sm">
+              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 text-white border border-white/20 text-sm backdrop-blur-sm">
                 <Filter className="h-4 w-4" />
                 <select
                   value={status}
@@ -121,6 +127,32 @@ export default function StudentsManagementPage() {
                 </select>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky Filters (mobile) */}
+      <div className="sm:hidden sticky top-0 z-10 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search students..."
+              className="w-full pl-9 pr-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm">
+            <Filter className="h-4 w-4" />
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as any)}
+              className="bg-transparent focus:outline-none">
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
         </div>
       </div>
@@ -207,10 +239,15 @@ export default function StudentsManagementPage() {
           </div>
         </div>
 
-        {/* Student List - Placeholder */}
+        {/* Students */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Student List</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Students</CardTitle>
+              <div className="hidden md:flex items-center gap-2">
+                <Badge variant="secondary">{students.length} results</Badge>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {error && <div className="mb-3 text-sm text-rose-600">{error}</div>}
@@ -230,36 +267,82 @@ export default function StudentsManagementPage() {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
+                    <th className="px-4 py-3" />
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={5}
                         className="px-4 py-6 text-sm text-gray-500">
-                        Loading...
+                        <div className="animate-pulse space-y-3">
+                          <div className="h-4 w-1/3 bg-gray-200 rounded" />
+                          <div className="h-3 w-full bg-gray-200 rounded" />
+                          <div className="h-3 w-2/3 bg-gray-200 rounded" />
+                        </div>
                       </td>
                     </tr>
                   ) : students.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={4}
-                        className="px-4 py-6 text-sm text-gray-500">
-                        No students found
+                        colSpan={5}
+                        className="px-4 py-10 text-sm text-gray-500">
+                        <div className="text-center">
+                          <div className="mx-auto h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                            <Users className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <div className="font-medium text-gray-700">
+                            No students found
+                          </div>
+                          <div className="text-gray-500">
+                            Try adjusting your filters
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   ) : (
                     students.map((s) => (
                       <tr key={s._id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm text-gray-900">
-                          {s.name}
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-gray-100 overflow-hidden ring-1 ring-gray-200">
+                              {s.avatar ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={s.avatar}
+                                  alt={s.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center text-gray-500 text-xs font-medium">
+                                  {s.name?.slice(0, 2)?.toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {s.name}
+                              </div>
+                              <div className="text-xs text-gray-500 capitalize">
+                                {s.level}
+                              </div>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
                           {s.email}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {s.progressPercent}%
+                          <div className="flex items-center gap-3 min-w-[180px]">
+                            <UiProgress
+                              value={s.progressPercent}
+                              className="h-2"
+                            />
+                            <span className="text-xs text-gray-600 w-10">
+                              {s.progressPercent}%
+                            </span>
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <span
@@ -271,6 +354,28 @@ export default function StudentsManagementPage() {
                             {s.status === "active" ? "Active" : "Inactive"}
                           </span>
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center gap-2 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Message">
+                              <Mail className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="View">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="More">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -280,7 +385,7 @@ export default function StudentsManagementPage() {
           </CardContent>
         </Card>
 
-        {/* Skills Analysis - Placeholder */}
+        {/* Skills Analysis */}
         <Card>
           <CardHeader>
             <CardTitle>Skills Analysis</CardTitle>
@@ -295,8 +400,14 @@ export default function StudentsManagementPage() {
                     .sort((a, b) => b.average - a.average)
                     .slice(0, 3)
                     .map((s) => (
-                      <li key={s.skill}>
-                        {s.skill} - {s.average}%
+                      <li key={s.skill} className="flex items-center gap-3">
+                        <span className="w-24 capitalize">{s.skill}</span>
+                        <div className="flex-1">
+                          <UiProgress value={s.average} className="h-2" />
+                        </div>
+                        <span className="w-10 text-right text-xs text-gray-600">
+                          {s.average}%
+                        </span>
                       </li>
                     ))}
                   {skills.length === 0 && <li>No data</li>}
@@ -310,8 +421,14 @@ export default function StudentsManagementPage() {
                     .sort((a, b) => a.average - b.average)
                     .slice(0, 3)
                     .map((s) => (
-                      <li key={s.skill}>
-                        {s.skill} - {s.average}%
+                      <li key={s.skill} className="flex items-center gap-3">
+                        <span className="w-24 capitalize">{s.skill}</span>
+                        <div className="flex-1">
+                          <UiProgress value={s.average} className="h-2" />
+                        </div>
+                        <span className="w-10 text-right text-xs text-gray-600">
+                          {s.average}%
+                        </span>
                       </li>
                     ))}
                   {skills.length === 0 && <li>No data</li>}

@@ -24,7 +24,9 @@ import {
   GraduationCap,
   Lock,
   Play,
-  User,
+  Sparkles,
+  TrendingUp,
+  Trophy,
   Users,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -97,14 +99,15 @@ export default function StudentCourseDetailPage() {
   // Show loading if auth is still loading
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-center h-96">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading course...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <BookOpen className="h-6 w-6 text-blue-600 animate-pulse" />
             </div>
           </div>
+          <p className="text-gray-700 font-medium text-lg">Loading course...</p>
         </div>
       </div>
     );
@@ -117,20 +120,23 @@ export default function StudentCourseDetailPage() {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Course not found
-            </h1>
-            <p className="text-gray-600 mb-6">
-              The course you're looking for doesn't exist or is not available.
-            </p>
-            <Button onClick={() => router.push("/student/courses")}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Courses
-            </Button>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-6">
+        <div className="text-center bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 p-12 max-w-lg">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6">
+            <BookOpen className="h-10 w-10 text-red-600" />
           </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Course not found
+          </h1>
+          <p className="text-gray-600 mb-8 text-lg">
+            The course you're looking for doesn't exist or is not available.
+          </p>
+          <Button
+            onClick={() => router.push("/student/courses")}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Courses
+          </Button>
         </div>
       </div>
     );
@@ -142,96 +148,149 @@ export default function StudentCourseDetailPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6">
+      {/* Animated Background Decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-30">
+        <div className="absolute top-0 -left-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow"></div>
+        <div className="absolute top-0 -right-1/4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow animation-delay-4000"></div>
+      </div>
+
+      <div className="relative mx-auto">
         {/* Back Button */}
         <button
           onClick={() => router.push("/student/courses")}
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6">
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          className="inline-flex items-center text-xs sm:text-sm font-medium text-gray-700 hover:text-gray-900 mb-4 sm:mb-8 transition-colors group">
+          <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Courses
         </button>
 
         {/* Course Header */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-4">
-                  <Badge variant="outline" className="capitalize">
+        <Card className="mb-6 sm:mb-8 bg-white/80 backdrop-blur-sm border-gray-200/50 shadow-xl overflow-hidden">
+          {/* Gradient Top Bar */}
+          <div className="h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600"></div>
+
+          <CardHeader className="pt-4 sm:pt-6 lg:pt-8 px-4 sm:px-6">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 sm:gap-8">
+              <div className="flex-1 animate-fade-in">
+                {/* Badge Collection */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                  <Badge className="capitalize bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-md px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 text-xs sm:text-sm">
+                    <Trophy className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1 sm:mr-1.5" />
                     {course.level}
                   </Badge>
-                  <Badge variant="secondary">{course.category}</Badge>
+                  <Badge
+                    variant="secondary"
+                    className="px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 text-xs sm:text-sm">
+                    {course.category}
+                  </Badge>
                   {course.isEnrolled && (
-                    <Badge className="bg-green-100 text-green-800">
-                      <CheckCircle className="h-3 w-3 mr-1" />
+                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 shadow-md px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 text-xs sm:text-sm">
+                      <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1 sm:mr-1.5" />
                       Enrolled
+                    </Badge>
+                  )}
+                  {course.enrolledStudents.length > 100 && (
+                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-md px-2 sm:px-3 lg:px-4 py-1 sm:py-1.5 text-xs sm:text-sm">
+                      <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1 sm:mr-1.5" />
+                      Popular
                     </Badge>
                   )}
                 </div>
 
-                <CardTitle className="text-4xl font-bold mb-4 text-gray-900">
+                <CardTitle className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold mb-3 sm:mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
                   {course.title}
                 </CardTitle>
 
-                <CardDescription className="text-lg text-gray-600 mb-6">
+                <CardDescription className="text-sm sm:text-base lg:text-lg text-gray-700 mb-6 sm:mb-8 leading-relaxed line-clamp-2">
                   {course.description}
                 </CardDescription>
 
-                {/* Course Stats */}
-                <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    <span className="font-medium">
-                      {course.lessons.length} lessons
-                    </span>
+                {/* Course Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+                    <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                      <BookOpen className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 font-medium">
+                        Lessons
+                      </p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {course.lessons.length}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2" />
-                    <span className="font-medium">
-                      {totalEstimatedTime} minutes
-                    </span>
+                  <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                    <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                      <Clock className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 font-medium">
+                        Duration
+                      </p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {totalEstimatedTime} min
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <Users className="h-4 w-4 mr-2" />
-                    <span className="font-medium">
-                      {course.enrolledStudents.length} students
-                    </span>
+                  <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+                    <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                      <Users className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 font-medium">
+                        Students
+                      </p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {course.enrolledStudents.length}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Teacher Info */}
-              <Card className="w-full lg:w-80">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center">
-                    <GraduationCap className="h-5 w-5 mr-2" />
+              {/* Teacher Info Card */}
+              <Card className="w-full lg:w-96 bg-gradient-to-br from-white to-gray-50/80 border-gray-200/50 shadow-lg animate-fade-in hover:shadow-xl transition-shadow">
+                <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
+                  <CardTitle className="text-lg sm:text-xl flex items-center text-gray-900">
+                    <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-purple-600" />
                     Instructor
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-blue-600" />
+                <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                  <div className="flex items-center gap-3 sm:gap-4 mb-4 p-3 sm:p-4 bg-white rounded-xl border border-gray-100">
+                    <div className="relative">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-md">
+                        {course.teacher.name?.charAt(0) || "T"}
+                      </div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 truncate text-base">
                         {course.teacher.name}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 truncate">
                         {course.teacher.email}
                       </p>
                     </div>
                   </div>
+
                   {course.teacher.teacherBio && (
-                    <p className="text-sm text-gray-600 mb-2">
-                      {course.teacher.teacherBio}
-                    </p>
+                    <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 mb-3">
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {course.teacher.teacherBio}
+                      </p>
+                    </div>
                   )}
+
                   {course.teacher.teacherQualification && (
-                    <p className="text-xs text-gray-500">
-                      {course.teacher.teacherQualification}
-                    </p>
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        {course.teacher.teacherQualification}
+                      </p>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -239,125 +298,161 @@ export default function StudentCourseDetailPage() {
           </CardHeader>
         </Card>
 
-        {/* Action Button */}
-        <div className="mb-8">
+        {/* Action Button Section */}
+        <div className="mb-6 sm:mb-8 animate-fade-in">
           {course.isEnrolled ? (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-6 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 rounded-2xl border border-green-200">
               <Button
                 size="lg"
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group/btn"
                 onClick={() =>
                   course.lessons.length > 0 &&
                   handleStartLesson(course.lessons[0]._id)
                 }
                 disabled={course.lessons.length === 0}>
-                <Play className="h-5 w-5 mr-2" />
+                <Play className="h-5 w-5 mr-2 group-hover/btn:scale-110 transition-transform" />
                 Start Learning
               </Button>
-              <p className="text-sm text-gray-600">
-                You're enrolled in this course. Start with the first lesson!
-              </p>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-700">
+                  You're enrolled! Start with the first lesson
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Make progress and unlock new content
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-6 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-2xl border border-blue-200">
               <Button
                 size="lg"
                 onClick={handleEnroll}
                 disabled={enrolling}
-                className="bg-blue-600 hover:bg-blue-700">
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group/btn">
                 {enrolling ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
                     Enrolling...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-5 w-5 mr-2" />
+                    <CheckCircle className="h-5 w-5 mr-2 group-hover/btn:scale-110 transition-transform" />
                     Enroll Now
                   </>
                 )}
               </Button>
-              <p className="text-sm text-gray-600">
-                Join {course.enrolledStudents.length} other students in this
-                course
-              </p>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-700">
+                  Join {course.enrolledStudents.length} other students
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Unlock all lessons and start your learning journey
+                </p>
+              </div>
             </div>
           )}
         </div>
 
         {/* Lessons Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold flex items-center">
-              <BookOpen className="h-6 w-6 mr-3" />
+        <Card className="bg-white/80 backdrop-blur-sm border-gray-200/50 shadow-xl">
+          {/* Gradient Top Bar */}
+          <div className="h-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600"></div>
+
+          <CardHeader className="pb-4 sm:pb-6 px-4 sm:px-6">
+            <CardTitle className="text-2xl sm:text-3xl font-bold flex items-center text-gray-900">
+              <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3 text-purple-600" />
               Course Lessons
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm sm:text-base text-gray-600 mt-2">
               {course.isEnrolled
-                ? "Click on any lesson to start learning"
-                : "Enroll to access all lessons"}
+                ? "Click on any lesson to start learning and track your progress"
+                : "Enroll now to access all lessons and start learning"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0 px-4 sm:px-6">
             {course.lessons.length === 0 ? (
-              <div className="text-center py-12">
-                <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <div className="text-center py-12 sm:py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-dashed border-gray-300">
+                <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gray-200 rounded-full mb-4 sm:mb-6">
+                  <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400" />
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">
                   No lessons available yet
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto px-4">
                   The instructor is still working on adding lessons to this
-                  course.
+                  course. Check back soon!
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {course.lessons.map((lesson, index) => (
                   <div
                     key={lesson._id}
-                    className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
+                    className={`group h-full flex flex-col md:flex-row items-center justify-between p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 ${
                       course.isEnrolled
-                        ? "border-gray-200 hover:bg-gray-50 cursor-pointer"
+                        ? "border-gray-200 hover:border-purple-300 bg-white hover:bg-gradient-to-r hover:from-purple-50/50 hover:to-blue-50/50 cursor-pointer hover:shadow-lg"
                         : "border-gray-200 bg-gray-50"
                     }`}
                     onClick={() =>
                       course.isEnrolled && handleStartLesson(lesson._id)
                     }>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col md:flex-row items-start gap-4 mb-3">
+                        <div
+                          className={`flex items-center justify-center w-12 h-12 rounded-xl text-base font-bold shadow-sm flex-shrink-0 transition-all duration-300 ${
+                            course.isEnrolled
+                              ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white group-hover:scale-110"
+                              : "bg-gray-200 text-gray-500"
+                          }`}>
                           {index + 1}
                         </div>
-                        <h3 className="font-medium text-gray-900">
-                          {lesson.title}
-                        </h3>
-                        {!course.isEnrolled && (
-                          <Lock className="h-4 w-4 text-gray-400" />
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2 ml-11">
-                        {lesson.description}
-                      </p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500 ml-11">
-                        <span className="capitalize">{lesson.type}</span>
-                        <span className="text-gray-400">•</span>
-                        <span className="capitalize">{lesson.difficulty}</span>
-                        <span className="text-gray-400">•</span>
-                        <span className="flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {lesson.estimatedTime} min
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3
+                              className={`font-bold text-gray-900 group-hover:text-purple-600 transition-colors ${
+                                course.isEnrolled ? "text-lg" : "text-base"
+                              }`}>
+                              {lesson.title}
+                            </h3>
+                            {!course.isEnrolled && (
+                              <div className="flex items-center justify-center w-5 h-5 bg-gray-300 rounded-full p-1">
+                                <Lock className="h-3 w-3 text-white" />
+                              </div>
+                            )}
+                          </div>
+                          <p
+                            className={`text-gray-600 mb-3 leading-relaxed ${
+                              course.isEnrolled ? "text-sm" : "text-sm"
+                            }`}>
+                            {lesson.description}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-3 text-xs">
+                            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium capitalize">
+                              {lesson.type}
+                            </span>
+                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium capitalize">
+                              {lesson.difficulty}
+                            </span>
+                            <span className="flex items-center text-gray-600 font-medium">
+                              <Clock className="h-3.5 w-3.5 mr-1" />
+                              {lesson.estimatedTime} min
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="ml-4">
+                    <div className="w-full md:w-fit ml-4 flex-shrink-0">
                       {course.isEnrolled ? (
-                        <Button variant="outline" size="sm">
-                          <Play className="h-4 w-4 mr-2" />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="group/btn w-full md:w-fit border-purple-200 hover:bg-gradient-to-r hover:from-purple-600 hover:to-blue-600 hover:border-purple-600 hover:text-white transition-all duration-300">
+                          <Play className="h-4 w-4 mr-2 group-hover/btn:scale-110 transition-transform" />
                           Start
                         </Button>
                       ) : (
-                        <div className="text-gray-400">
-                          <Lock className="h-4 w-4" />
+                        <div className="flex items-center justify-center w-full md:w-fit h-10 bg-gray-200 rounded-lg">
+                          <Lock className="h-5 w-5 text-gray-500" />
                         </div>
                       )}
                     </div>
