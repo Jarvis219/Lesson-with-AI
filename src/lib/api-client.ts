@@ -44,6 +44,14 @@ export class ApiClient {
     return response.data.stats;
   }
 
+  async getStudentStats(): Promise<DashboardStats> {
+    const response = await apiService.get<
+      ApiResponse<{ stats: DashboardStats }>
+    >("/api/student/stats");
+
+    return response.data.stats;
+  }
+
   async getAISuggestions(): Promise<AISuggestion[]> {
     const response = await apiService.get<
       ApiResponse<{ suggestions: AISuggestion[] }>

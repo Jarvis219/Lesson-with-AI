@@ -1,47 +1,49 @@
-import { getUserFromRequest } from "@/lib/auth";
+import { isRequireAuth } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Lesson from "@/models/Lesson";
 import Progress from "@/models/Progress";
+import { DashboardStats } from "@/types/dashboard";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    const userPayload = getUserFromRequest(request);
-    if (!userPayload) {
+    const { userId } = isRequireAuth(request);
+
+    if (!userId) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
       );
     }
 
-    const progress = await Progress.findOne({ userId: userPayload.userId });
+    const progress = await Progress.findOne({ userId });
 
     if (!progress) {
-      return NextResponse.json({
-        stats: {
-          totalLessonsCompleted: 0,
-          totalTimeSpent: 0,
-          averageScore: 0,
-          streak: 0,
-          weeklyProgress: 0,
-          weeklyGoal: 5,
-          skillScores: {
-            vocab: 0,
-            grammar: 0,
-            listening: 0,
-            speaking: 0,
-            reading: 0,
-            writing: 0,
-          },
-          recentActivity: [],
-          achievements: [],
-          weeklyData: [0, 0, 0, 0, 0, 0, 0], // Last 7 days
-          monthlyProgress: 0,
-          levelProgress: 0,
+      const defaultStats: DashboardStats = {
+        totalLessonsCompleted: 0,
+        totalTimeSpent: 0,
+        averageScore: 0,
+        streak: 0,
+        weeklyProgress: 0,
+        weeklyGoal: 5,
+        skillScores: {
+          vocab: 0,
+          grammar: 0,
+          listening: 0,
+          speaking: 0,
+          reading: 0,
+          writing: 0,
         },
-      });
+        recentActivity: [],
+        achievements: [],
+        weeklyData: [0, 0, 0, 0, 0, 0, 0],
+        monthlyProgress: 0,
+        levelProgress: 0,
+      };
+
+      return NextResponse.json({ stats: defaultStats });
     }
 
     // Calculate average score from completed lessons
@@ -58,7 +60,7 @@ export async function GET(request: NextRequest) {
           )
         : 0;
 
-    // Get skill scores - get from progress.scores if available, otherwise calculate from completed lessons
+    // Get skill scores - calculate dynamically from completed lessons
     const skillScores = {
       vocab: 0,
       grammar: 0,
@@ -68,64 +70,56 @@ export async function GET(request: NextRequest) {
       writing: 0,
     };
 
-    // First try to get from saved scores
-    if (progress.scores && progress.scores.length > 0) {
-      progress.scores.forEach((score: any) => {
-        if (skillScores.hasOwnProperty(score.skill)) {
-          skillScores[score.skill as keyof typeof skillScores] = score.score;
+    // Calculate skill scores from completed lessons
+    const completedLessonIds = progress.lessonsCompleted.map((id: any) =>
+      id.toString()
+    );
+
+    if (completedLessonIds.length > 0) {
+      const completedLessons = await Lesson.find({
+        _id: { $in: completedLessonIds },
+      })
+        .select("type")
+        .lean();
+
+      // Calculate average score per skill
+      const skillGroups: Record<string, number[]> = {};
+      completedLessons.forEach((lesson: any) => {
+        if (!skillGroups[lesson.type]) {
+          skillGroups[lesson.type] = [];
         }
       });
-    } else {
-      // Calculate skill scores from completed lessons
-      const completedLessonIds = progress.lessonsCompleted.map((id: any) =>
-        id.toString()
-      );
-      if (completedLessonIds.length > 0) {
-        const completedLessons = await Lesson.find({
-          _id: { $in: completedLessonIds },
-        })
-          .select("type")
-          .lean();
 
-        // Calculate average score per skill
-        const skillGroups: Record<string, number[]> = {};
-        completedLessons.forEach((lesson: any) => {
-          if (!skillGroups[lesson.type]) {
-            skillGroups[lesson.type] = [];
+      // Get scores for each skill
+      progress.lessonProgress.forEach((lp: any) => {
+        if (
+          lp.completed &&
+          completedLessonIds.includes(lp.lessonId.toString())
+        ) {
+          const lesson = completedLessons.find(
+            (l: any) => l._id.toString() === lp.lessonId.toString()
+          );
+          if (lesson && skillGroups[lesson.type]) {
+            skillGroups[lesson.type].push(lp.score);
           }
-        });
+        }
+      });
 
-        // Get scores for each skill
-        progress.lessonProgress.forEach((lp: any) => {
-          if (
-            lp.completed &&
-            completedLessonIds.includes(lp.lessonId.toString())
-          ) {
-            const lesson = completedLessons.find(
-              (l: any) => l._id.toString() === lp.lessonId.toString()
-            );
-            if (lesson && skillGroups[lesson.type]) {
-              skillGroups[lesson.type].push(lp.score);
-            }
-          }
-        });
-
-        // Calculate averages
-        Object.keys(skillGroups).forEach((skill) => {
-          if (
-            skillScores.hasOwnProperty(skill) &&
-            skillGroups[skill].length > 0
-          ) {
-            skillScores[skill as keyof typeof skillScores] = Math.round(
-              skillGroups[skill].reduce((sum, score) => sum + score, 0) /
-                skillGroups[skill].length
-            );
-          }
-        });
-      }
+      // Calculate averages
+      Object.keys(skillGroups).forEach((skill) => {
+        if (
+          skillScores.hasOwnProperty(skill) &&
+          skillGroups[skill].length > 0
+        ) {
+          skillScores[skill as keyof typeof skillScores] = Math.round(
+            skillGroups[skill].reduce((sum, score) => sum + score, 0) /
+              skillGroups[skill].length
+          );
+        }
+      });
     }
 
-    // Get recent activity (last 10 lessons) with lesson details
+    // Get recent activity (last 10 lessons) with full lesson details
     const sortedProgress = progress.lessonProgress
       .sort(
         (a: any, b: any) =>
@@ -198,24 +192,24 @@ export async function GET(request: NextRequest) {
       levelProgress = Math.min(100, (totalLessons / 20) * 100); // Beginner level
     }
 
-    return NextResponse.json({
-      stats: {
-        totalLessonsCompleted: progress.lessonsCompleted.length,
-        totalTimeSpent: progress.totalTimeSpent,
-        averageScore,
-        streak: progress.streak,
-        weeklyProgress: progress.weeklyProgress,
-        weeklyGoal: progress.weeklyGoal,
-        skillScores,
-        recentActivity,
-        achievements: progress.achievements || [],
-        weeklyData,
-        monthlyProgress: monthlyLessons,
-        levelProgress: Math.round(levelProgress),
-      },
-    });
+    const stats: DashboardStats = {
+      totalLessonsCompleted: progress.lessonsCompleted.length,
+      totalTimeSpent: progress.totalTimeSpent,
+      averageScore,
+      streak: progress.streak,
+      weeklyProgress: progress.weeklyProgress,
+      weeklyGoal: progress.weeklyGoal,
+      skillScores,
+      recentActivity,
+      achievements: progress.achievements || [],
+      weeklyData,
+      monthlyProgress: monthlyLessons,
+      levelProgress: Math.round(levelProgress),
+    };
+
+    return NextResponse.json({ stats });
   } catch (error) {
-    console.error("Dashboard stats error:", error);
+    console.error("Student stats error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

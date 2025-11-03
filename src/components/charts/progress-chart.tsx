@@ -1,112 +1,96 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 interface ProgressChartProps {
   data: any[];
 }
 
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+        <p className="text-xs text-gray-600 mb-1">
+          {payload[0].payload?.title || "Score"}
+        </p>
+        <p className="text-lg font-bold text-blue-600">{payload[0].value}%</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function ProgressChart({ data }: ProgressChartProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !data || data.length === 0) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Set canvas size
-    canvas.width = 400;
-    canvas.height = 200;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Prepare data
-    const scores = data.map((item) => item.score || 0);
-    const maxScore = Math.max(...scores, 100);
-    const minScore = Math.min(...scores, 0);
-
-    // Draw grid
-    ctx.strokeStyle = "#e5e7eb";
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 5; i++) {
-      const y = (canvas.height / 5) * i;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-    }
-
-    // Draw line chart
-    if (scores.length > 1) {
-      ctx.strokeStyle = "#3b82f6";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-
-      scores.forEach((score, index) => {
-        const x = (canvas.width / (scores.length - 1)) * index;
-        const y =
-          canvas.height -
-          ((score - minScore) / (maxScore - minScore)) * canvas.height;
-
-        if (index === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      });
-
-      ctx.stroke();
-
-      // Draw points
-      ctx.fillStyle = "#3b82f6";
-      scores.forEach((score, index) => {
-        const x = (canvas.width / (scores.length - 1)) * index;
-        const y =
-          canvas.height -
-          ((score - minScore) / (maxScore - minScore)) * canvas.height;
-
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, 2 * Math.PI);
-        ctx.fill();
-      });
-    }
-
-    // Draw labels
-    ctx.fillStyle = "#6b7280";
-    ctx.font = "12px Inter";
-    ctx.textAlign = "center";
-
-    // Y-axis labels
-    for (let i = 0; i <= 5; i++) {
-      const value = minScore + ((maxScore - minScore) / 5) * (5 - i);
-      const y = (canvas.height / 5) * i;
-      ctx.fillText(Math.round(value).toString(), 20, y + 4);
-    }
-  }, [data]);
-
   if (!data || data.length === 0) {
     return (
-      <div className="h-48 flex items-center justify-center text-gray-500">
+      <div className="h-48 flex items-center justify-center text-gray-500 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300">
         <div className="text-center">
-          <div className="text-sm">Chưa có dữ liệu</div>
+          <div className="text-sm font-medium">No data yet</div>
           <div className="text-xs">
-            Hoàn thành một số bài học để xem biểu đồ
+            Complete some lessons to see your progress chart
           </div>
         </div>
       </div>
     );
   }
 
+  // Prepare chart data
+  const chartData = data.map((item, index) => ({
+    name: `Lesson ${index + 1}`,
+    score: item.score || 0,
+    title: item.title || `Lesson ${index + 1}`,
+  }));
+
   return (
-    <div className="w-full">
-      <canvas
-        ref={canvasRef}
-        className="w-full h-48"
-        style={{ maxWidth: "100%", height: "200px" }}
-      />
+    <div className="w-full h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={chartData}
+          margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="colorLine" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="50%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#ec4899" />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+          <XAxis
+            dataKey="name"
+            stroke="#6b7280"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            stroke="#6b7280"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+            domain={[0, 100]}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Area
+            type="monotone"
+            dataKey="score"
+            stroke="url(#colorLine)"
+            strokeWidth={3}
+            fill="url(#colorScore)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }
