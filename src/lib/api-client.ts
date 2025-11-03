@@ -224,7 +224,7 @@ export class ApiClient {
   async submitLessonProgress(progressData: {
     lessonId: string;
     timeSpent: number;
-    userAnswers: Record<string, any>;
+    userAnswers: Record<string, string>;
     exercises: any[];
     lessonType: string;
   }): Promise<LessonProgressSubmitResponse> {

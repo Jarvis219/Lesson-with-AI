@@ -6,7 +6,6 @@ import {
   LESSON_TYPES,
   PARTS_OF_SPEECH,
   READING_GENRES,
-  SPEAKING_EXERCISE_TYPES,
   WRITING_TYPES,
 } from "@/types/lesson-enums";
 import { z } from "zod";
@@ -177,9 +176,7 @@ export const audioTimestampSchema = z.object({
 });
 
 export const audioContentSchema = z.object({
-  url: z.string().url("Please enter a valid audio URL"),
-  duration: z.number().min(1, "Duration must be at least 1 second"),
-  transcript: z.string().min(10, "Transcript must be at least 10 characters"),
+  text: z.string().min(10, "Audio text must be at least 10 characters"),
   timestamps: z.array(audioTimestampSchema).nullable().optional(),
   speed: z.enum(AUDIO_SPEEDS as unknown as [string, ...string[]]),
   accent: z
@@ -190,25 +187,16 @@ export const audioContentSchema = z.object({
 
 export const preListeningContentSchema = z.object({
   vocabulary: z.array(vocabularyWordSchema).nullable().optional(),
-  context: z.string().min(10, "Context must be at least 10 characters"),
+  context: z.string().nullable().optional(),
   predictionQuestions: z.array(z.string()).nullable().optional(),
-});
-
-export const postListeningContentSchema = z.object({
-  comprehensionQuestions: z
-    .array(exerciseSchema)
-    .min(1, "At least one comprehension question is required"),
-  discussionQuestions: z.array(z.string()).nullable().optional(),
-  summaryTask: z.string().nullable().optional(),
 });
 
 export const listeningLessonSchema = z.object({
   audio: audioContentSchema,
   preListening: preListeningContentSchema,
-  whileListening: z.object({
-    exercises: z.array(exerciseSchema),
-  }),
-  postListening: postListeningContentSchema,
+  exercises: z
+    .array(exerciseSchema)
+    .min(1, "At least one exercise is required"),
 });
 
 export type ListeningLessonFormData = z.infer<typeof listeningLessonSchema>;
@@ -246,15 +234,6 @@ export const conversationScenarioSchema = z.object({
   culturalNotes: z.array(z.string()).nullable().optional(),
 });
 
-export const speakingExerciseSchema = z.object({
-  type: z.enum(SPEAKING_EXERCISE_TYPES as unknown as [string, ...string[]]),
-  prompt: z.string().min(1, "Prompt is required"),
-  sampleAnswer: z.string().nullable().optional(),
-  sampleAudioUrl: z.string().url().nullable().optional().or(z.literal("")),
-  timeLimit: z.number().min(0).nullable().optional(),
-  tips: z.array(z.string()).nullable().optional(),
-});
-
 export const speakingLessonSchema = z.object({
   pronunciation: z
     .object({
@@ -264,8 +243,8 @@ export const speakingLessonSchema = z.object({
     .nullable()
     .optional(),
   conversation: conversationScenarioSchema.nullable().optional(),
-  practiceExercises: z
-    .array(speakingExerciseSchema)
+  exercises: z
+    .array(exerciseSchema)
     .min(1, "At least one practice exercise is required"),
   topics: z.array(z.string()).nullable().optional(),
 });
@@ -299,18 +278,13 @@ export const readingLessonSchema = z.object({
     vocabulary: z.array(vocabularyWordSchema).nullable().optional(),
     context: z.string().min(10, "Context must be at least 10 characters"),
   }),
-  whileReading: z.object({
-    annotations: z.array(readingAnnotationSchema).nullable().optional(),
-    questions: z.array(exerciseSchema).nullable().optional(),
-  }),
   postReading: z.object({
-    comprehensionQuestions: z
-      .array(exerciseSchema)
-      .min(1, "At least one comprehension question is required"),
-    vocabularyExercises: z.array(exerciseSchema).nullable().optional(),
     discussionQuestions: z.array(z.string()).nullable().optional(),
     summaryTask: z.string().nullable().optional(),
   }),
+  exercises: z
+    .array(exerciseSchema)
+    .min(1, "At least one exercise is required"),
 });
 
 export type ReadingLessonFormData = z.infer<typeof readingLessonSchema>;
@@ -368,7 +342,9 @@ export const writingLessonSchema = z.object({
   instruction: writingInstructionSchema,
   modelText: modelTextSchema.nullable().optional(),
   writingFramework: writingFrameworkSchema,
-  exercises: z.array(exerciseSchema).nullable().optional(),
+  exercises: z
+    .array(exerciseSchema)
+    .min(1, "At least one exercise is required"),
   rubric: z
     .object({
       criteria: z

@@ -16,16 +16,17 @@ import { Controller, useFormContext } from "react-hook-form";
 interface ListeningComprehensionExerciseProps {
   index: number;
   onRemove: () => void;
+  basePath?: string;
 }
 
 export function ListeningComprehensionExercise({
   index,
   onRemove,
+  basePath: providedBasePath,
 }: ListeningComprehensionExerciseProps) {
   const { watch } = useFormContext();
 
-  const basePath =
-    `content.postListening.comprehensionQuestions.${index}` as const;
+  const basePath = providedBasePath || `content.exercises.${index}`;
   const exerciseType = watch(`${basePath}.type`);
 
   const renderExercise = () => {

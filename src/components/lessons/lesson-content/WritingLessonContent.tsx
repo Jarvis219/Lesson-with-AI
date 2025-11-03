@@ -1,19 +1,9 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle
-} from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import {
-    WritingLessonContent as WritingContent,
-    WritingInstruction,
-} from "@/types/lesson-content";
-import { BookOpen, CheckCircle, Clock, FileText, PenTool, Target } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WritingLessonContent as WritingContent } from "@/types/lesson-content";
+import { BookOpen, CheckCircle, FileText, PenTool, Target } from "lucide-react";
 import { useState } from "react";
 
 interface WritingLessonContentProps {
@@ -46,70 +36,86 @@ export function WritingLessonContent({ content }: WritingLessonContentProps) {
           <CardContent className="p-6">
             <div className="space-y-6">
               {/* Writing Type */}
-              <div className="flex items-center gap-4">
-                <Badge variant="outline" className="text-sm px-3 py-1">
-                  <FileText className="h-4 w-4 mr-1" />
-                  {(content.instruction as WritingInstruction).writingType || "Essay"}
-                </Badge>
-                <Badge variant="outline" className="text-sm px-3 py-1">
-                  <Clock className="h-4 w-4 mr-1" />
-                  {(content.instruction as WritingInstruction).estimatedTime || "60"} min
-                </Badge>
-                <Badge variant="outline" className="text-sm px-3 py-1">
-                  <Target className="h-4 w-4 mr-1" />
-                  {(content.instruction as WritingInstruction).wordCount || "300-500"} words
-                </Badge>
-              </div>
+              {content.writingType && (
+                <div className="flex items-center gap-4">
+                  <Badge variant="outline" className="text-sm px-3 py-1">
+                    <FileText className="h-4 w-4 mr-1" />
+                    {content.writingType}
+                  </Badge>
+                </div>
+              )}
 
-              {/* Task Description */}
+              {/* Prompt */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border-l-4 border-blue-400">
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">Task Description</h4>
+                <h4 className="text-lg font-semibold text-gray-800 mb-3">
+                  Prompt
+                </h4>
                 <p className="text-gray-700 leading-relaxed text-lg">
-                  {(content.instruction as WritingInstruction).taskDescription}
+                  {content.instruction.prompt}
                 </p>
               </div>
 
               {/* Requirements */}
-              {(content.instruction as WritingInstruction).requirements && 
-               (content.instruction as WritingInstruction).requirements.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-800">Requirements</h4>
-                  <div className="space-y-3">
-                    {(content.instruction as WritingInstruction).requirements.map((req: string, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border-l-4 border-green-400 hover:bg-green-100 transition-colors">
-                        <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                          ✓
-                        </div>
-                        <p className="text-gray-700 leading-relaxed">
-                          {req}
-                        </p>
-                      </div>
-                    ))}
+              {content.instruction.requirements &&
+                content.instruction.requirements.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      Requirements
+                    </h4>
+                    <div className="space-y-3">
+                      {content.instruction.requirements.map(
+                        (req: string, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border-l-4 border-green-400 hover:bg-green-100 transition-colors">
+                            <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+                              ✓
+                            </div>
+                            <p className="text-gray-700 leading-relaxed">
+                              {req}
+                            </p>
+                          </div>
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Guidelines */}
-              {(content.instruction as WritingInstruction).guidelines && 
-               (content.instruction as WritingInstruction).guidelines.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-800">Guidelines</h4>
-                  <div className="space-y-3">
-                    {(content.instruction as WritingInstruction).guidelines.map((guideline: string, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400 hover:bg-yellow-100 transition-colors">
-                        <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                          {index + 1}
-                        </div>
-                        <p className="text-gray-700 leading-relaxed">
-                          {guideline}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+              {/* Optional Meta */}
+              {(content.instruction.audience ||
+                content.instruction.purpose ||
+                content.instruction.tone) && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {content.instruction.audience && (
+                    <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-4 rounded-lg border">
+                      <h4 className="text-sm font-semibold text-gray-600 mb-1">
+                        Audience
+                      </h4>
+                      <p className="text-gray-800 font-medium">
+                        {content.instruction.audience}
+                      </p>
+                    </div>
+                  )}
+                  {content.instruction.purpose && (
+                    <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-4 rounded-lg border">
+                      <h4 className="text-sm font-semibold text-gray-600 mb-1">
+                        Purpose
+                      </h4>
+                      <p className="text-gray-800 font-medium">
+                        {content.instruction.purpose}
+                      </p>
+                    </div>
+                  )}
+                  {content.instruction.tone && (
+                    <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-4 rounded-lg border">
+                      <h4 className="text-sm font-semibold text-gray-600 mb-1">
+                        Tone
+                      </h4>
+                      <p className="text-gray-800 font-medium">
+                        {content.instruction.tone}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -134,47 +140,58 @@ export function WritingLessonContent({ content }: WritingLessonContentProps) {
             <div className="space-y-6">
               {/* Model Text Content */}
               <div className="bg-gradient-to-r from-gray-50 to-slate-50 p-6 rounded-xl border-l-4 border-purple-400">
-                <h4 className="text-lg font-semibold text-gray-800 mb-4">Example Text</h4>
-                <div className="prose prose-lg max-w-none">
+                <h4 className="text-lg font-semibold text-gray-800 mb-1">
+                  {content.modelText.title}
+                </h4>
+                <div className="prose prose-lg max-w-none mt-3">
                   <p className="text-gray-800 leading-relaxed text-lg whitespace-pre-line">
-                    {(content.modelText as any).content || (content.modelText as any).text}
+                    {content.modelText.text}
                   </p>
                 </div>
               </div>
 
               {/* Analysis */}
-              {(content.modelText as any).analysis && (
+              {content.modelText.analysis && (
                 <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-800">Text Analysis</h4>
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    Text Analysis
+                  </h4>
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border-l-4 border-blue-400">
                     <p className="text-gray-700 leading-relaxed">
-                      {(content.modelText as any).analysis}
+                      {content.modelText.analysis}
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Key Features */}
-              {(content.modelText as any).keyFeatures && 
-               (content.modelText as any).keyFeatures.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-800">Key Features</h4>
-                  <div className="space-y-3">
-                    {(content.modelText as any).keyFeatures.map((feature: string, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400 hover:bg-purple-100 transition-colors">
-                        <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                          {index + 1}
+              {/* Highlights */}
+              {content.modelText.highlights &&
+                content.modelText.highlights.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      Highlights
+                    </h4>
+                    <div className="space-y-3">
+                      {content.modelText.highlights.map((h, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400 hover:bg-purple-100 transition-colors">
+                          <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-gray-700 leading-relaxed font-medium">
+                              {h.text}
+                            </p>
+                            <p className="text-gray-600 text-sm mt-1">
+                              {h.explanation}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-gray-700 leading-relaxed">
-                          {feature}
-                        </p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </CardContent>
         </Card>
@@ -196,92 +213,120 @@ export function WritingLessonContent({ content }: WritingLessonContentProps) {
           <CardContent className="p-6">
             <div className="space-y-6">
               {/* Framework Structure */}
-              {(content.writingFramework as any).structure && 
-               (content.writingFramework as any).structure.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-800">Structure</h4>
+              {content.writingFramework.structure &&
+                content.writingFramework.structure.length > 0 && (
                   <div className="space-y-4">
-                    {(content.writingFramework as any).structure.map((section: any, index: number) => (
-                      <div
-                        key={index}
-                        className="border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      Structure
+                    </h4>
+                    <div className="space-y-3">
+                      {content.writingFramework.structure.map(
+                        (item: string, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border-l-4 border-green-400 hover:bg-green-100 transition-colors">
+                            <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
                               {index + 1}
                             </div>
-                            <h5 className="text-lg font-semibold text-gray-800">
-                              {section.title || `Section ${index + 1}`}
-                            </h5>
-                            <Badge variant="outline" className="text-xs">
-                              {section.wordCount || "50-100"} words
-                            </Badge>
-                          </div>
-                          
-                          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
-                            <p className="text-gray-800 font-medium">
-                              {section.description}
+                            <p className="text-gray-700 leading-relaxed">
+                              {item}
                             </p>
                           </div>
-
-                          {section.prompts && section.prompts.length > 0 && (
-                            <div className="space-y-2">
-                              <h6 className="text-sm font-semibold text-gray-600">Prompts:</h6>
-                              <div className="space-y-2">
-                                {section.prompts.map((prompt: string, promptIndex: number) => (
-                                  <div
-                                    key={promptIndex}
-                                    className="flex items-start gap-2 p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-400">
-                                    <span className="text-yellow-600 mt-1">•</span>
-                                    <p className="text-gray-700 text-sm">
-                                      {prompt}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {section.examples && section.examples.length > 0 && (
-                            <div className="space-y-2">
-                              <h6 className="text-sm font-semibold text-gray-600">Examples:</h6>
-                              <div className="space-y-2">
-                                {section.examples.map((example: string, exampleIndex: number) => (
-                                  <div
-                                    key={exampleIndex}
-                                    className="p-3 bg-gray-50 rounded-lg border">
-                                    <p className="text-gray-600 italic text-sm">
-                                      "{example}"
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Transition Words */}
-              {(content.writingFramework as any).transitionWords && 
-               (content.writingFramework as any).transitionWords.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-800">Transition Words</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {(content.writingFramework as any).transitionWords.map((word: string, index: number) => (
-                      <Badge 
-                        key={index} 
-                        variant="outline" 
-                        className="text-sm px-3 py-1 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 transition-colors">
-                        {word}
-                      </Badge>
-                    ))}
+              {/* Useful Phrases */}
+              {content.writingFramework.usefulPhrases &&
+                content.writingFramework.usefulPhrases.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      Useful Phrases
+                    </h4>
+                    <div className="space-y-4">
+                      {content.writingFramework.usefulPhrases.map(
+                        (group: any, idx: number) => (
+                          <div key={idx} className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {group.category}
+                              </Badge>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {group.phrases.map((p: string, i: number) => (
+                                <Badge
+                                  key={i}
+                                  variant="outline"
+                                  className="text-xs px-2 py-1 bg-blue-50 text-blue-700">
+                                  {p}
+                                </Badge>
+                              ))}
+                            </div>
+                            {group.examples && group.examples.length > 0 && (
+                              <div className="space-y-1">
+                                {group.examples.map(
+                                  (ex: string, ei: number) => (
+                                    <p
+                                      key={ei}
+                                      className="text-sm text-gray-600 italic">
+                                      "{ex}"
+                                    </p>
+                                  )
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+              {/* Grammar Points */}
+              {content.writingFramework.grammarPoints &&
+                content.writingFramework.grammarPoints.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      Grammar Points
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {content.writingFramework.grammarPoints.map(
+                        (gp: string, idx: number) => (
+                          <Badge
+                            key={idx}
+                            variant="outline"
+                            className="text-xs px-2 py-1 bg-purple-50 text-purple-700">
+                            {gp}
+                          </Badge>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              {/* Vocabulary Bank */}
+              {content.writingFramework.vocabularyBank &&
+                content.writingFramework.vocabularyBank.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      Vocabulary Bank
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {content.writingFramework.vocabularyBank.map(
+                        (vb: string, idx: number) => (
+                          <Badge
+                            key={idx}
+                            variant="outline"
+                            className="text-xs px-2 py-1 bg-teal-50 text-teal-700">
+                            {vb}
+                          </Badge>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
             </div>
           </CardContent>
         </Card>
@@ -303,64 +348,46 @@ export function WritingLessonContent({ content }: WritingLessonContentProps) {
           <CardContent className="p-6">
             <div className="space-y-6">
               {/* Rubric Criteria */}
-              {(content.rubric as any).criteria && 
-               (content.rubric as any).criteria.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-800">Evaluation Criteria</h4>
+              {content.rubric.criteria &&
+                content.rubric.criteria.length > 0 && (
                   <div className="space-y-4">
-                    {(content.rubric as any).criteria.map((criterion: any, index: number) => (
-                      <div
-                        key={index}
-                        className="border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h5 className="text-lg font-semibold text-gray-800">
-                              {criterion.name}
-                            </h5>
-                            <Badge variant="outline" className="text-sm">
-                              {criterion.maxPoints} points
-                            </Badge>
-                          </div>
-                          
-                          <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border-l-4 border-orange-400">
-                            <p className="text-gray-700 leading-relaxed">
-                              {criterion.description}
-                            </p>
-                          </div>
+                    <h4 className="text-lg font-semibold text-gray-800">
+                      Evaluation Criteria
+                    </h4>
+                    <div className="space-y-4">
+                      {content.rubric.criteria.map(
+                        (criterion: any, index: number) => (
+                          <div
+                            key={index}
+                            className="border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h5 className="text-lg font-semibold text-gray-800">
+                                  {criterion.name}
+                                </h5>
+                                <Badge variant="outline" className="text-sm">
+                                  {criterion.maxPoints} points
+                                </Badge>
+                              </div>
 
-                          {criterion.levels && criterion.levels.length > 0 && (
-                            <div className="space-y-3">
-                              <h6 className="text-sm font-semibold text-gray-600">Performance Levels:</h6>
-                              <div className="space-y-2">
-                                {criterion.levels.map((level: any, levelIndex: number) => (
-                                  <div
-                                    key={levelIndex}
-                                    className="flex items-start gap-3 p-3 bg-white rounded-lg border hover:shadow-md transition-all duration-200">
-                                    <div className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                                      {levelIndex + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-medium text-gray-800">
-                                          {level.name || `Level ${levelIndex + 1}`}
-                                        </span>
-                                        <Badge variant="outline" className="text-xs">
-                                          {level.points || 0} pts
-                                        </Badge>
-                                      </div>
-                                      <p className="text-gray-600 text-sm">
-                                        {level.description}
-                                      </p>
-                                    </div>
-                                  </div>
-                                ))}
+                              <div className="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-lg border-l-4 border-orange-400">
+                                <p className="text-gray-700 leading-relaxed">
+                                  {criterion.description}
+                                </p>
                               </div>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                          </div>
+                        )
+                      )}
+                    </div>
                   </div>
+                )}
+              {typeof content.rubric.totalPoints === "number" && (
+                <div className="text-sm text-gray-600">
+                  Total Points:{" "}
+                  <span className="font-semibold">
+                    {content.rubric.totalPoints}
+                  </span>
                 </div>
               )}
             </div>
@@ -383,20 +410,22 @@ export function WritingLessonContent({ content }: WritingLessonContentProps) {
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-4">
-              <p className="text-gray-600 mb-4">Use this checklist to review your writing before submitting:</p>
+              <p className="text-gray-600 mb-4">
+                Use this checklist to review your writing before submitting:
+              </p>
               <div className="space-y-3">
-                {(content as any).checklist.map((item: string, index: number) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-3 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-400 hover:bg-indigo-100 transition-colors">
-                    <div className="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                      ✓
+                {(content as any).checklist.map(
+                  (item: string, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-400 hover:bg-indigo-100 transition-colors">
+                      <div className="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
+                        ✓
+                      </div>
+                      <p className="text-gray-700 leading-relaxed">{item}</p>
                     </div>
-                    <p className="text-gray-700 leading-relaxed">
-                      {item}
-                    </p>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </div>
           </CardContent>
@@ -404,7 +433,7 @@ export function WritingLessonContent({ content }: WritingLessonContentProps) {
       )}
 
       {/* Writing Area */}
-      <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+      {/* <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
         <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50">
           <CardTitle className="flex items-center gap-3 text-2xl">
             <div className="p-2 bg-gray-100 rounded-lg">
@@ -429,14 +458,12 @@ export function WritingLessonContent({ content }: WritingLessonContentProps) {
                 <Button variant="outline" size="sm">
                   Save Draft
                 </Button>
-                <Button size="sm">
-                  Submit
-                </Button>
+                <Button size="sm">Submit</Button>
               </div>
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }

@@ -374,7 +374,7 @@ export default function CourseDetailPage() {
                   </div>
                 }>
                 <div className="space-y-3">
-                  {course.lessons.map((lesson: Lesson, index: number) => (
+                  {course.lessons.map((lesson, index: number) => (
                     <div
                       key={lesson._id}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
@@ -428,7 +428,7 @@ export default function CourseDetailPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteLesson(lesson)}
+                          onClick={() => handleDeleteLesson(lesson as Lesson)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50">
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete

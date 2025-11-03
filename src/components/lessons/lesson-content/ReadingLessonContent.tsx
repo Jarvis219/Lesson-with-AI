@@ -4,26 +4,57 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BaseExercise,
-  ReadingAnnotation,
   ReadingLessonContent as ReadingContent,
   VocabularyWord,
 } from "@/types/lesson-content";
-import { BookOpen, Clock, Eye, Lightbulb, Target } from "lucide-react";
+import { BookOpen, Clock, Eye, Target } from "lucide-react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { getLevelColor, getLevelIcon } from "utils/lesson.util";
 
 interface ReadingLessonContentProps {
   content: ReadingContent;
+  onExerciseAnswersChange?: (
+    sectionId: string,
+    answers: Record<string, any>
+  ) => void;
+  onSubmitSection?: (
+    sectionId: string,
+    answers: Record<string, any>,
+    exercises: BaseExercise[]
+  ) => void;
+  isSubmitting?: boolean;
 }
 
-export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
+export function ReadingLessonContent({
+  content,
+  onExerciseAnswersChange,
+  onSubmitSection,
+  isSubmitting = false,
+}: ReadingLessonContentProps) {
   const [hoveredItem, setHoveredItem] = useState<number | null>(null);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
+
+  const handleExerciseAnswersChange =
+    (sectionId: string) => (answers: Record<string, any>) => {
+      if (onExerciseAnswersChange) {
+        onExerciseAnswersChange(sectionId, answers);
+      }
+    };
+
+  const handleSubmitSection =
+    (sectionId: string) =>
+    (answers: Record<string, any>, exercises: BaseExercise[]) => {
+      if (onSubmitSection) {
+        onSubmitSection(sectionId, answers, exercises);
+      }
+    };
+
+  const exercises: BaseExercise[] | undefined = (content as any)?.exercises;
 
   return (
     <div className="space-y-8">
@@ -220,107 +251,7 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
         </Card>
       )}
 
-      {/* While-Reading */}
-      {content.whileReading && (
-        <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
-            <CardTitle className="flex items-center gap-3 text-2xl">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Eye className="h-6 w-6 text-purple-600" />
-              </div>
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                While-Reading
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-6">
-              {/* Reading Strategies */}
-              {content.whileReading.annotations &&
-                content.whileReading.annotations.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      Reading Annotations
-                    </h4>
-                    <div className="space-y-3">
-                      {content.whileReading.annotations.map(
-                        (annotation: ReadingAnnotation, index: number) => (
-                          <div
-                            key={index}
-                            className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400 hover:bg-purple-100 transition-colors">
-                            <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                              {annotation.paragraph}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-gray-700 leading-relaxed">
-                                {annotation.note}
-                              </p>
-                              {annotation.highlightedText && (
-                                <p className="text-sm text-purple-600 mt-1 italic">
-                                  "{annotation.highlightedText}"
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-
-              {/* Comprehension Questions */}
-              {content.whileReading.questions &&
-                content.whileReading.questions.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      Comprehension Questions
-                    </h4>
-                    <div className="space-y-4">
-                      {content.whileReading.questions.map(
-                        (question: BaseExercise, index: number) => (
-                          <div
-                            key={index}
-                            className="border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                                  {index + 1}
-                                </div>
-                                <h5 className="text-lg font-semibold text-gray-800">
-                                  Question {index + 1}
-                                </h5>
-                              </div>
-
-                              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
-                                <p className="text-gray-800 font-medium text-lg">
-                                  {question.question}
-                                </p>
-                              </div>
-
-                              {question.explanation && (
-                                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border-l-4 border-yellow-400">
-                                  <div className="flex items-center gap-2">
-                                    <Lightbulb className="h-4 w-4 text-yellow-600" />
-                                    <span className="text-sm font-semibold text-yellow-700">
-                                      Explanation:
-                                    </span>
-                                  </div>
-                                  <p className="text-yellow-700 mt-1">
-                                    {question.explanation}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* While-Reading removed in new schema (annotations now omitted) */}
 
       {/* Post-Reading */}
       {content.postReading && (
@@ -374,56 +305,6 @@ export function ReadingLessonContent({ content }: ReadingLessonContentProps) {
                   </p>
                 </div>
               )}
-
-              {/* Comprehension Questions */}
-              {content.postReading.comprehensionQuestions &&
-                content.postReading.comprehensionQuestions.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-gray-800">
-                      Comprehension Questions
-                    </h4>
-                    <div className="space-y-4">
-                      {content.postReading.comprehensionQuestions.map(
-                        (question: BaseExercise, index: number) => (
-                          <div
-                            key={index}
-                            className="border rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                                  {index + 1}
-                                </div>
-                                <h5 className="text-lg font-semibold text-gray-800">
-                                  Question {index + 1}
-                                </h5>
-                              </div>
-
-                              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
-                                <p className="text-gray-800 font-medium text-lg">
-                                  {question.question}
-                                </p>
-                              </div>
-
-                              {question.explanation && (
-                                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border-l-4 border-yellow-400">
-                                  <div className="flex items-center gap-2">
-                                    <Lightbulb className="h-4 w-4 text-yellow-600" />
-                                    <span className="text-sm font-semibold text-yellow-700">
-                                      Explanation:
-                                    </span>
-                                  </div>
-                                  <p className="text-yellow-700 mt-1">
-                                    {question.explanation}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
             </div>
           </CardContent>
         </Card>

@@ -18,7 +18,6 @@ import type {
   LessonType,
   PartOfSpeech,
   ReadingGenre,
-  SpeakingExerciseType,
   WritingType,
 } from "./lesson-enums";
 
@@ -31,7 +30,6 @@ export type {
   LessonType,
   PartOfSpeech,
   ReadingGenre,
-  SpeakingExerciseType,
   WritingType,
 };
 
@@ -91,9 +89,7 @@ export interface AudioTimestamp {
 }
 
 export interface AudioContent {
-  url: string;
-  duration: number; // in seconds
-  transcript: string;
+  text: string;
   timestamps?: AudioTimestamp[];
   speed: AudioSpeed;
   accent?: Accent;
@@ -105,19 +101,10 @@ export interface PreListeningContent {
   predictionQuestions?: string[];
 }
 
-export interface PostListeningContent {
-  comprehensionQuestions: BaseExercise[];
-  discussionQuestions?: string[];
-  summaryTask?: string;
-}
-
 export interface ListeningLessonContent {
   audio: AudioContent;
   preListening: PreListeningContent;
-  whileListening: {
-    exercises: BaseExercise[];
-  };
-  postListening: PostListeningContent;
+  exercises: BaseExercise[];
 }
 
 // ==================== SPEAKING LESSON ====================
@@ -157,17 +144,8 @@ export interface SpeakingLessonContent {
     intonation?: IntonationPattern;
   };
   conversation?: ConversationScenario;
-  practiceExercises: SpeakingExercise[];
+  exercises: BaseExercise[];
   topics?: string[]; // Discussion topics
-}
-
-export interface SpeakingExercise {
-  type: SpeakingExerciseType;
-  prompt: string;
-  sampleAnswer?: string;
-  sampleAudioUrl?: string;
-  timeLimit?: number; // in seconds
-  tips?: string[];
 }
 
 // ==================== READING LESSON ====================
@@ -197,16 +175,11 @@ export interface ReadingLessonContent {
     vocabulary?: VocabularyWord[];
     context: string;
   };
-  whileReading: {
-    annotations?: ReadingAnnotation[];
-    questions?: BaseExercise[];
-  };
   postReading: {
-    comprehensionQuestions: BaseExercise[];
-    vocabularyExercises?: BaseExercise[];
     discussionQuestions?: string[];
     summaryTask?: string;
   };
+  exercises: BaseExercise[];
 }
 
 // ==================== WRITING LESSON ====================
@@ -253,7 +226,7 @@ export interface WritingLessonContent {
   instruction: WritingInstruction;
   modelText?: ModelText;
   writingFramework: WritingFramework;
-  exercises?: BaseExercise[]; // Pre-writing exercises
+  exercises: BaseExercise[]; // Pre-writing exercises
   rubric?: {
     criteria: WritingRubricCriterion[];
     totalPoints: number;

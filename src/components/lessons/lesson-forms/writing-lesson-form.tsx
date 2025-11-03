@@ -102,6 +102,9 @@ export function WritingLessonForm() {
     });
   };
 
+  const contentAny = errors.content as any;
+  const exercisesError = contentAny?.exercises;
+
   return (
     <div className="space-y-8">
       {/* Writing Type */}
@@ -542,11 +545,13 @@ export function WritingLessonForm() {
       {/* Exercises */}
       <div className="space-y-4 border rounded-lg p-6 bg-yellow-50">
         <h3 className="text-lg font-semibold text-yellow-900">
-          Practice Exercises (Optional)
+          Practice Exercises <span className="text-red-500">*</span>
         </h3>
-        <p className="text-sm text-gray-600">
-          Add exercises to practice writing skills
-        </p>
+        {exercisesError?.message && (
+          <span className="text-sm ml-2 text-red-500 font-normal">
+            * {exercisesError.message}
+          </span>
+        )}
 
         <div className="flex gap-2 flex-wrap">
           <Button
@@ -593,7 +598,9 @@ export function WritingLessonForm() {
 
         {exerciseFields.length === 0 ? (
           <div className="text-center py-8 border-2 border-dashed rounded-lg">
-            <p className="text-gray-500 mb-4">No exercises yet</p>
+            <p className="text-gray-500 mb-4">
+              No exercises yet - At least one exercise is required
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -641,21 +648,18 @@ export function WritingLessonForm() {
       {/* Rubric */}
       <div className="space-y-4 border rounded-lg p-6 bg-pink-50">
         <h3 className="text-lg font-semibold text-pink-900">
-          Grading Rubric (Optional)
+          Grading Rubric <span className="text-red-500">*</span>
         </h3>
-        <p className="text-sm text-gray-600">
-          Define criteria for evaluating student writing
-        </p>
 
         <div className="space-y-2 flex flex-col gap-2">
           <label className="text-sm font-medium">
             Criteria <span className="text-red-500">*</span>
-            {contentErrors?.rubric?.criteria?.message && (
-              <span className="text-sm ml-2 text-red-500 font-normal">
-                * {contentErrors.rubric.criteria.message}
-              </span>
-            )}
           </label>
+          {contentErrors?.rubric?.criteria?.message && (
+            <span className="text-sm ml-2 text-red-500 font-normal">
+              * {contentErrors.rubric.criteria.message}
+            </span>
+          )}
           {rubricFields.map((field, index) => (
             <div
               key={field.id}

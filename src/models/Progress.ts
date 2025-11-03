@@ -305,5 +305,64 @@ ProgressSchema.methods.addLessonProgressStats = function (
   return this.save();
 };
 
+// Method to add section progress
+ProgressSchema.methods.addSectionProgress = function (
+  lessonId: string,
+  sectionId: string,
+  score: number,
+  timeSpent: number,
+  stats: ILessonProgressStats
+) {
+  let existingProgress = this.lessonProgress.find(
+    (progress: ILessonProgress) => progress.lessonId.toString() === lessonId
+  );
+
+  if (!existingProgress) {
+    // Create new lesson progress if it doesn't exist
+    existingProgress = {
+      lessonId: new mongoose.Types.ObjectId(lessonId),
+      score: 0,
+      timeSpent: 0,
+      completed: false,
+      attempts: 1,
+      stats: {
+        totalQuestionsAnswered: 0,
+        totalCorrectAnswers: 0,
+        totalIncorrectAnswers: 0,
+        questionAnswers: [],
+      },
+    };
+    this.lessonProgress.push(existingProgress);
+  }
+
+  // Update overall lesson progress
+  existingProgress.timeSpent += timeSpent;
+
+  // Merge question answers
+  if (stats.questionAnswers && stats.questionAnswers.length > 0) {
+    existingProgress.stats.questionAnswers.push(...stats.questionAnswers);
+    existingProgress.stats.totalQuestionsAnswered +=
+      stats.totalQuestionsAnswered;
+    existingProgress.stats.totalCorrectAnswers += stats.totalCorrectAnswers;
+    existingProgress.stats.totalIncorrectAnswers += stats.totalIncorrectAnswers;
+  }
+
+  // Recalculate overall score for this lesson
+  const totalQuestions = existingProgress.stats.totalQuestionsAnswered;
+  const correctAnswers = existingProgress.stats.totalCorrectAnswers;
+  existingProgress.score =
+    totalQuestions > 0
+      ? Math.round((correctAnswers / totalQuestions) * 100)
+      : 0;
+
+  // Mark as completed if score is good enough
+  if (existingProgress.score >= 70) {
+    existingProgress.completed = true;
+    existingProgress.completedAt = new Date();
+  }
+
+  return this.save();
+};
+
 export default mongoose.models.Progress ||
   mongoose.model<IProgress>("Progress", ProgressSchema);

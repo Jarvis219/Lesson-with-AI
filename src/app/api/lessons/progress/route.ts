@@ -35,32 +35,43 @@ export async function POST(request: NextRequest) {
         Array.isArray(userAnswer) ? userAnswer : [userAnswer]
       )
         ?.filter((val) => val !== undefined && val !== null)
-        .map((val) => val.toString().toLowerCase().trim());
+        .map((val) => {
+          if (typeof val === "string") {
+            return val.toString().toLowerCase().trim();
+          }
+          return val;
+        });
 
       const correctAnswers =
-        isEmpty(exercise.correctAnswers) && !isEmpty(exercise.correctAnswer)
+        exercise.type === "fill-in-the-blank"
+          ? exercise.blanks.map((blank: any) => blank.correctAnswer)
+          : isEmpty(exercise.correctAnswers) && !isEmpty(exercise.correctAnswer)
           ? [exercise.correctAnswer]
           : exercise.correctAnswers;
 
       if (exercise.type === "multiple-choice") {
         return (
           correctAnswers.length === userAnswersArray.length &&
-          correctAnswers.every((answer: string) =>
-            userAnswersArray.includes(answer.toLowerCase().trim())
-          )
+          correctAnswers.every((answer: string) => {
+            const value =
+              typeof answer === "string" ? answer.toLowerCase().trim() : answer;
+            return userAnswersArray.includes(value);
+          })
         );
       }
 
-      return correctAnswers.some((answer: string) =>
-        userAnswersArray.includes(answer.toLowerCase().trim())
-      );
+      return correctAnswers.some((answer: string) => {
+        const value =
+          typeof answer === "string" ? answer.toLowerCase().trim() : answer;
+        return userAnswersArray.includes(value);
+      });
     };
 
     // Calculate detailed stats and create question answers data
     const totalQuestions = exercises?.length || 0;
     const questionAnswers: IQuestionAnswer[] =
       exercises?.map((exercise: any, index: number) => {
-        const userAnswer = userAnswers[exercise.id || index.toString()];
+        const userAnswer = userAnswers[index.toString()];
         const correctAnswer = exercise.correctAnswers || exercise.correctAnswer;
         const isCorrect = checkAnswerCorrectness(exercise, userAnswer);
 
@@ -68,7 +79,7 @@ export async function POST(request: NextRequest) {
           questionId: exercise.id || index.toString(),
           question: exercise.question,
           questionType: exercise.type,
-          userAnswer: userAnswer,
+          userAnswer: `${userAnswer}`,
           correctAnswer: correctAnswer,
           isCorrect: isCorrect,
           explanation: exercise.explanation,
@@ -146,7 +157,7 @@ export async function POST(request: NextRequest) {
       questionResults: questionAnswers.map((qa) => ({
         questionId: qa.questionId || "",
         question: qa.question,
-        userAnswer: qa.userAnswer || "",
+        userAnswer: `${qa.userAnswer}` || "",
         correctAnswer: qa.correctAnswer,
         isCorrect: qa.isCorrect,
         questionType: qa.questionType,

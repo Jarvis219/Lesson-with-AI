@@ -403,11 +403,16 @@ export function ExerciseRenderer({
     }
   };
 
-  const correctAnswers =
-    isEmpty((exercise as any).correctAnswers) &&
-    !isEmpty((exercise as any).correctAnswer)
+  const correctAnswers = useMemo(() => {
+    if (exercise.type === "fill-in-the-blank") {
+      return (exercise as any).blanks.map((blank: any) => blank.correctAnswer);
+    }
+
+    return isEmpty((exercise as any).correctAnswers) &&
+      !isEmpty((exercise as any).correctAnswer)
       ? [(exercise as any).correctAnswer]
       : (exercise as any).correctAnswers;
+  }, [exercise]);
 
   const userAnswersArray = (
     Array.isArray(userAnswer) ? userAnswer : [userAnswer]
@@ -425,8 +430,15 @@ export function ExerciseRenderer({
       );
     }
 
-    return correctAnswers.some((answer: string) =>
-      userAnswersArray.includes(answer?.toLowerCase().trim())
+    return (
+      Array.isArray(correctAnswers) &&
+      correctAnswers.some((answer: string) => {
+        if (typeof answer === "boolean") {
+          return answer === userAnswer;
+        }
+
+        return userAnswersArray.includes(answer.toLowerCase().trim());
+      })
     );
   }, [correctAnswers, userAnswersArray, exercise.type]);
 
@@ -443,21 +455,6 @@ export function ExerciseRenderer({
     }
     return userAnswer !== undefined && userAnswer !== null && userAnswer !== "";
   }, [userAnswer, exercise.type]);
-
-  // Check if all exercises have answers
-  const allExercisesAnswered = useMemo(() => {
-    return exercises.every((ex, index) => {
-      const answer = userAnswers[ex.id || index.toString()];
-
-      if (ex.type === "multiple-choice") {
-        return Array.isArray(answer) && answer.length > 0;
-      }
-      if (ex.type === "fill-in-the-blank" || ex.type === "translation") {
-        return answer && answer.toString().trim().length > 0;
-      }
-      return answer !== undefined && answer !== null && answer !== "";
-    });
-  }, [exercises, userAnswers]);
 
   return (
     <Card

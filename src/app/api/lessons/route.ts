@@ -5,6 +5,7 @@ import Progress, {
   ILessonProgress,
   ILessonProgressStats,
 } from "@/models/Progress";
+import { CreateLessonRequest } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 interface UserProgressData {
@@ -54,17 +55,6 @@ interface LessonWithProgress {
   updatedAt: Date;
   progress: LessonProgressInfo;
   isCompleted: boolean;
-}
-
-interface CreateLessonRequest {
-  title: string;
-  description: string;
-  content: string;
-  difficulty: string;
-  skill: string;
-  estimatedTime: number;
-  questions?: IExercise[];
-  tags?: string[];
 }
 
 export async function GET(request: NextRequest) {
@@ -140,6 +130,7 @@ export async function GET(request: NextRequest) {
         totalQuestionsAnswered: 0,
         totalCorrectAnswers: 0,
         totalIncorrectAnswers: 0,
+        questionAnswers: [],
       },
     };
 

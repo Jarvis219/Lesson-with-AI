@@ -7,7 +7,7 @@ interface SpeakingPreviewProps {
 }
 
 export function SpeakingPreview({ content }: SpeakingPreviewProps) {
-  const { pronunciation, conversation, practiceExercises, topics } = content;
+  const { pronunciation, conversation, exercises, topics } = content;
 
   return (
     <div className="space-y-6">
@@ -115,40 +115,29 @@ export function SpeakingPreview({ content }: SpeakingPreviewProps) {
         </Card>
       )}
 
-      {/* Practice Exercises */}
-      {practiceExercises && practiceExercises.length > 0 && (
+      {/* Exercises */}
+      {exercises && exercises.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
-              Practice Exercises ({practiceExercises.length})
+              Exercises ({exercises.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {practiceExercises.map((exercise, index) => (
+              {exercises.map((exercise, index) => (
                 <div key={index} className="border-l-4 border-orange-500 pl-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="font-semibold">Exercise {index + 1}:</span>
                     <span className="text-xs px-2 py-1 bg-orange-100 text-orange-800 rounded">
                       {exercise.type}
                     </span>
-                    {exercise.timeLimit && (
-                      <span className="text-xs px-2 py-1 bg-gray-100 rounded">
-                        {exercise.timeLimit}s
-                      </span>
-                    )}
                   </div>
-                  <p className="text-gray-700 mb-2">{exercise.prompt}</p>
-                  {exercise.tips && exercise.tips.length > 0 && (
-                    <div className="text-sm text-gray-600">
-                      <strong>Tips:</strong>{" "}
-                      {exercise.tips.map((tip, i) => (
-                        <span key={i}>
-                          {tip}
-                          {i < exercise.tips!.length - 1 ? "; " : ""}
-                        </span>
-                      ))}
-                    </div>
+                  <p className="text-gray-700 mb-2">{exercise.question}</p>
+                  {exercise.explanation && (
+                    <p className="text-sm text-gray-600">
+                      {exercise.explanation}
+                    </p>
                   )}
                 </div>
               ))}

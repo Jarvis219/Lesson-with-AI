@@ -10,6 +10,7 @@ import type {
   LessonType,
   ListeningLessonContent,
   ReadingLessonContent,
+  SpeakingLessonContent,
   TrueFalseExercise,
   WritingLessonContent,
 } from "@/types/lesson-content";
@@ -333,10 +334,15 @@ ${
 LISTENING LESSON:
 {
   "audio": {
-    "url": "https://example.com/audio.mp3",
-    "duration": 120,
-    "transcript": "Full transcript text of the audio",
-    "accent": "american/british/australian/canadian/irish/scottish"
+    "text": "Audio text",
+    "timestamps": [
+      {
+        "time": 0,
+        "text": "Text at this time"
+      }
+    ],
+    "speed": "normal/fast/slow",
+    "accent": "american/british"
   },
   "preListening": {
     "context": "Background information about the audio topic",
@@ -351,39 +357,68 @@ LISTENING LESSON:
     ],
     "predictionQuestions": ["What do you think this audio is about?"]
   },
-  "whileListening": {
-    "exercises": [
-      {
-        "type": "multiple-choice",
-        "question": "What is the main topic?",
-        "translation": "Vietnamese translation",
-        "options": [
-          {"value": "correct answer", "translate": "Vietnamese"},
-          {"value": "wrong answer 1", "translate": "Vietnamese"},
-          {"value": "wrong answer 2", "translate": "Vietnamese"}
-        ],
-        "correctAnswer": "correct answer",
-        "points": 10,
-        "difficulty": "beginner",
-        "explanation": "This is the main topic mentioned in the audio"
-      }
-    ]
-  },
-  "postListening": {
-    "comprehensionQuestions": [
-      {
-        "type": "true-false",
-        "question": "The speaker mentioned this point",
-        "translation": "Vietnamese translation",
-        "correctAnswer": "true",
-        "points": 10,
-        "difficulty": "beginner",
-        "explanation": "This point was mentioned in the audio"
-      }
-    ],
-    "discussionQuestions": ["Discussion question about the audio"],
-    "summaryTask": "Summarize the main points of the audio"
-  }
+  "exercises": [
+    {
+      "type": "multiple-choice",
+      "question": "What is the main idea?",
+      "translation": "Vietnamese translation",
+      "options": [
+        {"value": "correct answer", "translate": "Vietnamese"},
+        {"value": "wrong answer 1", "translate": "Vietnamese"},
+        {"value": "wrong answer 2", "translate": "Vietnamese"}
+      ],
+      "correctAnswer": "correct answer",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "This is the main idea of the audio"
+    },
+    {
+      "type": "fill-in-the-blank",
+      "question": "Complete the sentence with the correct verb",
+      "translation": "Vietnamese translation",
+      "sentence": "I ___ to school yesterday.",
+      "blanks": [
+        {
+          "position": 0,
+          "correctAnswer": "went",
+          "alternatives": []
+        }
+      ],
+      "hint": "What is the past tense of 'go'?",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "The past tense of 'go' is 'went'. We use past tense for actions that happened yesterday."
+    },
+    {
+      "type": "true-false",
+      "question": "This is a statement",
+      "translation": "Vietnamese translation",
+      "correctAnswer": "true",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "This statement is correct"
+    },
+    {
+      "type": "translation",
+      "question": "Translate to Vietnamese",
+      "translation": "Vietnamese translation",
+      "sentence": "Hello, how are you?",
+      "correctAnswers": ["Xin chào, bạn có khỏe không?", "Chào bạn, bạn thế nào?"],
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "These are correct translations"
+    }
+    {
+      "type": "translation",
+      "question": "Translate to Vietnamese",
+      "translation": "Vietnamese translation",
+      "sentence": "Hello, how are you?",
+      "correctAnswers": ["Xin chào, bạn có khỏe không?", "Chào bạn, bạn thế nào?"],
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "These are correct translations"
+    }
+  ]
 }
 `
     : ""
@@ -423,10 +458,56 @@ SPEAKING LESSON:
       }
     ]
   },
-  "practiceExercises": [
+  "exercises": [
     {
-      "type": "conversation/roleplay/presentation/discussion/pronunciation",
-      "prompt": "Practice prompt for the speaking exercise"
+      "type": "multiple-choice",
+      "question": "What is the main idea?",
+      "translation": "Vietnamese translation",
+      "options": [
+        {"value": "correct answer", "translate": "Vietnamese"},
+        {"value": "wrong answer 1", "translate": "Vietnamese"},
+        {"value": "wrong answer 2", "translate": "Vietnamese"}
+      ],
+      "correctAnswer": "correct answer",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "This is the main idea of the audio"
+    },
+    {
+      "type": "fill-in-the-blank",
+      "question": "Complete the sentence with the correct verb",
+      "translation": "Vietnamese translation",
+      "sentence": "I ___ to school yesterday.",
+      "blanks": [
+        {
+          "position": 0,
+          "correctAnswer": "went",
+          "alternatives": []
+        }
+      ],
+      "hint": "What is the past tense of 'go'?",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "The past tense of 'go' is 'went'. We use past tense for actions that happened yesterday."
+    }
+    {
+      "type": "true-false",
+      "question": "This is a statement",
+      "translation": "Vietnamese translation",
+      "correctAnswer": "true",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "This statement is correct"
+    }
+    {
+      "type": "translation",
+      "question": "Translate to Vietnamese",
+      "translation": "Vietnamese translation",
+      "sentence": "Hello, how are you?",
+      "correctAnswers": ["Xin chào, bạn có khỏe không?", "Chào bạn, bạn thế nào?"],
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "These are correct translations"
     }
   ]
 }
@@ -457,38 +538,44 @@ READING LESSON:
       }
     ]
   },
-  "whileReading": {
-    "questions": [
-      {
-        "type": "true-false",
-        "question": "This statement is mentioned in the passage",
-        "translation": "Vietnamese translation",
-        "correctAnswer": "true",
-        "points": 10,
-        "difficulty": "beginner",
-        "explanation": "This statement is found in the passage"
-      }
-    ]
-  },
   "postReading": {
-    "comprehensionQuestions": [
-      {
-        "type": "multiple-choice",
-        "question": "What is the main idea?",
-        "translation": "Vietnamese translation",
-        "options": [
-          {"value": "correct answer", "translate": "Vietnamese"},
-          {"value": "wrong answer 1", "translate": "Vietnamese"},
-          {"value": "wrong answer 2", "translate": "Vietnamese"}
-        ],
-        "correctAnswer": "correct answer",
-        "points": 10,
-        "difficulty": "beginner",
-        "explanation": "This is the main idea of the passage"
-      }
-    ],
     "discussionQuestions": ["Discussion question about the passage"]
-  }
+    "summaryTask": "Summary task"
+  },
+  "exercises": [
+    {
+      "type": "multiple-choice",
+      "question": "What is the main idea?",
+      "translation": "Vietnamese translation",
+      "options": [
+        {"value": "correct answer", "translate": "Vietnamese"},
+        {"value": "wrong answer 1", "translate": "Vietnamese"},
+        {"value": "wrong answer 2", "translate": "Vietnamese"}
+      ],
+    }
+    {
+      "type": "fill-in-the-blank",
+      "question": "Complete the sentence with the correct verb",
+      "translation": "Vietnamese translation",
+      "sentence": "I ___ to school yesterday.",
+      "blanks": [
+        {
+          "position": 0,
+          "correctAnswer": "went",
+          "alternatives": []
+        }
+      ],
+    }
+    {
+      "type": "true-false",
+      "question": "This is a statement",
+      "translation": "Vietnamese translation",
+      "correctAnswer": "true",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "This statement is correct"
+    }
+  ]
 }
 `
     : ""
@@ -516,7 +603,60 @@ WRITING LESSON:
         "phrases": ["useful phrase 1", "useful phrase 2"]
       }
     ]
-  }
+  },
+  "exercises": [
+    {
+      "type": "multiple-choice",
+      "question": "What is the main idea?",
+      "translation": "Vietnamese translation",
+      "options": [
+        {"value": "correct answer", "translate": "Vietnamese"},
+        {"value": "wrong answer 1", "translate": "Vietnamese"},
+        {"value": "wrong answer 2", "translate": "Vietnamese"}
+      ],
+      "correctAnswer": "correct answer",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "This is the main idea of the audio"
+    },
+    {
+      "type": "fill-in-the-blank",
+      "question": "Complete the sentence with the correct verb",
+      "translation": "Vietnamese translation",
+      "sentence": "I ___ to school yesterday.",
+      "blanks": [
+        {
+          "position": 0,
+          "correctAnswer": "went",
+          "alternatives": []
+        }
+      ],
+      "hint": "What is the past tense of 'go'?",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "The past tense of 'go' is 'went'. We use past tense for actions that happened yesterday."
+    },
+    {
+      "type": "true-false",
+      "question": "This is a statement",
+      "translation": "Vietnamese translation",
+      "correctAnswer": "true",
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "This statement is correct"
+    },
+    {
+      "type": "translation",
+      "question": "Translate to Vietnamese",
+      "translation": "Vietnamese translation",
+      "sentence": "Hello, how are you?",
+      "correctAnswers": ["Xin chào, bạn có khỏe không?", "Chào bạn, bạn thế nào?"],
+      "points": 10,
+      "difficulty": "beginner",
+      "explanation": "These are correct translations"
+    }
+  ],
+}
 }
 `
     : ""
@@ -598,45 +738,37 @@ Return ONLY the JSON object with all required fields.`;
         const listeningContent = content as ListeningLessonContent;
         content = {
           ...content,
-          audio: {
-            ...listeningContent.audio,
-            duration: Math.floor(listeningContent.audio.duration),
-          },
-          postListening: {
-            ...listeningContent.postListening,
-            comprehensionQuestions:
-              listeningContent.postListening.comprehensionQuestions.map(
-                (question) => {
-                  if (question.type === "true-false") {
-                    return {
-                      ...question,
-                      correctAnswer:
-                        ((question as TrueFalseExercise)
-                          .correctAnswer as unknown as string) === "true",
-                    };
-                  }
+          exercises: listeningContent.exercises.map((exercise) => {
+            if (exercise.type === "true-false") {
+              return {
+                ...exercise,
+                correctAnswer:
+                  ((exercise as TrueFalseExercise)
+                    .correctAnswer as unknown as string) === "true",
+              };
+            }
 
-                  return question;
-                }
-              ),
-          },
-          whileListening: {
-            ...listeningContent.whileListening,
-            exercises: listeningContent.whileListening.exercises.map(
-              (exercise) => {
-                if (exercise?.type === "true-false") {
-                  return {
-                    ...exercise,
-                    correctAnswer:
-                      ((exercise as TrueFalseExercise)
-                        .correctAnswer as unknown as string) === "true",
-                  };
-                }
+            return exercise;
+          }),
+        };
+      }
 
-                return exercise;
-              }
-            ),
-          },
+      if (data.type === "speaking") {
+        const speakingContent = content as SpeakingLessonContent;
+        content = {
+          ...content,
+          exercises: speakingContent.exercises.map((exercise) => {
+            if (exercise.type === "true-false") {
+              return {
+                ...exercise,
+                correctAnswer:
+                  ((exercise as TrueFalseExercise)
+                    .correctAnswer as unknown as string) === "true",
+              };
+            }
+
+            return exercise;
+          }),
         };
       }
 
@@ -644,24 +776,18 @@ Return ONLY the JSON object with all required fields.`;
         const readingContent = content as ReadingLessonContent;
         content = {
           ...content,
-          postReading: {
-            ...readingContent.postReading,
-            comprehensionQuestions:
-              readingContent.postReading.comprehensionQuestions.map(
-                (question) => {
-                  if (question.type === "true-false") {
-                    return {
-                      ...question,
-                      correctAnswer:
-                        ((question as TrueFalseExercise)
-                          .correctAnswer as unknown as string) === "true",
-                    };
-                  }
+          exercises: readingContent.exercises.map((exercise) => {
+            if (exercise.type === "true-false") {
+              return {
+                ...exercise,
+                correctAnswer:
+                  ((exercise as TrueFalseExercise)
+                    .correctAnswer as unknown as string) === "true",
+              };
+            }
 
-                  return question;
-                }
-              ),
-          },
+            return exercise;
+          }),
         };
       }
 

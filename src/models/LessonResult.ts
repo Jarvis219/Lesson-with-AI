@@ -8,6 +8,11 @@ export interface IQuestionResult {
   isCorrect: boolean;
   questionType: string;
   explanation?: string;
+  sectionId?: string; // "while-listening", "post-listening", "while-reading", etc.
+  sectionTitle?: string; // "While-Listening Exercises", "Comprehension Questions", etc.
+  exerciseType?: string; // "multiple-choice", "fill-in-the-blank", etc.
+  difficulty?: string; // "beginner", "intermediate", "advanced"
+  points?: number;
 }
 
 export interface ILessonFeedback {
@@ -37,6 +42,16 @@ export interface ILessonResult extends Document {
   completedAt: Date;
   questionResults: IQuestionResult[];
   feedback?: ILessonFeedback;
+  sectionResults?: {
+    [sectionId: string]: {
+      sectionTitle: string;
+      totalQuestions: number;
+      correctAnswers: number;
+      score: number;
+      completedAt: Date;
+    };
+  };
+  lessonType?: string; // "listening", "reading", "grammar", etc.
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +83,23 @@ const QuestionResultSchema = new Schema<IQuestionResult>({
   },
   explanation: {
     type: String,
+  },
+  // Thêm fields mới
+  sectionId: {
+    type: String,
+  },
+  sectionTitle: {
+    type: String,
+  },
+  exerciseType: {
+    type: String,
+  },
+  difficulty: {
+    type: String,
+  },
+  points: {
+    type: Number,
+    default: 1,
   },
 });
 
@@ -131,6 +163,13 @@ const LessonResultSchema = new Schema<ILessonResult>(
     },
     questionResults: [QuestionResultSchema],
     feedback: LessonFeedbackSchema,
+    sectionResults: {
+      type: Schema.Types.Mixed,
+      default: {},
+    },
+    lessonType: {
+      type: String,
+    },
   },
   {
     timestamps: true,

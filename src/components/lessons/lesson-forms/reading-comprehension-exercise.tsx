@@ -16,16 +16,17 @@ import { Controller, useFormContext } from "react-hook-form";
 interface ReadingComprehensionExerciseProps {
   index: number;
   onRemove: () => void;
+  basePath?: string;
 }
 
 export function ReadingComprehensionExercise({
   index,
   onRemove,
+  basePath: providedBasePath,
 }: ReadingComprehensionExerciseProps) {
   const { watch } = useFormContext();
 
-  const basePath =
-    `content.postReading.comprehensionQuestions.${index}` as const;
+  const basePath = providedBasePath || `content.exercises.${index}`;
   const exerciseType = watch(`${basePath}.type`);
 
   const renderExercise = () => {

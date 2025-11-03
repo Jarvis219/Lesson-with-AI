@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 // GET - Get lesson detail for student
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -20,7 +20,7 @@ export async function GET(
       );
     }
 
-    const lessonId = params.id;
+    const { id: lessonId } = await params;
 
     // Get lesson with populated course data
     const lesson = (await Lesson.findById(lessonId)
@@ -31,8 +31,6 @@ export async function GET(
     if (!lesson) {
       return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
     }
-
-    console.log(lesson);
 
     // Check if lesson is published
     if (!lesson.isPublished) {

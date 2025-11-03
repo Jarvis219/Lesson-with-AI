@@ -7,18 +7,8 @@ import {
   DialogueTurn,
   PhonemeSound,
   SpeakingLessonContent as SpeakingContent,
-  SpeakingExercise,
 } from "@/types/lesson-content";
-import {
-  Clock,
-  MessageCircle,
-  Mic,
-  MicOff,
-  Pause,
-  Play,
-  Users,
-  Volume2,
-} from "lucide-react";
+import { Pause, Play, Users, Volume2 } from "lucide-react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -354,212 +344,24 @@ export function SpeakingLessonContent({
         </Card>
       )}
 
-      {/* Practice Exercises */}
-      {content.practiceExercises && content.practiceExercises.length > 0 && (
+      {/* Discussion Topics */}
+      {content.topics && content.topics.length > 0 && (
         <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50">
-            <CardTitle className="flex items-center gap-3 text-2xl">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <MessageCircle className="h-6 w-6 text-orange-600" />
-              </div>
-              <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Practice Exercises
-              </span>
+          <CardHeader className="bg-gradient-to-r from-teal-50 to-emerald-50">
+            <CardTitle className="text-2xl bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
+              Discussion Topics
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="space-y-6">
-              {content.practiceExercises.map(
-                (exercise: SpeakingExercise, index: number) => (
-                  <div
-                    key={index}
-                    className={twMerge(
-                      "border rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:scale-[1.01] cursor-pointer",
-                      hoveredExercise === index
-                        ? "bg-gradient-to-r from-orange-50 to-red-50 border-orange-300 shadow-md"
-                        : "bg-white border-gray-200 hover:border-orange-200"
-                    )}
-                    onMouseEnter={() => setHoveredExercise(index)}
-                    onMouseLeave={() => setHoveredExercise(null)}
-                    onClick={() => toggleExercise(index)}>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full flex items-center justify-center text-lg font-bold">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h4 className="text-lg font-semibold text-gray-800">
-                              Exercise {index + 1}
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                              {exercise.type.replace("-", " ")}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {exercise.timeLimit
-                              ? `${Math.round(exercise.timeLimit / 60)}`
-                              : "5"}{" "}
-                            min
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
-                        <p className="text-gray-800 font-medium text-lg">
-                          {exercise.prompt}
-                        </p>
-                      </div>
-
-                      {exercise.sampleAnswer && (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border-l-4 border-green-400">
-                          <h5 className="text-sm font-semibold text-gray-600 mb-2">
-                            Sample Answer:
-                          </h5>
-                          <p className="text-gray-700 italic">
-                            "{exercise.sampleAnswer}"
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Recording Section */}
-                      <div className="bg-gradient-to-r from-red-50 to-pink-50 p-4 rounded-lg border-l-4 border-red-400">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h5 className="text-sm font-semibold text-gray-600 mb-1">
-                              Record Your Response:
-                            </h5>
-                            <p className="text-xs text-gray-500">
-                              Click the microphone to start recording
-                            </p>
-                          </div>
-                          <Button
-                            size="lg"
-                            className={twMerge(
-                              "rounded-full w-16 h-16 transition-all duration-300 hover:scale-110",
-                              isRecording
-                                ? "bg-red-500 hover:bg-red-600"
-                                : "bg-blue-500 hover:bg-blue-600"
-                            )}
-                            onClick={onToggleRecording}>
-                            {isRecording ? (
-                              <MicOff className="h-8 w-8 text-white" />
-                            ) : (
-                              <Mic className="h-8 w-8 text-white" />
-                            )}
-                          </Button>
-                        </div>
-                        {isRecording && (
-                          <div className="mt-3 flex items-center gap-2">
-                            <div className="flex-1 bg-white rounded-full h-2">
-                              <div
-                                className="bg-red-500 h-2 rounded-full animate-pulse"
-                                style={{ width: "60%" }}></div>
-                            </div>
-                            <span className="text-xs text-red-600 font-medium">
-                              Recording...
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Expandable Content */}
-                      <div
-                        className={twMerge(
-                          "overflow-hidden transition-all duration-300",
-                          expandedExercise === index
-                            ? "max-h-96 opacity-100"
-                            : "max-h-0 opacity-0"
-                        )}>
-                        <div className="space-y-4 pt-4 border-t border-gray-200">
-                          {exercise.tips && exercise.tips.length > 0 && (
-                            <div className="space-y-2">
-                              <h5 className="text-sm font-semibold text-gray-600">
-                                Tips:
-                              </h5>
-                              <ul className="space-y-1">
-                                {exercise.tips.map(
-                                  (tip: string, tipIndex: number) => (
-                                    <li
-                                      key={tipIndex}
-                                      className="flex items-start gap-2 text-sm text-gray-600">
-                                      <span className="text-blue-500 mt-1">
-                                        •
-                                      </span>
-                                      {tip}
-                                    </li>
-                                  )
-                                )}
-                              </ul>
-                            </div>
-                          )}
-
-                          {exercise.sampleAudioUrl && (
-                            <div className="space-y-2">
-                              <h5 className="text-sm font-semibold text-gray-600">
-                                Sample Audio:
-                              </h5>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleAudioPlay(exercise.sampleAudioUrl!)
-                                  }
-                                  className={twMerge(
-                                    "rounded-full w-10 h-10 transition-all duration-300 hover:scale-110",
-                                    playingAudio === exercise.sampleAudioUrl
-                                      ? "bg-green-100 text-green-600 border-green-300"
-                                      : "bg-blue-50 text-blue-600 border-blue-200"
-                                  )}>
-                                  {playingAudio === exercise.sampleAudioUrl ? (
-                                    <Pause className="h-4 w-4" />
-                                  ) : (
-                                    <Play className="h-4 w-4" />
-                                  )}
-                                </Button>
-                                <span className="text-sm text-gray-600">
-                                  Listen to the sample answer
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Expand/Collapse Indicator */}
-                      <div className="flex items-center justify-center pt-2">
-                        <div
-                          className={twMerge(
-                            "w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center transition-all duration-300",
-                            expandedExercise === index
-                              ? "bg-orange-100 text-orange-600"
-                              : "text-gray-400"
-                          )}>
-                          <svg
-                            className={twMerge(
-                              "w-4 h-4 transition-transform duration-300",
-                              expandedExercise === index ? "rotate-180" : ""
-                            )}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              )}
+            <div className="flex flex-wrap gap-2">
+              {content.topics.map((topic: string, idx: number) => (
+                <Badge
+                  key={idx}
+                  variant="outline"
+                  className="text-sm px-3 py-1 bg-teal-50 text-teal-700">
+                  {topic}
+                </Badge>
+              ))}
             </div>
           </CardContent>
         </Card>

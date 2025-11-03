@@ -66,9 +66,7 @@ const initializeContentForType = (type: LessonType): LessonContent => {
     case "listening":
       return {
         audio: {
-          url: "",
-          duration: 0,
-          transcript: "",
+          text: "",
           speed: "normal",
           accent: "american",
         },
@@ -77,14 +75,7 @@ const initializeContentForType = (type: LessonType): LessonContent => {
           vocabulary: [],
           predictionQuestions: [],
         },
-        whileListening: {
-          exercises: [],
-        },
-        postListening: {
-          comprehensionQuestions: [],
-          discussionQuestions: [],
-          summaryTask: "",
-        },
+        exercises: [],
       } as ListeningLessonContent;
     case "speaking":
       return {
@@ -93,7 +84,7 @@ const initializeContentForType = (type: LessonType): LessonContent => {
           dialogues: [],
           usefulPhrases: [],
         },
-        practiceExercises: [],
+        exercises: [],
         topics: [],
       } as SpeakingLessonContent;
     case "reading":
@@ -110,16 +101,11 @@ const initializeContentForType = (type: LessonType): LessonContent => {
           predictions: [],
           vocabulary: [],
         },
-        whileReading: {
-          annotations: [],
-          questions: [],
-        },
         postReading: {
-          comprehensionQuestions: [],
-          vocabularyExercises: [],
           discussionQuestions: [],
           summaryTask: "",
         },
+        exercises: [],
       } as ReadingLessonContent;
     case "writing":
       return {

@@ -99,6 +99,7 @@ export interface CreateLessonRequest {
   skill: LessonType;
   estimatedTime: number;
   questions: Question[];
+  tags?: string[];
 }
 
 // Pagination and filtering types

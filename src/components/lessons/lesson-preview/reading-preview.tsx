@@ -7,7 +7,7 @@ interface ReadingPreviewProps {
 }
 
 export function ReadingPreview({ content }: ReadingPreviewProps) {
-  const { passage, preReading, whileReading, postReading } = content;
+  const { passage, preReading, postReading, exercises } = content as any;
 
   return (
     <div className="space-y-6">
@@ -51,7 +51,7 @@ export function ReadingPreview({ content }: ReadingPreviewProps) {
 
           {passage.images && passage.images.length > 0 && (
             <div className="grid grid-cols-2 gap-4">
-              {passage.images.map((img, index) => (
+              {passage.images.map((img: string, index: number) => (
                 <img
                   key={index}
                   src={img}
@@ -66,7 +66,7 @@ export function ReadingPreview({ content }: ReadingPreviewProps) {
             <div>
               <h4 className="font-semibold mb-3">Key Vocabulary</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {passage.vocabulary.map((word, index) => (
+                {passage.vocabulary.map((word: any, index: number) => (
                   <div key={index} className="bg-white border p-3 rounded-lg">
                     <div className="font-semibold text-blue-600">
                       {word.word}
@@ -98,7 +98,7 @@ export function ReadingPreview({ content }: ReadingPreviewProps) {
               <div>
                 <h4 className="font-semibold mb-2">Prediction Questions</h4>
                 <ul className="list-disc list-inside space-y-1">
-                  {preReading.predictions.map((q, index) => (
+                  {preReading.predictions.map((q: string, index: number) => (
                     <li key={index} className="text-gray-700">
                       {q}
                     </li>
@@ -111,7 +111,7 @@ export function ReadingPreview({ content }: ReadingPreviewProps) {
               <div>
                 <h4 className="font-semibold mb-2">Vocabulary Preview</h4>
                 <div className="flex flex-wrap gap-2">
-                  {preReading.vocabulary.map((word, index) => (
+                  {preReading.vocabulary.map((word: any, index: number) => (
                     <span
                       key={index}
                       className="px-3 py-1 bg-blue-50 text-blue-700 rounded">
@@ -125,46 +125,28 @@ export function ReadingPreview({ content }: ReadingPreviewProps) {
         </Card>
       )}
 
-      {/* While Reading */}
-      {whileReading && (
+      {/* Exercises */}
+      {exercises && exercises.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">While-Reading Activities</CardTitle>
+            <CardTitle className="text-lg">
+              Exercises ({exercises.length})
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {whileReading.annotations &&
-              whileReading.annotations.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-3">Annotations</h4>
-                  <div className="space-y-2">
-                    {whileReading.annotations.map((annotation, index) => (
-                      <div
-                        key={index}
-                        className="border-l-4 border-blue-500 pl-4">
-                        <div className="text-sm font-medium text-blue-600 mb-1">
-                          Paragraph {annotation.paragraph}
-                        </div>
-                        <p className="text-gray-700">{annotation.note}</p>
-                      </div>
-                    ))}
+          <CardContent>
+            <div className="space-y-4">
+              {exercises.map((exercise: any, index: number) => (
+                <div key={index} className="border-l-4 border-green-500 pl-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-semibold">Exercise {index + 1}:</span>
+                    <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
+                      {exercise.type}
+                    </span>
                   </div>
+                  <p className="text-gray-700">{exercise.question}</p>
                 </div>
-              )}
-
-            {whileReading.questions && whileReading.questions.length > 0 && (
-              <div>
-                <h4 className="font-semibold mb-2">
-                  Comprehension Questions ({whileReading.questions.length})
-                </h4>
-                <div className="space-y-2">
-                  {whileReading.questions.map((question, index) => (
-                    <p key={index} className="text-gray-700">
-                      {index + 1}. {question.question}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -176,35 +158,18 @@ export function ReadingPreview({ content }: ReadingPreviewProps) {
             <CardTitle className="text-lg">Post-Reading Activities</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {postReading.comprehensionQuestions &&
-              postReading.comprehensionQuestions.length > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-2">
-                    Comprehension Questions (
-                    {postReading.comprehensionQuestions.length})
-                  </h4>
-                  <div className="space-y-2">
-                    {postReading.comprehensionQuestions.map(
-                      (question, index) => (
-                        <p key={index} className="text-gray-700">
-                          {index + 1}. {question.question}
-                        </p>
-                      )
-                    )}
-                  </div>
-                </div>
-              )}
-
             {postReading.discussionQuestions &&
               postReading.discussionQuestions.length > 0 && (
                 <div>
                   <h4 className="font-semibold mb-2">Discussion Questions</h4>
                   <ul className="list-disc list-inside space-y-1">
-                    {postReading.discussionQuestions.map((q, index) => (
-                      <li key={index} className="text-gray-700">
-                        {q}
-                      </li>
-                    ))}
+                    {postReading.discussionQuestions.map(
+                      (q: string, index: number) => (
+                        <li key={index} className="text-gray-700">
+                          {q}
+                        </li>
+                      )
+                    )}
                   </ul>
                 </div>
               )}

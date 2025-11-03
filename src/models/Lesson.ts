@@ -6,7 +6,6 @@ import {
   LESSON_TYPES,
   PARTS_OF_SPEECH,
   READING_GENRES,
-  SPEAKING_EXERCISE_TYPES,
   WRITING_TYPES,
 } from "@/types/lesson-enums";
 import mongoose, { Document, Schema } from "mongoose";
@@ -116,9 +115,7 @@ export interface IAudioTimestamp {
 }
 
 export interface IAudioContent {
-  url: string;
-  duration: number;
-  transcript: string;
+  text: string;
   timestamps?: IAudioTimestamp[];
   speed: (typeof AUDIO_SPEEDS)[number];
   accent?: (typeof ACCENTS)[number];
@@ -165,15 +162,6 @@ export interface IConversationScenario {
   dialogues: IDialogueTurn[];
   usefulPhrases?: string[];
   culturalNotes?: string[];
-}
-
-export interface ISpeakingExercise {
-  type: (typeof SPEAKING_EXERCISE_TYPES)[number];
-  prompt: string;
-  sampleAnswer?: string;
-  sampleAudioUrl?: string;
-  timeLimit?: number;
-  tips?: string[];
 }
 
 // ==================== READING ====================
@@ -249,9 +237,6 @@ export interface ILessonContent {
   // Listening lesson
   audio?: IAudioContent;
   preListening?: IPreListeningContent;
-  whileListening?: {
-    exercises: IExercise[];
-  };
   postListening?: IPostListeningContent;
 
   // Speaking lesson
@@ -260,7 +245,6 @@ export interface ILessonContent {
     intonation?: IIntonationPattern;
   };
   conversation?: IConversationScenario;
-  practiceExercises?: ISpeakingExercise[];
   topics?: string[];
 
   // Reading lesson
@@ -270,13 +254,7 @@ export interface ILessonContent {
     vocabulary?: IVocabularyWord[];
     context: string;
   };
-  whileReading?: {
-    annotations?: IReadingAnnotation[];
-    questions?: IExercise[];
-  };
   postReading?: {
-    comprehensionQuestions: IExercise[];
-    vocabularyExercises?: IExercise[];
     discussionQuestions?: string[];
     summaryTask?: string;
   };
@@ -429,9 +407,7 @@ const AudioTimestampSchema = new Schema(
 
 const AudioContentSchema = new Schema(
   {
-    url: { type: String, required: true },
-    duration: { type: Number, required: true },
-    transcript: { type: String, required: true },
+    text: { type: String, required: true },
     timestamps: [AudioTimestampSchema],
     speed: {
       type: String,
@@ -464,34 +440,11 @@ const PostListeningContentSchema = new Schema(
   { _id: false }
 );
 
-// Speaking schemas
-const PhonemeSoundSchema = new Schema(
-  {
-    phoneme: { type: String, required: true },
-    description: { type: String, required: true },
-    examples: [String],
-    audioUrl: String,
-    videoUrl: String,
-  },
-  { _id: false }
-);
-
-const IntonationPatternSchema = new Schema(
-  {
-    pattern: { type: String, required: true },
-    description: { type: String, required: true },
-    examples: [String],
-    audioUrl: String,
-  },
-  { _id: false }
-);
-
 const DialogueTurnSchema = new Schema(
   {
     speaker: { type: String, required: true },
     text: { type: String, required: true },
     audioUrl: String,
-    translation: String,
   },
   { _id: false }
 );
@@ -502,22 +455,6 @@ const ConversationScenarioSchema = new Schema(
     dialogues: [DialogueTurnSchema],
     usefulPhrases: [String],
     culturalNotes: [String],
-  },
-  { _id: false }
-);
-
-const SpeakingExerciseSchema = new Schema(
-  {
-    type: {
-      type: String,
-      enum: SPEAKING_EXERCISE_TYPES,
-      required: true,
-    },
-    prompt: { type: String, required: true },
-    sampleAnswer: String,
-    sampleAudioUrl: String,
-    timeLimit: Number,
-    tips: [String],
   },
   { _id: false }
 );
@@ -620,18 +557,9 @@ const LessonContentSchema = new Schema(
     // Listening lesson
     audio: AudioContentSchema,
     preListening: PreListeningContentSchema,
-    whileListening: {
-      exercises: [ExerciseSchema],
-    },
-    postListening: PostListeningContentSchema,
 
     // Speaking lesson
-    pronunciation: {
-      sounds: [PhonemeSoundSchema],
-      intonation: IntonationPatternSchema,
-    },
     conversation: ConversationScenarioSchema,
-    practiceExercises: [SpeakingExerciseSchema],
     topics: [String],
 
     // Reading lesson
@@ -641,13 +569,7 @@ const LessonContentSchema = new Schema(
       vocabulary: [VocabularyWordSchema],
       context: String,
     },
-    whileReading: {
-      annotations: [ReadingAnnotationSchema],
-      questions: [ExerciseSchema],
-    },
     postReading: {
-      comprehensionQuestions: [ExerciseSchema],
-      vocabularyExercises: [ExerciseSchema],
       discussionQuestions: [String],
       summaryTask: String,
     },

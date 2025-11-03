@@ -35,12 +35,12 @@ export function ReadingLessonForm() {
   });
 
   const {
-    fields: comprehensionFields,
-    append: appendComprehension,
-    remove: removeComprehension,
+    fields: exerciseFields,
+    append: appendExercise,
+    remove: removeExercise,
   } = useFieldArray({
     control,
-    name: "content.postReading.comprehensionQuestions",
+    name: "content.exercises",
   });
 
   const {
@@ -62,11 +62,10 @@ export function ReadingLessonForm() {
         preReading?: {
           context?: { message?: string };
         };
-        postReading?: {
-          comprehensionQuestions?: { message?: string };
-        };
       }
     | undefined;
+
+  const exercisesError = (errors.content as any)?.exercises;
 
   // Auto-calculate word count
   const passageText = watch("content.passage.text");
@@ -79,7 +78,7 @@ export function ReadingLessonForm() {
 
   const addExercise = (type: ExerciseType) => {
     addExerciseToLesson(type, (exercise) => {
-      appendComprehension(exercise);
+      appendExercise(exercise);
     });
   };
 
@@ -324,21 +323,19 @@ export function ReadingLessonForm() {
         </div>
       </div>
 
-      {/* Post-Reading */}
+      {/* Exercises */}
       <div className="space-y-4 border rounded-lg p-6 bg-green-50">
-        <h3 className="text-lg font-semibold text-green-900">Post-Reading</h3>
+        <h3 className="text-lg font-semibold text-green-900">
+          Exercises <span className="text-red-500">*</span>
+          {exercisesError?.message && (
+            <span className="text-sm ml-2 text-red-500 font-normal">
+              * {exercisesError.message}
+            </span>
+          )}
+        </h3>
 
-        {/* Comprehension Questions */}
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <h4 className="text-md font-semibold">
-              Comprehension Questions
-              {contentErrors?.postReading?.comprehensionQuestions?.message && (
-                <span className="text-sm ml-2 text-red-500 font-normal">
-                  * {contentErrors.postReading.comprehensionQuestions.message}
-                </span>
-              )}
-            </h4>
             <div className="flex gap-2 flex-wrap">
               <Button
                 type="button"
@@ -383,19 +380,20 @@ export function ReadingLessonForm() {
             </div>
           </div>
 
-          {comprehensionFields.length === 0 ? (
+          {exerciseFields.length === 0 ? (
             <div className="text-center py-8 border-2 border-dashed rounded-lg">
               <p className="text-gray-500 mb-4">
-                No comprehension questions yet
+                No exercises yet - At least one exercise is required
               </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {comprehensionFields.map((field, index) => (
+              {exerciseFields.map((field, index) => (
                 <ReadingComprehensionExercise
                   key={field.id}
                   index={index}
-                  onRemove={() => removeComprehension(index)}
+                  basePath={`content.exercises.${index}`}
+                  onRemove={() => removeExercise(index)}
                 />
               ))}
             </div>

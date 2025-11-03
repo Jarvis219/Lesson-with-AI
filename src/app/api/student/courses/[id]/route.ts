@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 // GET - Get course detail for student
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -22,7 +22,7 @@ export async function GET(
       );
     }
 
-    const courseId = params.id;
+    const { id: courseId } = await params;
 
     const [course, lessons] = await Promise.all([
       Course.findOne({

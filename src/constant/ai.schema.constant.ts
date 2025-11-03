@@ -7,7 +7,6 @@ import {
   LessonType,
   PARTS_OF_SPEECH,
   READING_GENRES,
-  SPEAKING_EXERCISE_TYPES,
   WRITING_TYPES,
 } from "@/types/lesson-enums";
 import { Type } from "@google/genai";
@@ -186,9 +185,7 @@ const ListeningLessonContentSchema = {
     audio: {
       type: Type.OBJECT,
       properties: {
-        url: { type: Type.STRING },
-        duration: { type: Type.NUMBER },
-        transcript: { type: Type.STRING },
+        text: { type: Type.STRING, description: "The text of the audio" },
         timestamps: {
           type: Type.ARRAY,
           items: {
@@ -206,17 +203,17 @@ const ListeningLessonContentSchema = {
         },
         accent: { type: Type.STRING, enum: [...ACCENTS], nullable: true },
       },
-      required: ["url", "duration", "transcript", "speed"],
+      required: ["text", "speed"],
     },
     preListening: {
       type: Type.OBJECT,
       properties: {
+        context: { type: Type.STRING },
         vocabulary: {
           type: Type.ARRAY,
           items: VocabularyWordSchema,
           nullable: true,
         },
-        context: { type: Type.STRING },
         predictionQuestions: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
@@ -225,28 +222,9 @@ const ListeningLessonContentSchema = {
       },
       required: ["context"],
     },
-    whileListening: {
-      type: Type.OBJECT,
-      properties: {
-        exercises: { type: Type.ARRAY, items: BaseExerciseSchema },
-      },
-      required: ["exercises"],
-    },
-    postListening: {
-      type: Type.OBJECT,
-      properties: {
-        comprehensionQuestions: { type: Type.ARRAY, items: BaseExerciseSchema },
-        discussionQuestions: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          nullable: true,
-        },
-        summaryTask: { type: Type.STRING, nullable: true },
-      },
-      required: ["comprehensionQuestions"],
-    },
+    exercises: { type: Type.ARRAY, items: BaseExerciseSchema },
   },
-  required: ["audio", "preListening", "whileListening", "postListening"],
+  required: ["audio", "preListening", "exercises"],
 };
 
 const SpeakingLessonContentSchema = {
@@ -282,7 +260,6 @@ const SpeakingLessonContentSchema = {
           nullable: true,
         },
       },
-      nullable: true,
     },
     conversation: {
       type: Type.OBJECT,
@@ -312,30 +289,11 @@ const SpeakingLessonContentSchema = {
         },
       },
       required: ["scenario", "dialogues"],
-      nullable: true,
     },
-    practiceExercises: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          type: { type: Type.STRING, enum: [...SPEAKING_EXERCISE_TYPES] },
-          prompt: { type: Type.STRING },
-          sampleAnswer: { type: Type.STRING, nullable: true },
-          sampleAudioUrl: { type: Type.STRING, nullable: true },
-          timeLimit: { type: Type.NUMBER, nullable: true },
-          tips: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-            nullable: true,
-          },
-        },
-        required: ["type", "prompt", "sampleAnswer"],
-      },
-    },
-    topics: { type: Type.ARRAY, items: { type: Type.STRING }, nullable: true },
+    exercises: { type: Type.ARRAY, items: BaseExerciseSchema },
+    topics: { type: Type.ARRAY, items: { type: Type.STRING } },
   },
-  required: ["practiceExercises"],
+  required: ["exercises", "topics", "conversation", "pronunciation"],
 };
 
 const ReadingLessonContentSchema = {
@@ -381,49 +339,20 @@ const ReadingLessonContentSchema = {
       },
       required: ["context"],
     },
-    whileReading: {
-      type: Type.OBJECT,
-      properties: {
-        annotations: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              paragraph: { type: Type.NUMBER },
-              note: { type: Type.STRING },
-              highlightedText: { type: Type.STRING, nullable: true },
-            },
-            required: ["paragraph", "note"],
-          },
-          nullable: true,
-        },
-        questions: {
-          type: Type.ARRAY,
-          items: BaseExerciseSchema,
-          nullable: true,
-        },
-      },
-    },
     postReading: {
       type: Type.OBJECT,
       properties: {
-        comprehensionQuestions: { type: Type.ARRAY, items: BaseExerciseSchema },
-        vocabularyExercises: {
-          type: Type.ARRAY,
-          items: BaseExerciseSchema,
-          nullable: true,
-        },
         discussionQuestions: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          nullable: true,
         },
-        summaryTask: { type: Type.STRING, nullable: true },
+        summaryTask: { type: Type.STRING },
       },
-      required: ["comprehensionQuestions"],
+      required: ["discussionQuestions", "summaryTask"],
     },
+    exercises: { type: Type.ARRAY, items: BaseExerciseSchema },
   },
-  required: ["passage", "preReading", "postReading"],
+  required: ["passage", "preReading", "postReading", "exercises"],
 };
 
 const WritingLessonContentSchema = {
@@ -497,7 +426,7 @@ const WritingLessonContentSchema = {
       },
       required: ["structure"],
     },
-    exercises: { type: Type.ARRAY, items: BaseExerciseSchema, nullable: true },
+    exercises: { type: Type.ARRAY, items: BaseExerciseSchema },
     rubric: {
       type: Type.OBJECT,
       properties: {
@@ -516,15 +445,20 @@ const WritingLessonContentSchema = {
         totalPoints: { type: Type.NUMBER },
       },
       required: ["criteria", "totalPoints"],
-      nullable: true,
     },
     checklist: {
       type: Type.ARRAY,
       items: { type: Type.STRING },
-      nullable: true,
     },
   },
-  required: ["writingType", "instruction", "writingFramework"],
+  required: [
+    "writingType",
+    "instruction",
+    "writingFramework",
+    "exercises",
+    "rubric",
+    "checklist",
+  ],
 };
 
 export const AILessonGenerateResponseSchema = (type: LessonType) => {

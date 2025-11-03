@@ -91,14 +91,3 @@ export const WRITING_TYPES = [
 ] as const;
 
 export type WritingType = (typeof WRITING_TYPES)[number];
-
-// ==================== SPEAKING ====================
-
-export const SPEAKING_EXERCISE_TYPES = [
-  "record-and-compare",
-  "role-play",
-  "picture-description",
-  "opinion-question",
-] as const;
-
-export type SpeakingExerciseType = (typeof SPEAKING_EXERCISE_TYPES)[number];
