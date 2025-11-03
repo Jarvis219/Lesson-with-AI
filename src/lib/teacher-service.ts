@@ -56,10 +56,23 @@ export class TeacherService {
    */
   static async getCourses(
     page: number = PAGINATION_DEFAULT.page,
-    limit: number = PAGINATION_DEFAULT.limit
+    limit: number = PAGINATION_DEFAULT.limit,
+    opts?: {
+      search?: string;
+      status?: "all" | "published" | "draft";
+      level?: string;
+    }
   ): Promise<{ courses: Course[]; pagination: IPagination }> {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+    if (opts?.search) params.set("search", opts.search);
+    if (opts?.status && opts.status !== "all")
+      params.set("status", opts.status);
+    if (opts?.level && opts.level !== "all") params.set("level", opts.level);
     const response = await apiService.get<CourseListResponse>(
-      `/api/teacher/courses?page=${page}&limit=${limit}`
+      `/api/teacher/courses?${params.toString()}`
     );
     return {
       courses: response.data.courses || [],

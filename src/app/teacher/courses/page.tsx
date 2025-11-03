@@ -5,10 +5,18 @@ import { InfiniteScroll } from "@/components/ui/infinite-scroll";
 import { PAGINATION_DEFAULT } from "@/constant/pagination.constant";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useDebounce } from "@/hooks/useDebounce";
 import { TeacherService } from "@/lib/teacher-service";
 import type { IPagination } from "@/types/pagination";
 import type { Course } from "@/types/teacher";
-import { BookOpen, CheckCircle, Plus, Users } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle,
+  Filter,
+  Plus,
+  Search,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,6 +29,12 @@ export default function TeacherDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<IPagination>(PAGINATION_DEFAULT);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "published" | "draft"
+  >("all");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -44,7 +58,11 @@ export default function TeacherDashboardPage() {
     try {
       setLoading(page === PAGINATION_DEFAULT.page);
       const { courses: coursesData, pagination: paginationData } =
-        await TeacherService.getCourses(page, PAGINATION_DEFAULT.limit);
+        await TeacherService.getCourses(page, PAGINATION_DEFAULT.limit, {
+          search: debouncedSearchTerm || undefined,
+          status: statusFilter,
+          level: levelFilter,
+        });
 
       if (page === PAGINATION_DEFAULT.page) {
         setCourses(coursesData);
@@ -66,6 +84,8 @@ export default function TeacherDashboardPage() {
     }
   };
 
+  // Filtering handled by API – keep local state as-is
+
   const handleLoadMore = async () => {
     if (isLoadingMore || !pagination.hasNextPage) return;
 
@@ -84,7 +104,15 @@ export default function TeacherDashboardPage() {
     }
   };
 
-  if (isLoading || loading) {
+  useEffect(() => {
+    // Refetch when filters change (debounced for search)
+    if (!isLoading && user) {
+      fetchCourses(PAGINATION_DEFAULT.page);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchTerm, statusFilter, levelFilter]);
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -122,73 +150,95 @@ export default function TeacherDashboardPage() {
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-10">
-          <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-blue-50" />
-            <div className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
-                  <BookOpen className="h-5 w-5" />
+          {loading ? (
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 p-5">
+                  <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-blue-50" />
+                  <div className="animate-pulse flex gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gray-200" />
+                    <div>
+                      <div className="h-3 w-24 bg-gray-200 rounded" />
+                      <div className="mt-2 h-6 w-16 bg-gray-200 rounded" />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-500">Total Courses</div>
-                  <div className="text-2xl font-semibold text-gray-900">
-                    {stats.totalCourses}
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+                <div className="p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                      <BookOpen className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Total Courses</div>
+                      <div className="text-2xl font-semibold text-gray-900">
+                        {stats.totalCourses}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-green-50" />
-            <div className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600">
-                  <CheckCircle className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">Published</div>
-                  <div className="text-2xl font-semibold text-gray-900">
-                    {stats.publishedCourses}
+              <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+                <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-green-50" />
+                <div className="p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600">
+                      <CheckCircle className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Published</div>
+                      <div className="text-2xl font-semibold text-gray-900">
+                        {stats.publishedCourses}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-purple-50" />
-            <div className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
-                  <BookOpen className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">Total Lessons</div>
-                  <div className="text-2xl font-semibold text-gray-900">
-                    {stats.totalLessons}
+              <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+                <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-purple-50" />
+                <div className="p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
+                      <BookOpen className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Total Lessons</div>
+                      <div className="text-2xl font-semibold text-gray-900">
+                        {stats.totalLessons}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
-            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-orange-50" />
-            <div className="p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">Total Students</div>
-                  <div className="text-2xl font-semibold text-gray-900">
-                    {stats.totalStudents}
+              <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+                <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-orange-50" />
+                <div className="p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">
+                        Total Students
+                      </div>
+                      <div className="text-2xl font-semibold text-gray-900">
+                        {stats.totalStudents}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Courses */}
@@ -202,14 +252,63 @@ export default function TeacherDashboardPage() {
                 Manage your courses and lessons
               </p>
             </div>
-            <button
-              onClick={() => router.push("/teacher/courses/new")}
-              className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
-              <Plus className="h-4 w-4" /> New
-            </button>
+            <div className="hidden sm:flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search courses..."
+                  className="pl-8 pr-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm">
+                  <Filter className="h-4 w-4 text-gray-400" />
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value as any)}
+                    className="bg-transparent focus:outline-none">
+                    <option value="all">All</option>
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                  </select>
+                  <span className="text-gray-300">|</span>
+                  <select
+                    value={levelFilter}
+                    onChange={(e) => setLevelFilter(e.target.value)}
+                    className="bg-transparent focus:outline-none">
+                    <option value="all">All levels</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push("/teacher/courses/new")}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
+                <Plus className="h-4 w-4" /> New
+              </button>
+            </div>
           </div>
 
-          {courses.length === 0 ? (
+          {loading ? (
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <li key={idx}>
+                  <div className="h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <div className="animate-pulse space-y-3">
+                      <div className="h-8 w-8 rounded-lg bg-gray-200" />
+                      <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                      <div className="h-3 w-full bg-gray-200 rounded" />
+                      <div className="h-3 w-1/2 bg-gray-200 rounded" />
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : courses.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl border border-dashed">
               <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-4 text-base font-medium text-gray-900">

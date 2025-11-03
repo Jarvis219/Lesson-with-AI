@@ -29,14 +29,29 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
 
+    const search = (searchParams.get("search") || "").trim();
+    const status = (searchParams.get("status") || "all").toLowerCase();
+    const level = (searchParams.get("level") || "all").toLowerCase();
+
+    const query: any = { teacher: teacherId };
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+    if (status === "published") query.isPublished = true;
+    if (status === "draft") query.isPublished = false;
+    if (level !== "all") query.level = level;
+
     const [courses, total] = await Promise.all([
-      Course.find({ teacher: teacherId })
+      Course.find(query)
         .skip((page - 1) * limit)
         .limit(limit)
         .populate("enrolledStudents", "name email")
         .sort({ createdAt: -1 })
         .lean(),
-      Course.countDocuments({ teacher: teacherId }).lean(),
+      Course.countDocuments(query).lean(),
     ]);
 
     return NextResponse.json(
