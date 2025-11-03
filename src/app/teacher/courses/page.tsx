@@ -98,128 +98,121 @@ export default function TeacherDashboardPage() {
   const stats = TeacherService.calculateCourseStats(courses);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className=" px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* Hero */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600">
+        <div className="px-4 sm:px-6 lg:px-8 py-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
                 Teacher Dashboard
               </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Welcome back, {user?.name}
-              </p>
+              <p className="mt-2 text-blue-100">Welcome back, {user?.name}</p>
             </div>
             <button
               onClick={() => router.push("/teacher/courses/new")}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-              <Plus className="h-4 w-4 mr-2" />
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white text-blue-700 font-medium shadow hover:shadow-md hover:bg-blue-50 transition">
+              <Plus className="h-4 w-4" />
               Create New Course
             </button>
           </div>
         </div>
       </div>
 
-      <div className=" px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-blue-50" />
             <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <BookOpen className="h-6 w-6 text-blue-400" />
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                  <BookOpen className="h-5 w-5" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Total Courses
-                    </dt>
-                    <dd className="text-2xl font-semibold text-gray-900">
-                      {stats.totalCourses}
-                    </dd>
-                  </dl>
+                <div>
+                  <div className="text-sm text-gray-500">Total Courses</div>
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {stats.totalCourses}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-green-50" />
             <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <CheckCircle className="h-6 w-6 text-green-400" />
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600">
+                  <CheckCircle className="h-5 w-5" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Published
-                    </dt>
-                    <dd className="text-2xl font-semibold text-gray-900">
-                      {stats.publishedCourses}
-                    </dd>
-                  </dl>
+                <div>
+                  <div className="text-sm text-gray-500">Published</div>
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {stats.publishedCourses}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-purple-50" />
             <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <BookOpen className="h-6 w-6 text-purple-400" />
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
+                  <BookOpen className="h-5 w-5" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Total Lessons
-                    </dt>
-                    <dd className="text-2xl font-semibold text-gray-900">
-                      {stats.totalLessons}
-                    </dd>
-                  </dl>
+                <div>
+                  <div className="text-sm text-gray-500">Total Lessons</div>
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {stats.totalLessons}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-orange-50" />
             <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Users className="h-6 w-6 text-orange-400" />
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
+                  <Users className="h-5 w-5" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Total Students
-                    </dt>
-                    <dd className="text-2xl font-semibold text-gray-900">
-                      {stats.totalStudents}
-                    </dd>
-                  </dl>
+                <div>
+                  <div className="text-sm text-gray-500">Total Students</div>
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {stats.totalStudents}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Courses List */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Your Courses
-            </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Manage your courses and lessons
-            </p>
+        {/* Courses */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Your Courses
+              </h3>
+              <p className="text-sm text-gray-500">
+                Manage your courses and lessons
+              </p>
+            </div>
+            <button
+              onClick={() => router.push("/teacher/courses/new")}
+              className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
+              <Plus className="h-4 w-4" /> New
+            </button>
           </div>
 
           {courses.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-16 bg-white rounded-2xl border border-dashed">
               <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+              <h3 className="mt-4 text-base font-medium text-gray-900">
                 No courses yet
               </h3>
               <p className="mt-1 text-sm text-gray-500">
@@ -228,9 +221,8 @@ export default function TeacherDashboardPage() {
               <div className="mt-6">
                 <button
                   onClick={() => router.push("/teacher/courses/new")}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Course
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow">
+                  <Plus className="h-4 w-4" /> Create Your First Course
                 </button>
               </div>
             </div>
@@ -241,51 +233,59 @@ export default function TeacherDashboardPage() {
               isLoading={isLoadingMore}
               endMessage={
                 <div className="text-center text-gray-500 py-4">
-                  <p>You've reached the end of your courses</p>
+                  You've reached the end
                 </div>
               }>
-              <ul className="divide-y divide-gray-200">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {courses.map((course) => (
                   <li key={course._id}>
                     <div
                       onClick={() =>
                         router.push(`/teacher/courses/${course._id}`)
                       }
-                      className="px-4 py-6 hover:bg-gray-50 cursor-pointer">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-medium text-gray-900">
+                      className="group relative h-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition cursor-pointer">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                              <BookOpen className="h-4 w-4" />
+                            </span>
+                            <h3 className="text-base font-semibold text-gray-900 truncate">
                               {course.title}
                             </h3>
-                            {course.isPublished ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Published
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                Draft
-                              </span>
-                            )}
                           </div>
-                          <p className="text-sm text-gray-500 mb-2">
+                          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                             {course.description}
                           </p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center flex-wrap gap-x-4 gap-y-2 text-sm text-gray-500">
                             <span className="inline-flex items-center">
-                              <BookOpen className="h-4 w-4 mr-1" />
+                              <BookOpen className="h-4 w-4 mr-1" />{" "}
                               {course.lessons.length} lessons
                             </span>
                             <span className="inline-flex items-center">
-                              <Users className="h-4 w-4 mr-1" />
+                              <Users className="h-4 w-4 mr-1" />{" "}
                               {course.enrolledStudents.length} students
                             </span>
-                            <span className="capitalize">{course.level}</span>
+                            <span className="inline-flex items-center capitalize">
+                              {course.level}
+                            </span>
                           </div>
                         </div>
-                        <div className="ml-4 flex-shrink-0">
-                          <Link href={`/teacher/courses/${course._id}`}>
-                            <Button variant="outline">Manage</Button>
+                        <div className="flex flex-col items-end gap-2">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              course.isPublished
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}>
+                            {course.isPublished ? "Published" : "Draft"}
+                          </span>
+                          <Link
+                            href={`/teacher/courses/${course._id}`}
+                            className="opacity-0 group-hover:opacity-100 transition">
+                            <Button variant="outline" className="h-8 px-3">
+                              Manage
+                            </Button>
                           </Link>
                         </div>
                       </div>
