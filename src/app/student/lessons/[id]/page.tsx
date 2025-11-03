@@ -130,14 +130,15 @@ function LessonPageContent() {
   // Show loading if auth is still loading
   if (authLoading || state.loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-center h-96">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading lesson...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="text-center animate-fade-in">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Target className="h-6 w-6 text-blue-600 animate-pulse" />
             </div>
           </div>
+          <p className="text-gray-700 font-medium text-lg">Loading lesson...</p>
         </div>
       </div>
     );
@@ -150,28 +151,38 @@ function LessonPageContent() {
 
   if (!state.lesson) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Lesson not found
-            </h1>
-            <p className="text-gray-600 mb-6">
-              The lesson you're looking for doesn't exist or is not available.
-            </p>
-            <Button onClick={() => router.push("/student/courses")}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Courses
-            </Button>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="text-center bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 p-12 max-w-lg">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6">
+            <Target className="h-10 w-10 text-red-600" />
           </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Lesson not found
+          </h1>
+          <p className="text-gray-600 mb-8 text-lg">
+            The lesson you're looking for doesn't exist or is not available.
+          </p>
+          <Button
+            onClick={() => router.push("/student/courses")}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Courses
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6">
+      {/* Animated Background Decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-30">
+        <div className="absolute top-0 -left-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow"></div>
+        <div className="absolute top-0 -right-1/4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow animation-delay-4000"></div>
+      </div>
+
+      <div className="relative mx-auto">
         {/* Lesson Header */}
         <LessonHeader lesson={state.lesson} onBackClick={handleBackClick} />
 

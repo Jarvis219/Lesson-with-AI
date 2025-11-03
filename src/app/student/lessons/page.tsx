@@ -21,6 +21,7 @@ import {
   Brain,
   Filter,
   Search,
+  Sparkles,
   Target,
   TrendingUp,
 } from "lucide-react";
@@ -97,7 +98,7 @@ export default function LessonsPage() {
   };
 
   const handleStartLesson = async (lesson: Lesson) => {
-    router.push(`/dashboard/lessons/${lesson._id}`);
+    router.push(`/student/lessons/${lesson._id}`);
   };
 
   const getSkillInfo = (skill: string) => {
@@ -122,14 +123,17 @@ export default function LessonsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="">
-          <div className="flex items-center justify-center h-96">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Đang tải...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <BookOpen className="h-6 w-6 text-blue-600 animate-pulse" />
             </div>
           </div>
+          <p className="text-gray-700 font-medium text-lg">
+            Loading lessons...
+          </p>
         </div>
       </div>
     );
@@ -150,67 +154,85 @@ export default function LessonsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6">
+      {/* Animated Background Decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-30">
+        <div className="absolute top-0 -left-1/4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow"></div>
+        <div className="absolute top-0 -right-1/4 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-slow animation-delay-4000"></div>
+      </div>
+
+      <div className="relative mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Lessons English
+        <div className="mb-8 sm:mb-12 animate-fade-in">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 mb-4 sm:mb-6 border border-blue-200/50">
+            <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
+            <span className="text-xs sm:text-sm font-semibold text-blue-700">
+              Master English with AI
+            </span>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
+            Lessons Library
           </h1>
-          <p className="text-gray-600">
+
+          <p className="text-base sm:text-lg text-gray-700 font-medium">
             Explore and learn with hundreds of lessons optimized by AI
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-            <div className="flex items-center justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+          <Card className="p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Total lessons
-                </p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-xs text-gray-600 font-medium">Total</p>
+                <p className="text-xl font-bold text-gray-900">
                   {lessons.length}
                 </p>
               </div>
-              <BookOpen className="h-8 w-8 text-blue-600" />
             </div>
           </Card>
 
-          <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-            <div className="flex items-center justify-between">
+          <Card className="p-4 sm:p-5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
+                <Target className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-xs text-gray-600 font-medium">Completed</p>
+                <p className="text-xl font-bold text-gray-900">
                   {lessons.filter((l) => l.progress?.completed).length}
                 </p>
               </div>
-              <Target className="h-8 w-8 text-green-600" />
             </div>
           </Card>
 
-          <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-            <div className="flex items-center justify-between">
+          <Card className="p-4 sm:p-5 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+                <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  AI generated
-                </p>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="text-xs text-gray-600 font-medium">AI Gen</p>
+                <p className="text-xl font-bold text-gray-900">
                   {lessons.filter((l) => l.createdByAI).length}
                 </p>
               </div>
-              <Brain className="h-8 w-8 text-purple-600" />
             </div>
           </Card>
 
-          <Card className="p-6 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-            <div className="flex items-center justify-between">
+          <Card className="p-4 sm:p-5 bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl">
+                <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Average score
-                </p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-xs text-gray-600 font-medium">Avg Score</p>
+                <p className="text-xl font-bold text-gray-900">
                   {lessons.filter((l) => l.progress?.score).length > 0
                     ? Math.round(
                         lessons.reduce(
@@ -222,7 +244,6 @@ export default function LessonsPage() {
                   %
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-orange-600" />
             </div>
           </Card>
         </div>
