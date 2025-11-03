@@ -100,6 +100,52 @@ export class TeacherService {
   }
 
   /**
+   * Fetch students for the logged-in teacher
+   */
+  static async getStudents(
+    page: number = PAGINATION_DEFAULT.page,
+    limit: number = PAGINATION_DEFAULT.limit,
+    opts?: { search?: string; status?: "all" | "active" | "inactive" }
+  ): Promise<
+    import("@/types/teacher-students").TeacherStudentsListResponse<IPagination>
+  > {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+    if (opts?.search) params.set("search", opts.search);
+    if (opts?.status && opts.status !== "all")
+      params.set("status", opts.status);
+    const response = await apiService.get<
+      import("@/types/teacher-students").TeacherStudentsListResponse<IPagination>
+    >(`/api/teacher/students?${params.toString()}`);
+    return {
+      students: response.data.students || [],
+      pagination: response.data.pagination || PAGINATION_DEFAULT,
+    };
+  }
+
+  /**
+   * Fetch overview stats for teacher's students
+   */
+  static async getStudentStats(): Promise<
+    import("@/types/teacher-students").TeacherStudentsStatsResponse
+  > {
+    const response = await apiService.get("/api/teacher/students/stats");
+    return response.data as import("@/types/teacher-students").TeacherStudentsStatsResponse;
+  }
+
+  /**
+   * Fetch skills averages for teacher's students
+   */
+  static async getStudentSkills(): Promise<
+    import("@/types/teacher-students").TeacherStudentsSkillsStatsResponse
+  > {
+    const response = await apiService.get("/api/teacher/students/skills/stats");
+    return response.data as import("@/types/teacher-students").TeacherStudentsSkillsStatsResponse;
+  }
+
+  /**
    * Get a specific course by ID with pagination
    * @param courseId - The ID of the course
    * @param page - Page number (default: 1)

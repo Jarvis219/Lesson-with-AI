@@ -2,6 +2,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
+import { useDebounce } from "@/hooks/useDebounce";
+import { TeacherService } from "@/lib/teacher-service";
+import type {
+  TeacherStudentListItem,
+  TeacherStudentsSkillsStatsResponse,
+  TeacherStudentsStatsResponse,
+} from "@/types/teacher-students";
 import {
   BarChart,
   Filter,
@@ -10,12 +17,73 @@ import {
   TrendingDown,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function StudentsManagementPage() {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
+  const [stats, setStats] = useState<TeacherStudentsStatsResponse>({
+    totalStudents: 0,
+    averageScore: 0,
+    completionRate: 0,
+    weakSkills: [],
+  });
+  const [skills, setSkills] = useState<
+    TeacherStudentsSkillsStatsResponse["skills"]
+  >([]);
+  const [students, setStudents] = useState<TeacherStudentListItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const debouncedSearch = useDebounce(search, 300);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchOverview() {
+      try {
+        const [overview, skillRes] = await Promise.all([
+          TeacherService.getStudentStats(),
+          TeacherService.getStudentSkills(),
+        ]);
+        if (!mounted) return;
+        setStats(overview);
+        setSkills(skillRes.skills || []);
+      } catch (e) {
+        if (!mounted) return;
+        // silently fail for overview
+      }
+    }
+    fetchOverview();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    setError(null);
+    TeacherService.getStudents(1, 20, {
+      search: debouncedSearch,
+      status,
+    })
+      .then((res) => {
+        if (!mounted) return;
+        setStudents(res.students || []);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setError("Failed to load students");
+      })
+      .finally(() => {
+        if (!mounted) return;
+        setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [debouncedSearch, status]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -69,7 +137,9 @@ export default function StudentsManagementPage() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Total Students</div>
-                  <div className="text-2xl font-semibold text-gray-900">25</div>
+                  <div className="text-2xl font-semibold text-gray-900">
+                    {stats.totalStudents}
+                  </div>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -88,7 +158,7 @@ export default function StudentsManagementPage() {
                 <div>
                   <div className="text-sm text-gray-500">Average Score</div>
                   <div className="text-2xl font-semibold text-gray-900">
-                    85%
+                    {stats.averageScore}%
                   </div>
                 </div>
               </div>
@@ -106,7 +176,7 @@ export default function StudentsManagementPage() {
                 <div>
                   <div className="text-sm text-gray-500">Completion Rate</div>
                   <div className="text-2xl font-semibold text-gray-900">
-                    78%
+                    {stats.completionRate}%
                   </div>
                 </div>
               </div>
@@ -126,7 +196,7 @@ export default function StudentsManagementPage() {
                 <div>
                   <div className="text-sm text-gray-500">Weak Skills</div>
                   <div className="text-2xl font-semibold text-gray-900">
-                    Speaking
+                    {stats.weakSkills[0] ? stats.weakSkills[0] : "N/A"}
                   </div>
                 </div>
               </div>
@@ -143,6 +213,7 @@ export default function StudentsManagementPage() {
             <CardTitle>Student List</CardTitle>
           </CardHeader>
           <CardContent>
+            {error && <div className="mb-3 text-sm text-rose-600">{error}</div>}
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -162,29 +233,47 @@ export default function StudentsManagementPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <tr key={i} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        Student {i}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        student{i}@example.com
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {60 + i * 5}%
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            i % 2
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}>
-                          {i % 2 ? "Active" : "Pending"}
-                        </span>
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-4 py-6 text-sm text-gray-500">
+                        Loading...
                       </td>
                     </tr>
-                  ))}
+                  ) : students.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-4 py-6 text-sm text-gray-500">
+                        No students found
+                      </td>
+                    </tr>
+                  ) : (
+                    students.map((s) => (
+                      <tr key={s._id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {s.name}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {s.email}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {s.progressPercent}%
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              s.status === "active"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}>
+                            {s.status === "active" ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -201,23 +290,43 @@ export default function StudentsManagementPage() {
               <div className="rounded-xl border p-4">
                 <div className="text-sm text-gray-500 mb-2">Top Skills</div>
                 <ul className="space-y-1 text-sm text-gray-700">
-                  <li>Reading</li>
-                  <li>Listening</li>
-                  <li>Vocabulary</li>
+                  {skills
+                    .slice()
+                    .sort((a, b) => b.average - a.average)
+                    .slice(0, 3)
+                    .map((s) => (
+                      <li key={s.skill}>
+                        {s.skill} - {s.average}%
+                      </li>
+                    ))}
+                  {skills.length === 0 && <li>No data</li>}
                 </ul>
               </div>
               <div className="rounded-xl border p-4">
                 <div className="text-sm text-gray-500 mb-2">Weak Skills</div>
                 <ul className="space-y-1 text-sm text-gray-700">
-                  <li>Speaking</li>
-                  <li>Grammar</li>
+                  {skills
+                    .slice()
+                    .sort((a, b) => a.average - b.average)
+                    .slice(0, 3)
+                    .map((s) => (
+                      <li key={s.skill}>
+                        {s.skill} - {s.average}%
+                      </li>
+                    ))}
+                  {skills.length === 0 && <li>No data</li>}
                 </ul>
               </div>
               <div className="rounded-xl border p-4">
                 <div className="text-sm text-gray-500 mb-2">Suggestions</div>
                 <ul className="space-y-1 text-sm text-gray-700">
-                  <li>Increase speaking practice</li>
-                  <li>Add more grammar drills</li>
+                  {stats.weakSkills && stats.weakSkills.length > 0 ? (
+                    stats.weakSkills.map((ws) => (
+                      <li key={ws}>Focus more on {ws}</li>
+                    ))
+                  ) : (
+                    <li>Not enough data</li>
+                  )}
                 </ul>
               </div>
             </div>
