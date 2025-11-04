@@ -2,7 +2,7 @@
 
 import LessonHistory from "@/components/lessons/lesson-history";
 import { useRequireAuth } from "@/hooks/useAuth";
-import { BookOpen, History } from "lucide-react";
+import { BookOpen, History, Sparkles, TrendingUp } from "lucide-react";
 import { useState } from "react";
 
 export default function LessonHistoryPage() {
@@ -11,12 +11,24 @@ export default function LessonHistoryPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-center h-96">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading lesson history...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center h-[60vh]">
+            <div className="text-center space-y-4">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <History className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-gray-700 mb-1">
+                  Loading lesson history...
+                </p>
+                <p className="text-sm text-gray-500">
+                  Fetching your learning progress
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -29,69 +41,130 @@ export default function LessonHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50/50 to-purple-50 p-6 pb-12">
+      <div className="mx-auto">
+        {/* Header Section */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
-              <History className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Lesson History
-              </h1>
-              <p className="text-gray-600">
-                Track your learning progress and review past lessons
-              </p>
+          {/* Main Header */}
+          <div className="relative mb-8">
+            {/* Background decoration */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl blur-3xl"></div>
+
+            <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl p-8">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-lg opacity-50"></div>
+                    <div className="relative p-4 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl shadow-lg">
+                      <History className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent mb-2">
+                      Lesson History
+                    </h1>
+                    <p className="text-gray-600 text-lg">
+                      Track your learning journey and review past achievements
+                    </p>
+                  </div>
+                </div>
+
+                {/* Stats or decorative element */}
+                <div className="flex items-center gap-4">
+                  <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-semibold text-gray-700">
+                      Progress Tracker
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-2 bg-white rounded-xl p-1 shadow-sm w-fit">
-            <button
-              onClick={() => setActiveTab("all")}
-              className={`px-6 py-3 text-sm font-medium transition-all duration-200 rounded-lg ${
-                activeTab === "all"
-                  ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-              }`}>
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                All Lessons
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab("completed")}
-              className={`px-6 py-3 text-sm font-medium transition-all duration-200 rounded-lg ${
-                activeTab === "completed"
-                  ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-              }`}>
-              <div className="flex items-center gap-2">
-                <History className="h-4 w-4" />
-                Completed Only
-              </div>
-            </button>
+          {/* Modern Tabs */}
+          <div className="relative">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/60 shadow-lg p-2 inline-flex gap-2">
+              <button
+                onClick={() => setActiveTab("all")}
+                className={`relative px-6 py-3.5 text-sm font-semibold transition-all duration-300 rounded-xl ${
+                  activeTab === "all"
+                    ? "text-white"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}>
+                {activeTab === "all" && (
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-xl shadow-lg"></span>
+                )}
+                <span className="relative flex items-center gap-2.5">
+                  <BookOpen className="h-5 w-5" />
+                  All Lessons
+                  {activeTab === "all" && (
+                    <Sparkles className="h-4 w-4 animate-pulse" />
+                  )}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("completed")}
+                className={`relative px-6 py-3.5 text-sm font-semibold transition-all duration-300 rounded-xl ${
+                  activeTab === "completed"
+                    ? "text-white"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}>
+                {activeTab === "completed" && (
+                  <span className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-xl shadow-lg"></span>
+                )}
+                <span className="relative flex items-center gap-2.5">
+                  <History className="h-5 w-5" />
+                  Completed Only
+                  {activeTab === "completed" && (
+                    <Sparkles className="h-4 w-4 animate-pulse" />
+                  )}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Content */}
+        {/* Content Section */}
         <div className="space-y-6">
-          {activeTab === "all" && <LessonHistory limit={20} />}
+          {activeTab === "all" && (
+            <div className="transition-opacity duration-300">
+              <LessonHistory limit={20} isCompleted={undefined} />
+            </div>
+          )}
 
           {activeTab === "completed" && (
-            <div className="space-y-4">
-              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <h3 className="text-lg font-semibold text-green-800 mb-2">
-                  Completed Lessons
-                </h3>
-                <p className="text-green-700 text-sm">
-                  Showing only lessons you've successfully completed (score ≥
-                  70%)
-                </p>
+            <div className="transition-opacity duration-300 space-y-6">
+              {/* Info Banner */}
+              <div className="relative overflow-hidden bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 rounded-2xl border-2 border-emerald-200/60 shadow-lg">
+                {/* Decorative pattern */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-200/20 to-green-200/20 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-teal-200/20 to-emerald-200/20 rounded-full blur-2xl"></div>
+
+                <div className="relative p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 p-3 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl shadow-lg">
+                      <History className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-emerald-900 mb-2 flex items-center gap-2">
+                        Completed Lessons
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                          Score ≥ 70%
+                        </span>
+                      </h3>
+                      <p className="text-emerald-800 leading-relaxed">
+                        View all lessons you've successfully completed with a
+                        score of 70% or higher. These represent your learning
+                        achievements and milestones in your English journey!
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <LessonHistory limit={20} />
+
+              <LessonHistory limit={20} isCompleted={true} />
             </div>
           )}
         </div>

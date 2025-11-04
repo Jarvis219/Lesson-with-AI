@@ -9,6 +9,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { useToast } from "./use-toast";
 
 // Auth context interface
 interface AuthContextType {
@@ -44,6 +45,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Auth provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { toast } = useToast();
+
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,8 +144,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const updatedUser = await authService.updateProfile(updates);
       setUser(updatedUser);
+      toast({
+        title: "Success!",
+        description: "Your settings have been saved successfully",
+        variant: "default",
+      });
     } catch (error) {
-      throw error;
+      toast({
+        title: "Error",
+        description: "Failed to save settings",
+        variant: "destructive",
+      });
     }
   };
 

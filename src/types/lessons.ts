@@ -133,3 +133,57 @@ export type LessonDetailResponse = LessonFormData & {
   teacher: Teacher;
   course: Course;
 };
+
+// Lesson History Types
+export interface LessonHistoryQuestionAnswer {
+  questionId?: string;
+  question: string;
+  questionType: string;
+  userAnswer: string | string[] | boolean;
+  correctAnswer: string | string[] | boolean;
+  isCorrect: boolean;
+  explanation?: string;
+  points?: number;
+  difficulty?: string;
+  answeredAt?: Date | string;
+}
+
+export interface LessonHistoryStats {
+  totalQuestionsAnswered: number;
+  totalCorrectAnswers: number;
+  totalIncorrectAnswers: number;
+  questionAnswers: LessonHistoryQuestionAnswer[];
+}
+
+export interface LessonHistoryLesson {
+  _id: string;
+  title: string;
+  description: string;
+  type: string;
+  difficulty: string;
+  estimatedTime: number;
+}
+
+export interface LessonHistoryItem {
+  lessonId: string;
+  lesson: LessonHistoryLesson;
+  score: number;
+  timeSpent: number;
+  completed: boolean;
+  completedAt: string;
+  attempts: number;
+  stats: LessonHistoryStats;
+}
+
+export interface LessonHistoryRequest {
+  limit?: number;
+  offset?: number;
+  lessonId?: string;
+  isCompleted?: boolean;
+}
+
+export interface LessonHistoryResponse {
+  lessonHistory: LessonHistoryItem[];
+  totalCount: number;
+  hasMore: boolean;
+}

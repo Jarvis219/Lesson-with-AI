@@ -3,8 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { authService } from "@/lib/auth-service";
-import { User } from "@/types";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Award,
   Calendar,
@@ -16,47 +15,53 @@ import {
   User as UserIcon,
   Zap,
 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, updateProfile } = useAuth();
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  // useEffect(() => {
+  //   fetchProfile();
+  // }, []);
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      const userData = await authService.getCurrentUser();
-      setUser(userData);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchProfile = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const userData = await authService.getCurrentUser();
+  //     updateProfile({
+  //       name: userData.name,
+  //       level: userData.level,
+  //       goals: userData.goals,
+  //       preferences: userData.preferences,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching profile:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6 flex items-center justify-center">
-        <div className="text-center animate-fade-in">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <UserIcon className="h-6 w-6 text-blue-600 animate-pulse" />
-            </div>
-          </div>
-          <p className="text-gray-700 font-medium text-lg">
-            Loading profile...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6 flex items-center justify-center">
+  //       <div className="text-center animate-fade-in">
+  //         <div className="relative">
+  //           <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto mb-6"></div>
+  //           <div className="absolute inset-0 flex items-center justify-center">
+  //             <UserIcon className="h-6 w-6 text-blue-600 animate-pulse" />
+  //           </div>
+  //         </div>
+  //         <p className="text-gray-700 font-medium text-lg">
+  //           Loading profile...
+  //         </p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (!user) {
     return (
@@ -130,9 +135,11 @@ export default function ProfilePage() {
                 {/* Avatar */}
                 <div className="relative">
                   {user.avatar ? (
-                    <img
+                    <Image
                       src={user.avatar}
                       alt={user.name}
+                      width={128}
+                      height={128}
                       className="w-32 h-32 rounded-full border-4 border-gradient-to-br from-blue-500 to-purple-500 object-cover shadow-lg"
                     />
                   ) : (

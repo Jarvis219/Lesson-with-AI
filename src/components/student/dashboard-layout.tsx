@@ -165,7 +165,7 @@ export default function StudentDashboardLayout({
 
       {/* Desktop sidebar */}
       <div
-        className={`hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 transition-all duration-300 ${
+        className={`hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 transition-all duration-300 z-10 ${
           desktopSidebarCollapsed ? "lg:w-16" : "lg:w-64"
         }`}>
         <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200 shadow-lg">

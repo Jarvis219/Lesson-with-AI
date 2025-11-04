@@ -110,10 +110,7 @@ export async function PUT(request: NextRequest) {
       preferences: user.preferences,
     };
 
-    return NextResponse.json({
-      message: "User updated successfully",
-      user: userResponse,
-    });
+    return NextResponse.json(userResponse);
   } catch (error) {
     console.error("Update user error:", error);
     return NextResponse.json(

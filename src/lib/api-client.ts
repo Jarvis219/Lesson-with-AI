@@ -10,6 +10,8 @@ import {
   CreateLessonRequest,
   DashboardStats,
   Lesson,
+  LessonHistoryRequest,
+  LessonHistoryResponse,
   LessonProgressRequest,
   LessonProgressSubmitResponse,
   LessonResultResponse,
@@ -250,27 +252,19 @@ export class ApiClient {
   }
 
   // Lesson History APIs
-  async getLessonHistory(params?: {
-    limit?: number;
-    offset?: number;
-    lessonId?: string;
-  }): Promise<{
-    lessonHistory: any[];
-    totalCount: number;
-    hasMore: boolean;
-  }> {
+  async getLessonHistory(
+    params?: LessonHistoryRequest
+  ): Promise<LessonHistoryResponse> {
     const queryParams = new URLSearchParams();
     if (params?.limit) queryParams.append("limit", params.limit.toString());
     if (params?.offset) queryParams.append("offset", params.offset.toString());
     if (params?.lessonId) queryParams.append("lessonId", params.lessonId);
+    if (params?.isCompleted !== undefined)
+      queryParams.append("isCompleted", params.isCompleted.toString());
 
-    const response = await apiService.get<
-      ApiResponse<{
-        lessonHistory: any[];
-        totalCount: number;
-        hasMore: boolean;
-      }>
-    >(`/api/lessons/history?${queryParams.toString()}`);
+    const response = await apiService.get<ApiResponse<LessonHistoryResponse>>(
+      `/api/student/lessons/history?${queryParams.toString()}`
+    );
     return response.data;
   }
 }
