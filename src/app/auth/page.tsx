@@ -11,7 +11,7 @@ import React, { useEffect, useState } from "react";
 
 const AuthPage: React.FC = () => {
   const { user, login, register, isLoading, error } = useAuth();
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [isTeacherRegistration, setIsTeacherRegistration] = useState(false);
   const router = useRouter();
 
@@ -22,7 +22,7 @@ const AuthPage: React.FC = () => {
     }
 
     if (user?.role === "admin") {
-      router.push("/admin/dashboard");
+      router.push("/admin");
       return;
     }
 
