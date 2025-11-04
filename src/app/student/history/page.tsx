@@ -41,7 +41,7 @@ export default function LessonHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50/50 to-purple-50 p-6 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50/50 to-purple-50 p-4 md:p-6 pb-12">
       <div className="mx-auto">
         {/* Header Section */}
         <div className="mb-8">

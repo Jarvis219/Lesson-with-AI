@@ -2,6 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +26,7 @@ import {
   Bell,
   CheckCircle2,
   Lock,
+  LogOut,
   Mail,
   Save,
   Settings,
@@ -25,7 +35,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -54,7 +64,8 @@ type SettingsFormData = z.infer<typeof settingsSchema>;
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, logout } = useAuth();
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const {
     handleSubmit,
@@ -100,6 +111,15 @@ export default function SettingsPage() {
     });
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
@@ -126,7 +146,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Animated background decoration */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -152,7 +172,7 @@ export default function SettingsPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-6">
+          <div className="space-y-6 mb-8">
             {/* Profile Settings */}
             <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-xl rounded-3xl p-6 sm:p-8 hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center gap-3 mb-6">
@@ -388,18 +408,10 @@ export default function SettingsPage() {
                     name="notifications"
                     control={control}
                     render={({ field }) => (
-                      <button
-                        type="button"
-                        onClick={() => field.onChange(!field.value)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          field.value ? "bg-blue-600" : "bg-gray-300"
-                        }`}>
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            field.value ? "translate-x-6" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     )}
                   />
                 </div>
@@ -440,12 +452,42 @@ export default function SettingsPage() {
                 </div>
               </div>
             </Card>
+
+            {/* Account Actions */}
+            <Card className="bg-white/80 backdrop-blur-sm border-2 border-red-200 shadow-xl rounded-3xl p-6 sm:p-8 hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-red-50 to-orange-50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl shadow-lg">
+                  <LogOut className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-red-900">
+                  Account Actions
+                </h2>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-red-900 mb-2">Logout</h3>
+                  <p className="text-sm text-red-700 mb-4">
+                    Sign out of your account. You will need to log in again to
+                    access your account.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setIsLogoutDialogOpen(true)}
+                    className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all">
+                    <LogOut className="h-5 w-5 mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            </Card>
           </div>
 
           {/* Save Button */}
           <div className="sticky bottom-4 z-10">
             <Card className="bg-white/95 backdrop-blur-sm border border-gray-200 shadow-2xl rounded-2xl p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col md:flex-row gap-2 items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-green-500 rounded-lg">
                     <CheckCircle2 className="h-5 w-5 text-white" />
@@ -480,6 +522,33 @@ export default function SettingsPage() {
           </div>
         </form>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to logout? You will be redirected to the
+              home page and will need to log in again to access your account.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsLogoutDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleLogout}
+              className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
