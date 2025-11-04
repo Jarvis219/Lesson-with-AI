@@ -85,7 +85,9 @@ export default function TeacherDashboardLayout({
     }
   }, [user, isLoading, router]);
 
-  if (!user?.isTeacherApproved) return children;
+  if (pathname === "/teacher/pending-approval") {
+    return children;
+  }
 
   if (isLoading || !user) {
     return (
