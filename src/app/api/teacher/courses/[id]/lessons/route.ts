@@ -88,7 +88,7 @@ export async function POST(
       estimatedTime,
       tags: tags || [],
       createdByAI: false,
-      isPublished: false,
+      isPublished: true,
       course: id,
       teacher: teacherId,
     });

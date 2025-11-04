@@ -4,6 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress as UiProgress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
 import { TeacherService } from "@/lib/teacher-service";
@@ -117,14 +124,18 @@ export default function StudentsManagementPage() {
               </div>
               <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 text-white border border-white/20 text-sm backdrop-blur-sm">
                 <Filter className="h-4 w-4" />
-                <select
+                <Select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
-                  className="bg-transparent focus:outline-none">
-                  <option value="all">All</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                  onValueChange={(v) => setStatus(v as any)}>
+                  <SelectTrigger className="h-auto py-0 pl-0 pr-1 border-0 focus:ring-0 focus:ring-offset-0 shadow-none w-28 bg-transparent text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -145,14 +156,16 @@ export default function StudentsManagementPage() {
           </div>
           <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border text-sm">
             <Filter className="h-4 w-4" />
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
-              className="bg-transparent focus:outline-none">
-              <option value="all">All</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+            <Select value={status} onValueChange={(v) => setStatus(v as any)}>
+              <SelectTrigger className="h-auto py-0 pl-0 pr-1 border-0 focus:ring-0 focus:ring-offset-0 shadow-none w-28 bg-transparent">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

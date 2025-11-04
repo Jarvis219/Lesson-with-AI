@@ -2,6 +2,7 @@
 
 import { authService } from "@/lib/auth-service";
 import { User } from "@/types";
+import { useRouter } from "next/navigation";
 import React, {
   createContext,
   ReactNode,
@@ -46,9 +47,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Auth provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const router = useRouter();
 
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Check if user is authenticated
@@ -71,6 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     };
+
+    if (!isAuthenticated) {
+      router.push("/auth");
+      return;
+    }
 
     initializeAuth();
   }, [isAuthenticated]);

@@ -259,8 +259,9 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className=" px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-dvh relative overflow-hidden bg-gradient-to-b from-white via-blue-50 to-white">
+      <div className="pointer-events-none absolute inset-0 [background:radial-gradient(1000px_300px_at_80%_-10%,rgba(59,130,246,0.10),transparent_70%),radial-gradient(800px_300px_at_10%_10%,rgba(99,102,241,0.08),transparent_60%)]" />
+      <div className="relative px-4 sm:px-6 lg:px-8 py-8">
         <button
           onClick={() => router.push("/teacher/courses")}
           className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6">
@@ -269,40 +270,40 @@ export default function CourseDetailPage() {
         </button>
 
         {/* Course Header */}
-        <Card className="mb-6">
+        <Card className="mb-6 border border-slate-200/70 shadow-xl shadow-slate-800/5 bg-white/80 backdrop-blur-sm">
           <CardHeader>
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex-1">
-                <CardTitle className="text-3xl font-bold mb-2">
+                <CardTitle className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 mb-2">
                   {course.title}
                 </CardTitle>
-                <CardDescription className="text-base mb-4">
+                <CardDescription className="text-base text-slate-600 mb-4 line-clamp-2">
                   {course.description}
                 </CardDescription>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-4 text-sm text-slate-600 flex-wrap">
                   <span className="capitalize font-medium">{course.level}</span>
-                  <span className="text-gray-400">•</span>
+                  <span className="text-slate-300">•</span>
                   <span>{course.category}</span>
-                  <span className="text-gray-400">•</span>
+                  <span className="text-slate-300">•</span>
                   <span className="inline-flex items-center">
                     <BookOpen className="h-4 w-4 mr-1" />
                     {course.lessons.length} lessons
                   </span>
-                  <span className="text-gray-400">•</span>
+                  <span className="text-slate-300">•</span>
                   <span className="inline-flex items-center">
                     <Users className="h-4 w-4 mr-1" />
                     {course.enrolledStudents.length} students
                   </span>
                 </div>
               </div>
-              <div className="ml-4 flex items-center gap-3">
+              <div className="ml-0 sm:ml-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 {course.isPublished ? (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 ring-1 ring-green-200">
                     <Globe className="h-3 w-3 mr-1" />
                     Published
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200">
                     <Lock className="h-3 w-3 mr-1" />
                     Draft
                   </span>
@@ -310,15 +311,17 @@ export default function CourseDetailPage() {
                 <Button
                   onClick={handleOpenEditDialog}
                   variant="outline"
-                  size="sm">
+                  size="sm"
+                  className="w-full sm:w-auto">
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
                 <Button
                   onClick={handleTogglePublish}
                   disabled={isUpdating || course.lessons.length === 0}
-                  variant={course.isPublished ? "outline" : "default"}
-                  size="sm">
+                  variant={course.isPublished ? "destructive" : "default"}
+                  size="sm"
+                  className="w-full sm:w-auto">
                   {isUpdating
                     ? "Updating..."
                     : course.isPublished
@@ -331,16 +334,18 @@ export default function CourseDetailPage() {
         </Card>
 
         {/* Lessons Section */}
-        <Card>
+        <Card className="border border-slate-200/70 shadow-xl shadow-slate-800/5 bg-white/80 backdrop-blur-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-xl font-bold">Lessons</CardTitle>
-                <CardDescription>
+                <CardDescription className="text-slate-600">
                   Manage the lessons in this course
                 </CardDescription>
               </div>
-              <Button onClick={handleAddLesson}>
+              <Button
+                onClick={handleAddLesson}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Lesson
               </Button>
@@ -357,7 +362,9 @@ export default function CourseDetailPage() {
                   Add your first lesson to get started
                 </p>
                 <div className="mt-6">
-                  <Button onClick={handleAddLesson}>
+                  <Button
+                    onClick={handleAddLesson}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 w-full sm:w-auto">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Your First Lesson
                   </Button>
@@ -377,9 +384,9 @@ export default function CourseDetailPage() {
                   {course.lessons.map((lesson, index: number) => (
                     <div
                       key={lesson._id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition group">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
                           <span className="text-sm font-medium text-gray-500">
                             Lesson {index + 1}
                           </span>
@@ -390,20 +397,20 @@ export default function CourseDetailPage() {
                         <p className="text-sm text-gray-600 mb-2">
                           {lesson.description}
                         </p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
                           <span className="capitalize">{lesson.type}</span>
-                          <span className="text-gray-400">•</span>
+                          <span className="text-gray-300">•</span>
                           <span className="capitalize">
                             {lesson.difficulty}
                           </span>
-                          <span className="text-gray-400">•</span>
+                          <span className="text-gray-300">•</span>
                           <span className="inline-flex items-center">
                             <Clock className="h-3 w-3 mr-1" />
                             {lesson.estimatedTime} min
                           </span>
                         </div>
                       </div>
-                      <div className="ml-4 flex gap-2">
+                      <div className="ml-0 sm:ml-4 mt-2 sm:mt-0 flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button
                           variant="outline"
                           size="sm"
@@ -411,7 +418,8 @@ export default function CourseDetailPage() {
                             router.push(
                               `/teacher/courses/${params.id}/lessons/${lesson._id}/preview`
                             )
-                          }>
+                          }
+                          className="w-full sm:w-auto">
                           <Eye className="h-4 w-4 mr-2" />
                           Preview
                         </Button>
@@ -422,14 +430,15 @@ export default function CourseDetailPage() {
                             router.push(
                               `/teacher/courses/${params.id}/lessons/${lesson._id}/edit`
                             )
-                          }>
+                          }
+                          className="w-full sm:w-auto">
                           Edit
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeleteLesson(lesson as Lesson)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto">
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
                         </Button>
@@ -444,7 +453,7 @@ export default function CourseDetailPage() {
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent>
+          <DialogContent className="bg-white/90 backdrop-blur-sm">
             <DialogHeader>
               <DialogTitle>Delete Lesson</DialogTitle>
               <DialogDescription>
@@ -474,7 +483,7 @@ export default function CourseDetailPage() {
 
         {/* Edit Course Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl bg-white/90 backdrop-blur-sm">
             <DialogHeader>
               <DialogTitle>Edit Course Information</DialogTitle>
               <DialogDescription>
@@ -506,7 +515,7 @@ export default function CourseDetailPage() {
                   rows={4}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Level</label>
                   <Select
@@ -539,14 +548,17 @@ export default function CourseDetailPage() {
                 </div>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-2">
               <Button
                 variant="outline"
                 onClick={() => setEditDialogOpen(false)}
                 disabled={isUpdatingCourse}>
                 Cancel
               </Button>
-              <Button onClick={handleUpdateCourse} disabled={isUpdatingCourse}>
+              <Button
+                onClick={handleUpdateCourse}
+                disabled={isUpdatingCourse}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
                 {isUpdatingCourse ? "Updating..." : "Update Course"}
               </Button>
             </DialogFooter>

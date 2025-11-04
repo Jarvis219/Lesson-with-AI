@@ -36,7 +36,6 @@ class TokenManager {
 
   setToken(token: string): void {
     this.token = token;
-    console.log("auth_token", token);
     if (typeof window !== "undefined") {
       localStorage.setItem("auth_token", token);
     }

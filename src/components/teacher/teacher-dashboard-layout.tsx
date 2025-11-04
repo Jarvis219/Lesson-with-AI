@@ -16,7 +16,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 interface NavItem {
   name: string;
@@ -69,11 +69,11 @@ export default function TeacherDashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isLoading && user) {
       // Check if user is a teacher
       if (user.role !== "teacher") {
-        router.push("/dashboard");
+        router.push("/");
         return;
       }
 
@@ -85,7 +85,9 @@ export default function TeacherDashboardLayout({
     }
   }, [user, isLoading, router]);
 
-  if (isLoading) {
+  if (!user?.isTeacherApproved) return children;
+
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -349,7 +351,7 @@ export default function TeacherDashboardLayout({
             {/* Page title */}
             <div className="flex-1 lg:ml-4">
               <h1 className="text-lg font-semibold text-gray-900">
-                Teacher Dashboard
+                Hi, {user?.name}
               </h1>
             </div>
 

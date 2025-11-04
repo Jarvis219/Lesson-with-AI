@@ -31,7 +31,7 @@ export function LogoutSection() {
 
   return (
     <>
-      <Card className="border-red-200 bg-red-50">
+      <Card className="border border-red-200/70 bg-red-50/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-red-900">Account Actions</CardTitle>
         </CardHeader>
@@ -57,7 +57,7 @@ export function LogoutSection() {
 
       {/* Logout Confirmation Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white/90 backdrop-blur-sm">
           <DialogHeader>
             <DialogTitle>Confirm Logout</DialogTitle>
             <DialogDescription>

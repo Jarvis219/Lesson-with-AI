@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useLayoutEffect, useState } from "react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -78,11 +78,22 @@ const navigation: NavItem[] = [
 export default function StudentDashboardLayout({
   children,
 }: DashboardLayoutProps) {
+  const router = useRouter();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const { isAuthenticated, isLoading } = useRequireAuth();
   const { user } = useAuth();
+
+  useLayoutEffect(() => {
+    if (!isLoading && user) {
+      if (user.role !== "student") {
+        router.push("/");
+        return;
+      }
+    }
+  }, [user, isLoading, router]);
 
   if (isLoading) {
     return (

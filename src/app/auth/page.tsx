@@ -11,12 +11,12 @@ import React, { useEffect, useState } from "react";
 
 const AuthPage: React.FC = () => {
   const { user, login, register, isLoading, error } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(false);
   const [isTeacherRegistration, setIsTeacherRegistration] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (user?.role === "teacher" && !user?.isTeacherApproved) {
+    if (user?.role === "teacher") {
       router.push("/teacher/courses");
       return;
     }

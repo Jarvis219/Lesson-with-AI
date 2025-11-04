@@ -200,36 +200,38 @@ export function PaymentInformationSection() {
   };
 
   return (
-    <Card>
+    <Card className="border border-slate-200/70 shadow-xl shadow-slate-800/5 bg-white/80 backdrop-blur-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <div className="flex items-center">
-          <CreditCard className="h-5 w-5 mr-2 text-gray-500" />
-          <CardTitle>Payment Information</CardTitle>
+          <CreditCard className="h-5 w-5 mr-2 text-slate-500" />
+          <CardTitle className="text-xl font-semibold">
+            Payment Information
+          </CardTitle>
         </div>
         {paymentMethods.length < 3 && (
-          <Button onClick={openAddModal} size="sm">
+          <Button onClick={openAddModal} size="sm" className="rounded-xl">
             <Plus className="h-4 w-4 mr-2" />
             Add Bank
           </Button>
         )}
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-slate-600 mb-6">
           Manage your payment methods (Maximum 3 banks allowed)
         </p>
 
         {/* Payment Methods List */}
         {paymentMethods.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
-            <CreditCard className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500 mb-4">No payment methods added yet</p>
-            <Button onClick={openAddModal}>
+          <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl bg-white/60">
+            <CreditCard className="h-12 w-12 mx-auto text-slate-400 mb-4" />
+            <p className="text-slate-600 mb-4">No payment methods added yet</p>
+            <Button onClick={openAddModal} className="rounded-xl">
               <Plus className="h-4 w-4 mr-2" />
               Add Your First Bank
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {paymentMethods.map((method) => (
               <div
                 key={method._id}
@@ -311,7 +313,7 @@ export function PaymentInformationSection() {
                       variant="secondary"
                       size="sm"
                       onClick={() => handleSetPrimary(method._id!)}
-                      className="bg-white/90 hover:bg-white shadow-lg">
+                      className="bg-white/90 hover:bg-white shadow-lg rounded-lg">
                       <Star className="h-4 w-4 text-blue-600" />
                     </Button>
                   )}
@@ -319,14 +321,14 @@ export function PaymentInformationSection() {
                     variant="secondary"
                     size="sm"
                     onClick={() => handleEdit(method)}
-                    className="bg-white/90 hover:bg-white shadow-lg">
+                    className="bg-white/90 hover:bg-white shadow-lg rounded-lg">
                     <Edit2 className="h-4 w-4 text-blue-600" />
                   </Button>
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => handleDeleteClick(method)}
-                    className="bg-white/90 hover:bg-white shadow-lg">
+                    className="bg-white/90 hover:bg-white shadow-lg rounded-lg">
                     <Trash2 className="h-4 w-4 text-red-600" />
                   </Button>
                 </div>
@@ -338,7 +340,7 @@ export function PaymentInformationSection() {
                       variant="secondary"
                       size="sm"
                       onClick={() => handleSetPrimary(method._id!)}
-                      className="flex-1 bg-white/90 hover:bg-white">
+                      className="flex-1 bg-white/90 hover:bg-white rounded-lg">
                       <Star className="h-4 w-4 text-blue-600 mr-2" />
                       Set Primary
                     </Button>
@@ -347,7 +349,7 @@ export function PaymentInformationSection() {
                     variant="secondary"
                     size="sm"
                     onClick={() => handleEdit(method)}
-                    className="flex-1 bg-white/90 hover:bg-white">
+                    className="flex-1 bg-white/90 hover:bg-white rounded-lg">
                     <Edit2 className="h-4 w-4 text-blue-600 mr-2" />
                     Edit
                   </Button>
@@ -355,7 +357,7 @@ export function PaymentInformationSection() {
                     variant="secondary"
                     size="sm"
                     onClick={() => handleDeleteClick(method)}
-                    className="flex-1 bg-white/90 hover:bg-white">
+                    className="flex-1 bg-white/90 hover:bg-white rounded-lg">
                     <Trash2 className="h-4 w-4 text-red-600 mr-2" />
                     Delete
                   </Button>
@@ -367,7 +369,7 @@ export function PaymentInformationSection() {
 
         {/* Add/Edit Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
             <Card className="w-full max-w-md mx-4">
               <CardHeader>
                 <CardTitle>
@@ -484,7 +486,7 @@ export function PaymentInformationSection() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 rounded-xl"
                       onClick={() => {
                         setIsModalOpen(false);
                         setEditingMethod(null);
@@ -494,7 +496,7 @@ export function PaymentInformationSection() {
                     </Button>
                     <Button
                       type="submit"
-                      className="flex-1"
+                      className="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
                       disabled={isSubmitting}>
                       {isSubmitting
                         ? "Saving..."
@@ -512,7 +514,7 @@ export function PaymentInformationSection() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white/90 backdrop-blur-sm">
           <DialogHeader>
             <DialogTitle>Delete Payment Method</DialogTitle>
             <DialogDescription>

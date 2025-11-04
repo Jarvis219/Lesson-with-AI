@@ -149,19 +149,21 @@ export function ProfileSection() {
   };
 
   return (
-    <Card>
+    <Card className="border border-slate-200/70 shadow-xl shadow-slate-800/5 bg-white/80 backdrop-blur-sm">
       <CardHeader className="flex flex-row items-center space-y-0">
-        <User className="h-5 w-5 mr-2 text-gray-500" />
-        <CardTitle>Profile Information</CardTitle>
+        <User className="h-5 w-5 mr-2 text-slate-500" />
+        <CardTitle className="text-xl font-semibold">
+          Profile Information
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit}>
           {/* Avatar Section */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               Avatar
             </label>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               <div className="relative">
                 {avatarPreview ? (
                   <div className="relative">
@@ -170,19 +172,19 @@ export function ProfileSection() {
                       alt="Avatar"
                       width={80}
                       height={80}
-                      className="rounded-full object-cover"
+                      className="rounded-full object-cover ring-2 ring-slate-200"
                     />
                     <button
                       type="button"
                       onClick={handleRemoveAvatar}
                       disabled={isUploading}
-                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 disabled:opacity-50">
+                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 disabled:opacity-50">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
-                    <User className="h-10 w-10 text-gray-400" />
+                  <div className="w-20 h-20 rounded-full bg-slate-100 ring-2 ring-slate-200 flex items-center justify-center">
+                    <User className="h-10 w-10 text-slate-400" />
                   </div>
                 )}
               </div>
@@ -198,11 +200,12 @@ export function ProfileSection() {
                   type="button"
                   variant="outline"
                   onClick={handleAvatarClick}
-                  disabled={isUploading}>
+                  disabled={isUploading}
+                  className="rounded-xl">
                   <Upload className="h-4 w-4 mr-2" />
                   {isUploading ? "Uploading..." : "Upload Avatar"}
                 </Button>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   JPG, PNG or GIF. Max size 5MB
                 </p>
               </div>
@@ -212,7 +215,7 @@ export function ProfileSection() {
           {/* Form Fields */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-700">
                 Full Name
               </label>
               <Input
@@ -220,44 +223,47 @@ export function ProfileSection() {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="mt-1"
+                className="mt-1 rounded-xl"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-700">
                 Email
               </label>
               <Input
                 type="email"
                 value={user?.email}
-                className="mt-1"
+                className="mt-1 rounded-xl"
                 disabled
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Email cannot be changed
               </p>
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-700">
                 Bio
               </label>
               <Textarea
                 name="teacherBio"
                 value={formData.teacherBio}
                 onChange={handleInputChange}
-                className="mt-1"
+                className="mt-1 rounded-xl"
                 rows={4}
                 placeholder="Tell your students about yourself..."
                 maxLength={500}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 {formData.teacherBio.length}/500 characters
               </p>
             </div>
           </div>
 
-          <Button type="submit" className="mt-4" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="mt-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+            disabled={isLoading}>
             {isLoading ? "Saving..." : "Save Profile"}
           </Button>
         </form>

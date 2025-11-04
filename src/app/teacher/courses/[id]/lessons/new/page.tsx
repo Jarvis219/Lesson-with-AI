@@ -17,6 +17,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { AIService } from "@/lib/ai-service";
@@ -36,7 +43,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, CheckCircle, Loader2, Sparkles } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { getSchemaForType } from "utils/lesson.util";
 
 // Helper to initialize empty content based on lesson type
@@ -317,8 +324,9 @@ export default function NewLessonPage() {
   return (
     <FormProvider {...form}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="min-h-screen bg-gray-50">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="min-h-dvh relative overflow-hidden bg-gradient-to-b from-white via-blue-50 to-white">
+          <div className="pointer-events-none absolute inset-0 [background:radial-gradient(1000px_300px_at_80%_-10%,rgba(59,130,246,0.10),transparent_70%),radial-gradient(800px_300px_at_10%_10%,rgba(99,102,241,0.08),transparent_60%)]" />
+          <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <button
               type="button"
               onClick={() =>
@@ -378,7 +386,7 @@ export default function NewLessonPage() {
 
             {/* Step 1: Basic Info */}
             {step === 1 && (
-              <Card>
+              <Card className="border border-slate-200/70 shadow-xl shadow-slate-800/5 bg-white/80 backdrop-blur-sm">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -405,12 +413,18 @@ export default function NewLessonPage() {
                       <label htmlFor="title" className="text-sm font-medium">
                         Lesson Title <span className="text-red-500">*</span>
                       </label>
-                      <Input
-                        id="title"
-                        type="text"
-                        placeholder="e.g., Present Tense Basics"
-                        {...register("title")}
-                        className={errors.title ? "border-red-500" : ""}
+                      <Controller
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <Input
+                            id="title"
+                            type="text"
+                            placeholder="e.g., Present Tense Basics"
+                            {...field}
+                            className={errors.title ? "border-red-500" : ""}
+                          />
+                        )}
                       />
                       {errors.title && (
                         <p className="text-sm text-red-500">
@@ -425,14 +439,22 @@ export default function NewLessonPage() {
                         className="text-sm font-medium">
                         Description <span className="text-red-500">*</span>
                       </label>
-                      <textarea
-                        id="description"
-                        placeholder="Describe what students will learn in this lesson..."
-                        {...register("description")}
-                        rows={4}
-                        className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none ${
-                          errors.description ? "border-red-500" : ""
-                        }`}
+                      <Controller
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <textarea
+                            id="description"
+                            placeholder="Describe what students will learn in this lesson..."
+                            rows={4}
+                            className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none ${
+                              errors.description ? "border-red-500" : ""
+                            }`}
+                            value={field.value}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                          />
+                        )}
                       />
                       {errors.description && (
                         <p className="text-sm text-red-500">
@@ -446,17 +468,33 @@ export default function NewLessonPage() {
                         <label htmlFor="type" className="text-sm font-medium">
                           Lesson Type <span className="text-red-500">*</span>
                         </label>
-                        <select
-                          id="type"
-                          {...register("type")}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                          <option value="vocab">Vocabulary</option>
-                          <option value="grammar">Grammar</option>
-                          <option value="listening">Listening</option>
-                          <option value="speaking">Speaking</option>
-                          <option value="reading">Reading</option>
-                          <option value="writing">Writing</option>
-                        </select>
+                        <Controller
+                          control={form.control}
+                          name="type"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value as any}
+                              onValueChange={(v) => field.onChange(v as any)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="vocab">
+                                  Vocabulary
+                                </SelectItem>
+                                <SelectItem value="grammar">Grammar</SelectItem>
+                                <SelectItem value="listening">
+                                  Listening
+                                </SelectItem>
+                                <SelectItem value="speaking">
+                                  Speaking
+                                </SelectItem>
+                                <SelectItem value="reading">Reading</SelectItem>
+                                <SelectItem value="writing">Writing</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
                       </div>
 
                       <div className="space-y-2">
@@ -465,14 +503,30 @@ export default function NewLessonPage() {
                           className="text-sm font-medium">
                           Difficulty <span className="text-red-500">*</span>
                         </label>
-                        <select
-                          id="difficulty"
-                          {...register("difficulty")}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                          <option value="beginner">Beginner</option>
-                          <option value="intermediate">Intermediate</option>
-                          <option value="advanced">Advanced</option>
-                        </select>
+                        <Controller
+                          control={form.control}
+                          name="difficulty"
+                          render={({ field }) => (
+                            <Select
+                              value={field.value as any}
+                              onValueChange={(v) => field.onChange(v as any)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select difficulty" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="beginner">
+                                  Beginner
+                                </SelectItem>
+                                <SelectItem value="intermediate">
+                                  Intermediate
+                                </SelectItem>
+                                <SelectItem value="advanced">
+                                  Advanced
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
                       </div>
 
                       <div className="space-y-2">
@@ -481,16 +535,23 @@ export default function NewLessonPage() {
                           className="text-sm font-medium">
                           Time (minutes) <span className="text-red-500">*</span>
                         </label>
-                        <Input
-                          id="estimatedTime"
-                          type="number"
-                          min="1"
-                          {...register("estimatedTime", {
-                            valueAsNumber: true,
-                          })}
-                          className={
-                            errors.estimatedTime ? "border-red-500" : ""
-                          }
+                        <Controller
+                          control={form.control}
+                          name="estimatedTime"
+                          render={({ field }) => (
+                            <Input
+                              id="estimatedTime"
+                              type="number"
+                              min="1"
+                              value={field.value}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                              className={
+                                errors.estimatedTime ? "border-red-500" : ""
+                              }
+                            />
+                          )}
                         />
                         {errors.estimatedTime && (
                           <p className="text-sm text-red-500">
@@ -504,11 +565,19 @@ export default function NewLessonPage() {
                       <label htmlFor="tags" className="text-sm font-medium">
                         Tags (comma-separated)
                       </label>
-                      <Input
-                        id="tags"
-                        type="text"
-                        placeholder="e.g., present-tense, verbs, basic"
-                        {...register("tags")}
+                      <Controller
+                        control={form.control}
+                        name="tags"
+                        render={({ field }) => (
+                          <Input
+                            id="tags"
+                            type="text"
+                            placeholder="e.g., present-tense, verbs, basic"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                          />
+                        )}
                       />
                     </div>
 
@@ -544,7 +613,7 @@ export default function NewLessonPage() {
                         <Button
                           type="button"
                           onClick={handleNextStep}
-                          className="flex-1">
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
                           Next: Add Content
                         </Button>
                       )}
@@ -556,13 +625,13 @@ export default function NewLessonPage() {
 
             {/* Step 2: Lesson Content */}
             {step === 2 && (
-              <Card>
+              <Card className="border border-slate-200/70 shadow-xl shadow-slate-800/5 bg-white/80 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold">
                     Lesson Content -{" "}
                     {currentType.charAt(0).toUpperCase() + currentType.slice(1)}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-slate-600">
                     Step 2: Add detailed content for your {currentType} lesson
                   </CardDescription>
                 </CardHeader>
@@ -587,7 +656,7 @@ export default function NewLessonPage() {
                     </Button>
                     <Button
                       type="submit"
-                      className="flex-1"
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
                       disabled={isLoading}>
                       {isLoading ? (
                         <>

@@ -223,8 +223,9 @@ export default function EditLessonPage() {
   return (
     <FormProvider {...form}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="min-h-screen bg-gray-50">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="min-h-dvh relative overflow-hidden bg-gradient-to-b from-white via-blue-50 to-white">
+          <div className="pointer-events-none absolute inset-0 [background:radial-gradient(1000px_300px_at_80%_-10%,rgba(59,130,246,0.10),transparent_70%),radial-gradient(800px_300px_at_10%_10%,rgba(99,102,241,0.08),transparent_60%)]" />
+          <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <button
               type="button"
               onClick={() =>
@@ -284,7 +285,7 @@ export default function EditLessonPage() {
 
             {/* Step 1: Basic Info */}
             {step === 1 && (
-              <Card>
+              <Card className="border border-slate-200/70 shadow-xl shadow-slate-800/5 bg-white/80 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold">
                     Edit Lesson
@@ -299,12 +300,18 @@ export default function EditLessonPage() {
                       <label htmlFor="title" className="text-sm font-medium">
                         Lesson Title *
                       </label>
-                      <Input
-                        id="title"
-                        type="text"
-                        placeholder="e.g., Present Tense Basics"
-                        {...register("title")}
-                        className={errors.title ? "border-red-500" : ""}
+                      <Controller
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <Input
+                            id="title"
+                            type="text"
+                            placeholder="e.g., Present Tense Basics"
+                            {...field}
+                            className={errors.title ? "border-red-500" : ""}
+                          />
+                        )}
                       />
                       {errors.title && (
                         <p className="text-sm text-red-500">
@@ -319,14 +326,22 @@ export default function EditLessonPage() {
                         className="text-sm font-medium">
                         Description *
                       </label>
-                      <textarea
-                        id="description"
-                        placeholder="Describe what students will learn in this lesson..."
-                        {...register("description")}
-                        rows={4}
-                        className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none ${
-                          errors.description ? "border-red-500" : ""
-                        }`}
+                      <Controller
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <textarea
+                            id="description"
+                            placeholder="Describe what students will learn in this lesson..."
+                            rows={4}
+                            className={`flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none ${
+                              errors.description ? "border-red-500" : ""
+                            }`}
+                            value={field.value}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                          />
+                        )}
                       />
                       {errors.description && (
                         <p className="text-sm text-red-500">
@@ -417,17 +432,24 @@ export default function EditLessonPage() {
                           className="text-sm font-medium">
                           Time (minutes) *
                         </label>
-                        <Input
-                          id="estimatedTime"
-                          type="number"
-                          min="1"
-                          placeholder="30"
-                          {...register("estimatedTime", {
-                            valueAsNumber: true,
-                          })}
-                          className={
-                            errors.estimatedTime ? "border-red-500" : ""
-                          }
+                        <Controller
+                          control={form.control}
+                          name="estimatedTime"
+                          render={({ field }) => (
+                            <Input
+                              id="estimatedTime"
+                              type="number"
+                              min="1"
+                              placeholder="30"
+                              value={field.value}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                              className={
+                                errors.estimatedTime ? "border-red-500" : ""
+                              }
+                            />
+                          )}
                         />
                         {errors.estimatedTime && (
                           <p className="text-sm text-red-500">
@@ -441,11 +463,19 @@ export default function EditLessonPage() {
                       <label htmlFor="tags" className="text-sm font-medium">
                         Tags (comma-separated)
                       </label>
-                      <Input
-                        id="tags"
-                        type="text"
-                        placeholder="e.g., grammar, verbs, present-tense"
-                        {...register("tags")}
+                      <Controller
+                        control={form.control}
+                        name="tags"
+                        render={({ field }) => (
+                          <Input
+                            id="tags"
+                            type="text"
+                            placeholder="e.g., grammar, verbs, present-tense"
+                            value={field.value ?? ""}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                          />
+                        )}
                       />
                       {errors.tags && (
                         <p className="text-sm text-red-500">
@@ -455,7 +485,7 @@ export default function EditLessonPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 flex justify-between">
+                  <div className="mt-6 flex justify-between gap-2">
                     <Button
                       type="button"
                       variant="outline"
@@ -467,7 +497,7 @@ export default function EditLessonPage() {
                       <Eye className="h-4 w-4 mr-2" />
                       Preview
                     </Button>
-                    <div className="flex gap-4">
+                    <div className="flex gap-2 md:gap-4">
                       <Button
                         type="button"
                         variant="outline"
@@ -476,7 +506,10 @@ export default function EditLessonPage() {
                         }>
                         Cancel
                       </Button>
-                      <Button type="button" onClick={handleNextStep}>
+                      <Button
+                        type="button"
+                        onClick={handleNextStep}
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
                         Next Step
                       </Button>
                     </div>
@@ -487,7 +520,7 @@ export default function EditLessonPage() {
 
             {/* Step 2: Lesson Content */}
             {step === 2 && (
-              <Card>
+              <Card className="border border-slate-200/70 shadow-xl shadow-slate-800/5 bg-white/80 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold">
                     {currentType === "vocab" && "Vocabulary Content"}
@@ -497,7 +530,7 @@ export default function EditLessonPage() {
                     {currentType === "reading" && "Reading Content"}
                     {currentType === "writing" && "Writing Content"}
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-slate-600">
                     Step 2: Configure the detailed lesson content
                   </CardDescription>
                 </CardHeader>
@@ -530,7 +563,10 @@ export default function EditLessonPage() {
                         }>
                         Cancel
                       </Button>
-                      <Button type="submit" disabled={isLoading}>
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
                         {isLoading ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

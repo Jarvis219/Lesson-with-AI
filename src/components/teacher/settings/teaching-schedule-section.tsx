@@ -158,34 +158,36 @@ export function TeachingScheduleSection() {
   }
 
   return (
-    <Card>
+    <Card className="border border-slate-200/70 shadow-xl shadow-slate-800/5 bg-white/80 backdrop-blur-sm">
       <CardHeader className="flex flex-row items-center space-y-0">
-        <Calendar className="h-5 w-5 mr-2 text-gray-500" />
-        <CardTitle>Teaching Schedule</CardTitle>
+        <Calendar className="h-5 w-5 mr-2 text-slate-500" />
+        <CardTitle className="text-xl font-semibold">
+          Teaching Schedule
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-slate-600 mb-6">
           Set your available teaching hours for each day of the week
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {schedule.map((slot, index) => (
               <div
                 key={slot.day}
-                className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                <div className="w-24 text-sm font-medium text-gray-700">
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="w-full sm:w-32 text-sm font-medium text-slate-700">
                   {slot.day}
                 </div>
-                <div className="flex items-center space-x-2 flex-1">
-                  <Clock className="h-4 w-4 text-gray-400" />
+                <div className="flex items-center gap-2 flex-1">
+                  <Clock className="h-4 w-4 text-slate-400" />
                   <input
                     type="time"
                     value={slot.startTime}
                     onChange={(e) =>
                       handleTimeChange(index, "startTime", e.target.value)
                     }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <span className="text-gray-500">to</span>
                   <input
@@ -194,7 +196,7 @@ export function TeachingScheduleSection() {
                     onChange={(e) =>
                       handleTimeChange(index, "endTime", e.target.value)
                     }
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -207,7 +209,10 @@ export function TeachingScheduleSection() {
             </p>
           )}
 
-          <Button type="submit" className="mt-6" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+            disabled={isSubmitting}>
             {isSubmitting ? "Updating..." : "Update Schedule"}
           </Button>
         </form>
