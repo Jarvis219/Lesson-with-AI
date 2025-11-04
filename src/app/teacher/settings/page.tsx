@@ -1,5 +1,6 @@
 "use client";
 
+import { BillingSection } from "@/components/teacher/settings/billing-section";
 import { LogoutSection } from "@/components/teacher/settings/logout-section";
 import { PaymentInformationSection } from "@/components/teacher/settings/payment-information-section";
 import { ProfileSection } from "@/components/teacher/settings/profile-section";
@@ -24,6 +25,9 @@ export default function SettingsProfilePage() {
 
         {/* Teaching Schedule */}
         <TeachingScheduleSection />
+
+        {/* Billing / Credits */}
+        <BillingSection />
 
         {/* Payment Information */}
         <PaymentInformationSection />

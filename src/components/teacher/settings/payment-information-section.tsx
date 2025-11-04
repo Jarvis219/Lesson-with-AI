@@ -209,7 +209,10 @@ export function PaymentInformationSection() {
           </CardTitle>
         </div>
         {paymentMethods.length < 3 && (
-          <Button onClick={openAddModal} size="sm" className="rounded-xl">
+          <Button
+            onClick={openAddModal}
+            size="sm"
+            className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
             <Plus className="h-4 w-4 mr-2" />
             Add Bank
           </Button>
@@ -368,148 +371,160 @@ export function PaymentInformationSection() {
         )}
 
         {/* Add/Edit Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
-            <Card className="w-full max-w-md mx-4">
-              <CardHeader>
-                <CardTitle>
-                  {editingMethod ? "Edit Payment Method" : "Add Payment Method"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)}>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Bank Name <span className="text-red-500">*</span>
-                      </label>
-                      <Controller
-                        name="bankName"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            type="text"
-                            placeholder="Enter your bank name"
-                            className="mt-1"
-                            aria-invalid={errors.bankName ? "true" : "false"}
-                          />
-                        )}
-                      />
-                      {errors.bankName && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.bankName.message}
-                        </p>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="bg-white/90 backdrop-blur-sm">
+            <DialogHeader>
+              <DialogTitle>
+                {editingMethod ? "Edit Payment Method" : "Add Payment Method"}
+              </DialogTitle>
+            </DialogHeader>
+            <DialogContent>
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Bank Name <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      name="bankName"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          type="text"
+                          placeholder="Enter your bank name"
+                          className="mt-1"
+                          aria-invalid={errors.bankName ? "true" : "false"}
+                        />
                       )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Account Holder Name{" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <Controller
-                        name="accountHolderName"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            type="text"
-                            placeholder="Enter account holder name"
-                            className="mt-1"
-                            aria-invalid={
-                              errors.accountHolderName ? "true" : "false"
-                            }
-                          />
-                        )}
-                      />
-                      {errors.accountHolderName && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.accountHolderName.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Bank Account Number{" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <Controller
-                        name="bankAccount"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            type="text"
-                            placeholder="Enter your bank account number"
-                            className="mt-1"
-                            aria-invalid={errors.bankAccount ? "true" : "false"}
-                          />
-                        )}
-                      />
-                      {errors.bankAccount && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.bankAccount.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Payment Method <span className="text-red-500">*</span>
-                      </label>
-                      <Controller
-                        name="paymentMethod"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            type="text"
-                            placeholder="e.g., Bank Transfer, PayPal, etc."
-                            className="mt-1"
-                            aria-invalid={
-                              errors.paymentMethod ? "true" : "false"
-                            }
-                          />
-                        )}
-                      />
-                      {errors.paymentMethod && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.paymentMethod.message}
-                        </p>
-                      )}
-                    </div>
+                    />
+                    {errors.bankName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.bankName.message}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="flex gap-2 mt-6">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1 rounded-xl"
-                      onClick={() => {
-                        setIsModalOpen(false);
-                        setEditingMethod(null);
-                        reset();
-                      }}>
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
-                      disabled={isSubmitting}>
-                      {isSubmitting
-                        ? "Saving..."
-                        : editingMethod
-                        ? "Update"
-                        : "Add"}
-                    </Button>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Account Holder Name{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      name="accountHolderName"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          type="text"
+                          placeholder="Enter account holder name"
+                          className="mt-1"
+                          aria-invalid={
+                            errors.accountHolderName ? "true" : "false"
+                          }
+                        />
+                      )}
+                    />
+                    {errors.accountHolderName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.accountHolderName.message}
+                      </p>
+                    )}
                   </div>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Bank Account Number{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      name="bankAccount"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          type="text"
+                          placeholder="Enter your bank account number"
+                          className="mt-1"
+                          aria-invalid={errors.bankAccount ? "true" : "false"}
+                        />
+                      )}
+                    />
+                    {errors.bankAccount && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.bankAccount.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Payment Method <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      name="paymentMethod"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          type="text"
+                          placeholder="e.g., Bank Transfer, PayPal, etc."
+                          className="mt-1"
+                          aria-invalid={errors.paymentMethod ? "true" : "false"}
+                        />
+                      )}
+                    />
+                    {errors.paymentMethod && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.paymentMethod.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-6">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 rounded-xl"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      setEditingMethod(null);
+                      reset();
+                    }}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                    disabled={isSubmitting}>
+                    {isSubmitting
+                      ? "Saving..."
+                      : editingMethod
+                      ? "Update"
+                      : "Add"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteDialogOpen(false);
+                  setMethodToDelete(null);
+                }}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteConfirm}
+                className="bg-red-600 hover:bg-red-700">
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
 
       {/* Delete Confirmation Dialog */}

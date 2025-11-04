@@ -1,6 +1,7 @@
 import { generateToken } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import { validateEmail, validatePassword } from "@/lib/utils";
+import Billing from "@/models/Billing";
 import Progress from "@/models/Progress";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
@@ -130,6 +131,19 @@ export async function POST(request: NextRequest) {
       user.progress = progress._id;
       await user.save();
     }
+
+    // Award trial credits for user
+    await Billing.findOneAndUpdate(
+      { userId: user._id },
+      {
+        $setOnInsert: {
+          isPro: false,
+          remainingCredits: 10,
+          lifetimeCreditsPurchased: 0,
+        },
+      },
+      { upsert: true, new: true }
+    );
 
     // Generate token
     const token = generateToken(user);

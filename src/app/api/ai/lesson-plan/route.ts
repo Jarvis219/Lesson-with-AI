@@ -1,19 +1,21 @@
 import { AILessonPlanRequest, generateLessonPlan } from "@/lib/ai";
-import { getUserFromRequest } from "@/lib/auth";
+import { requireTeacher } from "@/lib/auth";
 import connectDB from "@/lib/db";
+import Billing from "@/models/Billing";
 import Lesson from "@/models/Lesson";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+export const POST = requireTeacher(async (request: NextRequest, ctx: any) => {
   console.log("AI Lesson Plan Generation - Starting...");
   try {
     await connectDB();
+    const teacherId = ctx.user.userId;
 
-    const userPayload = getUserFromRequest(request);
-    if (!userPayload) {
+    const billing = await Billing.findOne({ userId: teacherId });
+    if (!billing || (!billing.isPro && (billing.remainingCredits ?? 0) <= 0)) {
       return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
+        { error: "Out of credits. Please buy more or upgrade to Pro." },
+        { status: 402 }
       );
     }
 
@@ -95,6 +97,13 @@ export async function POST(request: NextRequest) {
     });
 
     await lesson.save();
+
+    if (!billing.isPro) {
+      await Billing.updateOne(
+        { userId: teacherId },
+        { $inc: { remainingCredits: -1 } }
+      );
+    }
     console.log(
       "AI Lesson Plan Generation - Lesson saved successfully:",
       lesson._id
@@ -111,4 +120,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

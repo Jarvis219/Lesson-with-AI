@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useBilling } from "@/contexts/BillingContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { AIService } from "@/lib/ai-service";
@@ -139,6 +140,7 @@ const initializeContentForType = (type: LessonType): LessonContent => {
 export default function NewLessonPage() {
   const params = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { requireCredits } = useBilling();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -193,6 +195,15 @@ export default function NewLessonPage() {
 
   const handleGenerateWithAI = async () => {
     try {
+      // Require at least 1 credit or Pro, otherwise open pricing dialog
+      if (!requireCredits(1000)) {
+        toast({
+          title: "Not enough credits",
+          description: "Buy credits or upgrade to Pro to generate with AI.",
+          variant: "destructive",
+        });
+        return;
+      }
       setIsGenerating(true);
 
       const requestData = {
