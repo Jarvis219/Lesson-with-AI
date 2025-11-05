@@ -40,6 +40,18 @@ const navigation: NavItem[] = [
     description: "Manage lessons and content",
   },
   {
+    name: "Vocab Lists",
+    href: "/admin/vocab-lists",
+    icon: BookOpen,
+    description: "Manage vocabulary groups",
+  },
+  {
+    name: "Vocabulary",
+    href: "/admin/vocabulary",
+    icon: BookOpen,
+    description: "Create and organize words",
+  },
+  {
     name: "Users",
     href: "/admin/users",
     icon: Users,

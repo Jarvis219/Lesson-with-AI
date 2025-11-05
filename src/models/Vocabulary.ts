@@ -1,25 +1,20 @@
-import mongoose, { Document, Schema } from "mongoose";
+import { DIFFICULTY_LEVELS } from "@/lib/constants";
+import { PartOfSpeech, PARTS_OF_SPEECH } from "@/types/lesson-enums";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IVocabulary extends Document {
   word: string;
   definition: string;
   translation: string;
   example: string;
-  exampleTranslation: string;
   pronunciation: string;
   phonetic: string;
-  partOfSpeech:
-    | "noun"
-    | "verb"
-    | "adjective"
-    | "adverb"
-    | "preposition"
-    | "conjunction"
-    | "interjection";
-  level: "beginner" | "intermediate" | "advanced";
+  partOfSpeech: PartOfSpeech;
+  level: (typeof DIFFICULTY_LEVELS)[keyof typeof DIFFICULTY_LEVELS];
   category: string;
   synonyms: string[];
   antonyms: string[];
+  lists?: Types.ObjectId[];
   frequency: number; // how often this word appears
   audioUrl?: string;
   imageUrl?: string;
@@ -52,11 +47,6 @@ const VocabularySchema = new Schema<IVocabulary>(
       required: [true, "Example is required"],
       trim: true,
     },
-    exampleTranslation: {
-      type: String,
-      required: [true, "Example translation is required"],
-      trim: true,
-    },
     pronunciation: {
       type: String,
       trim: true,
@@ -67,20 +57,12 @@ const VocabularySchema = new Schema<IVocabulary>(
     },
     partOfSpeech: {
       type: String,
-      enum: [
-        "noun",
-        "verb",
-        "adjective",
-        "adverb",
-        "preposition",
-        "conjunction",
-        "interjection",
-      ],
+      enum: PARTS_OF_SPEECH,
       required: true,
     },
     level: {
       type: String,
-      enum: ["beginner", "intermediate", "advanced"],
+      enum: Object.values(DIFFICULTY_LEVELS),
       required: true,
     },
     category: {
@@ -98,6 +80,12 @@ const VocabularySchema = new Schema<IVocabulary>(
       {
         type: String,
         trim: true,
+      },
+    ],
+    lists: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "VocabList",
       },
     ],
     frequency: {
@@ -123,6 +111,7 @@ VocabularySchema.index({ level: 1 });
 VocabularySchema.index({ category: 1 });
 VocabularySchema.index({ partOfSpeech: 1 });
 VocabularySchema.index({ isActive: 1 });
+VocabularySchema.index({ lists: 1 });
 
 // Text index for search functionality
 VocabularySchema.index({

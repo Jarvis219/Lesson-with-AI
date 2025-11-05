@@ -9,13 +9,16 @@ import type {
   LessonContent,
   LessonType,
   ListeningLessonContent,
+  PartOfSpeech,
   ReadingLessonContent,
   SpeakingLessonContent,
   TrueFalseExercise,
   WritingLessonContent,
 } from "@/types/lesson-content";
+import { PARTS_OF_SPEECH } from "@/types/lesson-enums";
 import { GoogleGenAI, Type } from "@google/genai";
 import { getSchemaForType } from "utils/lesson.util";
+import { DIFFICULTY_LEVELS } from "./constants";
 
 // Initialize AI client
 const genAI = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || "" });
@@ -39,21 +42,25 @@ export interface AIGrammarResponse {
 }
 
 export interface AIVocabRequest {
-  word: string;
-  context?: string;
+  category: string;
+  numberOfWords: number;
+  excludeWords?: string[];
 }
 
 export interface AIVocabResponse {
-  word: string;
-  definition: string;
-  translation: string;
-  examples: Array<{
-    sentence: string;
+  words: Array<{
+    word: string;
+    definition: string;
     translation: string;
+    example: string;
+    synonyms: string[];
+    pronunciation: string;
+    phonetic: string;
+    partOfSpeech: PartOfSpeech;
+    level: (typeof DIFFICULTY_LEVELS)[keyof typeof DIFFICULTY_LEVELS];
+    category: string;
+    antonyms: string[];
   }>;
-  synonyms: string[];
-  pronunciation: string;
-  level: string;
 }
 
 export interface AISpeakingRequest {
@@ -877,7 +884,7 @@ Please respond in JSON format with:
     {
       "type": "error type",
       "original": "original text",
-      "correction": "corrected text", 
+      "correction": "corrected text",
       "explanation": "explanation of the error"
     }
   ],
@@ -966,30 +973,44 @@ export async function getVocabularyInfo(
   request: AIVocabRequest
 ): Promise<AIVocabResponse> {
   try {
+    console.log(request.excludeWords);
+
     const prompt = `
-Provide detailed information about the English word "${request.word}".
+    You are an English vocabulary teacher. Please generate ${
+      request.numberOfWords
+    } words for the category "${request.category}".
+    Please provide:
+    1. Clear definition in English
+    2. Vietnamese translation
+    3. Example sentences with Vietnamese translations
+    4. Synonyms
+    5. Pronunciation guide
+    6. Phonetic pronunciation guide
+    7. Part of speech of the word
+    8. Difficulty level (beginner/intermediate/advanced)
+    9. Antonyms
 
-Context: ${request.context || "General usage"}
-
-Please provide:
-1. Clear definition in English
-2. Vietnamese translation
-3. 3 example sentences with Vietnamese translations
-4. 3 synonyms
-5. Pronunciation guide
-6. Difficulty level (beginner/intermediate/advanced)
-
-Format as JSON:
-{
-  "definition": "definition",
-  "translation": "Vietnamese translation",
-  "examples": [
-    {"sentence": "example", "translation": "Vietnamese"}
-  ],
-  "synonyms": ["synonym1", "synonym2"],
-  "pronunciation": "pronunciation guide",
-  "level": "beginner/intermediate/advanced"
-}`;
+    If excludeWords is provided, do not include these words in the response.
+    excludeWords: ${request.excludeWords?.join(", ") || ""}
+    
+    Format as JSON:
+    {
+      "words": [
+        {
+          "word": "word",
+          "definition": "definition",
+          "translation": "Vietnamese translation",
+          "example": "Example sentences with Vietnamese translations",
+          "pronunciation": "Pronunciation guide",
+          "phonetic": "Phonetic pronunciation guide",
+          "partOfSpeech": "Part of speech of the word",
+          "synonyms": ["synonym1", "synonym2"],
+          "level": "beginner/intermediate/advanced",
+          "antonyms": ["antonym1", "antonym2"]
+        }
+      ]
+    }
+    `;
 
     const response = await genAI.models.generateContent({
       model: "gemini-2.5-flash",
@@ -999,45 +1020,76 @@ Format as JSON:
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            definition: {
-              type: Type.STRING,
-              description: "Clear definition in English",
-            },
-            translation: {
-              type: Type.STRING,
-              description: "Vietnamese translation",
-            },
-            examples: {
+            words: {
               type: Type.ARRAY,
+              minItems: request.numberOfWords,
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  sentence: {
+                  word: {
                     type: Type.STRING,
-                    description: "Example sentence in English",
+                    description: "The word",
+                  },
+                  definition: {
+                    type: Type.STRING,
+                    description: "Clear definition in English",
                   },
                   translation: {
                     type: Type.STRING,
-                    description: "Vietnamese translation of the sentence",
+                    description: "Vietnamese translation",
+                  },
+                  example: {
+                    type: Type.STRING,
+                    description:
+                      "Example sentences with Vietnamese translations",
+                  },
+                  pronunciation: {
+                    type: Type.STRING,
+                    description: "Pronunciation guide",
+                  },
+                  phonetic: {
+                    type: Type.STRING,
+                    description: "Phonetic pronunciation guide",
+                  },
+                  partOfSpeech: {
+                    type: Type.STRING,
+                    description: "Part of speech of the word",
+                    enum: [...PARTS_OF_SPEECH],
+                  },
+                  synonyms: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.STRING,
+                      description: "Synonyms of the word",
+                    },
+                  },
+                  level: {
+                    type: Type.STRING,
+                    enum: Object.values(DIFFICULTY_LEVELS),
+                    description:
+                      "Difficulty level: beginner, intermediate, or advanced",
+                  },
+                  antonyms: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.STRING,
+                      description: "Antonyms of the word",
+                    },
                   },
                 },
+                required: [
+                  "word",
+                  "definition",
+                  "translation",
+                  "example",
+                  "synonyms",
+                  "pronunciation",
+                  "phonetic",
+                  "partOfSpeech",
+                  "level",
+                  "antonyms",
+                ],
               },
-            },
-            synonyms: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.STRING,
-                description: "Synonyms of the word",
-              },
-            },
-            pronunciation: {
-              type: Type.STRING,
-              description: "Pronunciation guide",
-            },
-            level: {
-              type: Type.STRING,
-              description:
-                "Difficulty level: beginner, intermediate, or advanced",
             },
           },
         },
@@ -1051,16 +1103,24 @@ Format as JSON:
     }
 
     // Parse JSON response (should be valid JSON now)
-    const data = JSON.parse(text);
+    const data = JSON.parse(text) as AIVocabResponse;
 
     return {
-      word: request.word,
-      definition: data.definition || "",
-      translation: data.translation || "",
-      examples: data.examples || [],
-      synonyms: data.synonyms || [],
-      pronunciation: data.pronunciation || "",
-      level: data.level || "beginner",
+      words: data.words.map((val) => ({
+        word: val.word || "",
+        definition: val.definition || "",
+        translation: val.translation || "",
+        example: val.example || "",
+        synonyms: val.synonyms || [],
+        pronunciation: val.pronunciation || "",
+        phonetic: val.phonetic || "",
+        partOfSpeech: (val.partOfSpeech as PartOfSpeech) || "noun",
+        level:
+          (val.level as (typeof DIFFICULTY_LEVELS)[keyof typeof DIFFICULTY_LEVELS]) ||
+          "beginner",
+        category: request.category,
+        antonyms: val.antonyms,
+      })),
     };
   } catch (error) {
     console.error("Vocabulary lookup error:", error);

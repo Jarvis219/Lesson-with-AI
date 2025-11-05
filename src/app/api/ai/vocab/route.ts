@@ -1,6 +1,7 @@
-import { AIVocabRequest, getVocabularyInfo } from "@/lib/ai";
+import { AIVocabRequest, AIVocabResponse, getVocabularyInfo } from "@/lib/ai";
 import { getUserFromRequest } from "@/lib/auth";
 import connectDB from "@/lib/db";
+import VocabList from "@/models/VocabList";
 import Vocabulary from "@/models/Vocabulary";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -16,78 +17,89 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { word, context } = await request.json();
+    const { categoryId, numberOfWords } = await request.json();
 
-    // Validation
-    if (!word || typeof word !== "string") {
+    if (!numberOfWords) {
       return NextResponse.json(
-        { error: "Word is required and must be a string" },
+        { error: "Number of words is required" },
         { status: 400 }
       );
     }
 
-    // Check if word already exists in database
-    let vocabulary = await Vocabulary.findOne({
-      word: word.toLowerCase().trim(),
-    });
-
-    if (vocabulary) {
-      // Return existing vocabulary data
-      return NextResponse.json({
-        message: "Vocabulary found in database",
-        result: {
-          word: vocabulary.word,
-          definition: vocabulary.definition,
-          translation: vocabulary.translation,
-          examples: [
-            {
-              sentence: vocabulary.example,
-              translation: vocabulary.exampleTranslation,
-            },
-          ],
-          synonyms: vocabulary.synonyms,
-          pronunciation: vocabulary.pronunciation,
-          level: vocabulary.level,
-        },
-        fromDatabase: true,
-      });
+    if (numberOfWords > 100) {
+      return NextResponse.json(
+        { error: "Number of words must be less than 100" },
+        { status: 400 }
+      );
     }
+
+    const category = await VocabList.findById(categoryId).select("name");
+
+    if (!category) {
+      return NextResponse.json(
+        { error: "Category not found" },
+        { status: 404 }
+      );
+    }
+
+    const categoryVocabulary = await Vocabulary.find({
+      category: category.name,
+    }).select("word");
 
     // Get vocabulary info from AI
     const aiRequest: AIVocabRequest = {
-      word: word.toLowerCase().trim(),
-      context,
+      category: category.name,
+      numberOfWords,
+      excludeWords: categoryVocabulary.map((word) => word.word),
     };
 
-    const aiResult = await getVocabularyInfo(aiRequest);
+    let oldWords = aiRequest.excludeWords || [];
 
-    // Save to database for future use
-    const newVocabulary = new Vocabulary({
-      word: aiResult.word,
-      definition: aiResult.definition,
-      translation: aiResult.translation,
-      example: aiResult.examples[0]?.sentence || "",
-      exampleTranslation: aiResult.examples[0]?.translation || "",
-      pronunciation: aiResult.pronunciation,
-      phonetic: aiResult.pronunciation,
-      partOfSpeech: "noun", // Default, could be enhanced
-      level: aiResult.level,
-      category: "General",
-      synonyms: aiResult.synonyms,
-      antonyms: [],
-      frequency: 1,
-    });
+    let aiResults: AIVocabResponse = {
+      words: [],
+    };
 
-    try {
-      await newVocabulary.save();
-    } catch (saveError) {
-      // Continue even if save fails
-      console.warn("Failed to save vocabulary to database:", saveError);
+    // polling for 10 times
+    for (let i = 0; i < Math.ceil(numberOfWords / 10); i++) {
+      const tempResults = await getVocabularyInfo({
+        ...aiRequest,
+        numberOfWords: 10,
+      });
+
+      oldWords.push(...tempResults.words.map((word) => word.word));
+      aiResults.words.push(...tempResults.words);
+      if (aiResults.words.length === numberOfWords) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+
+    const res = await Vocabulary.bulkWrite(
+      aiResults.words.map((wordData) => ({
+        updateOne: {
+          filter: { word: wordData.word },
+          update: {
+            $setOnInsert: {
+              definition: wordData.definition,
+              translation: wordData.translation,
+              example: wordData.example,
+              synonyms: wordData.synonyms,
+              pronunciation: wordData.pronunciation,
+              phonetic: wordData.phonetic,
+              partOfSpeech: wordData.partOfSpeech,
+              level: wordData.level,
+              category: wordData.category,
+              antonyms: wordData.antonyms,
+            },
+          },
+          upsert: true,
+        },
+      }))
+    );
 
     return NextResponse.json({
       message: "Vocabulary information retrieved",
-      result: aiResult,
+      result: res,
       fromDatabase: false,
     });
   } catch (error) {
