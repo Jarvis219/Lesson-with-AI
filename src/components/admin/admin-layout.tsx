@@ -127,17 +127,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <X className="h-5 w-5" />
               </button>
 
-              {/* Logo */}
-              <div className="mb-2">
-                <Image
-                  src={imageConstants.logo}
-                  alt="logo"
-                  width={80}
-                  height={80}
-                  className="brightness-0 invert"
-                />
-              </div>
-
               <h2 className="text-white font-semibold text-lg">Admin Panel</h2>
               <p className="text-white/80 text-sm">Manage the platform</p>
             </div>
