@@ -37,7 +37,7 @@ export const vocabService = {
 
   async listVocabulary(params?: {
     q?: string;
-    listId?: string;
+    category?: string;
     level?: string;
     pos?: string;
     page?: number;
@@ -45,7 +45,7 @@ export const vocabService = {
   }) {
     const search = new URLSearchParams();
     if (params?.q) search.set("q", params.q);
-    if (params?.listId) search.set("listId", params.listId);
+    if (params?.category) search.set("category", params.category);
     if (params?.level) search.set("level", params.level);
     if (params?.pos) search.set("pos", params.pos);
     if (params?.page) search.set("page", String(params.page));

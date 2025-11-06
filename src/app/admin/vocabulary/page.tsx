@@ -26,6 +26,39 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+// form state with RHF + zod
+const formSchema = z.object({
+  word: z.string().min(1, "Word is required").max(100),
+  phonetic: z.string().max(100).optional(),
+  partOfSpeech: z.enum(
+    Object.values(PARTS_OF_SPEECH) as [string, ...string[]],
+    {
+      errorMap: () => ({ message: "Invalid part of speech" }),
+    }
+  ),
+  definition: z
+    .string({
+      message: "Definition is required",
+    })
+    .min(1, "Definition is required")
+    .max(2000),
+  example: z
+    .string({
+      message: "Example sentence is required",
+    })
+    .min(1, "Example sentence is required")
+    .max(1000),
+  translation: z.string().min(1, "Translation is required").max(500),
+  synonyms: z.string().optional(),
+  antonyms: z.string().optional(),
+  level: z.enum(Object.values(DIFFICULTY_LEVELS) as [string, ...string[]], {
+    errorMap: () => ({ message: "Invalid level" }),
+  }),
+  category: z.string().default("General"),
+  lists: z.array(z.string()).default([]),
+});
+type FormValues = z.infer<typeof formSchema>;
+
 interface VocabListItem extends VocabList {}
 
 interface VocabItem extends VocabularyItem {}
@@ -35,7 +68,7 @@ export default function AdminVocabularyPage() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [lists, setLists] = useState<VocabListItem[]>([]);
-  const [selectedList, setSelectedList] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
   const [items, setItems] = useState<VocabItem[]>([]);
   const [q, setQ] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -46,39 +79,6 @@ export default function AdminVocabularyPage() {
   const pageSize = 20;
   const [pagination, setPagination] = useState<IPagination | null>(null);
   const debouncedQ = useDebounce(q, 500);
-
-  // form state with RHF + zod
-  const formSchema = z.object({
-    word: z.string().min(1, "Word is required").max(100),
-    phonetic: z.string().max(100).optional(),
-    partOfSpeech: z.enum(
-      Object.values(PARTS_OF_SPEECH) as [string, ...string[]],
-      {
-        errorMap: () => ({ message: "Invalid part of speech" }),
-      }
-    ),
-    definition: z
-      .string({
-        message: "Definition is required",
-      })
-      .min(1, "Definition is required")
-      .max(2000),
-    example: z
-      .string({
-        message: "Example sentence is required",
-      })
-      .min(1, "Example sentence is required")
-      .max(1000),
-    translation: z.string().min(1, "Translation is required").max(500),
-    synonyms: z.string().optional(),
-    antonyms: z.string().optional(),
-    level: z.enum(Object.values(DIFFICULTY_LEVELS) as [string, ...string[]], {
-      errorMap: () => ({ message: "Invalid level" }),
-    }),
-    category: z.string().default("General"),
-    lists: z.array(z.string()).default([]),
-  });
-  type FormValues = z.infer<typeof formSchema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -98,7 +98,6 @@ export default function AdminVocabularyPage() {
   });
 
   const {
-    control,
     handleSubmit,
     reset,
     formState: { isSubmitting },
@@ -121,7 +120,7 @@ export default function AdminVocabularyPage() {
       const pageToLoad = resetPage ? 1 : currentPage + 1;
       const data = await vocabService.listVocabulary({
         q: debouncedQ,
-        listId: selectedList,
+        category,
         page: pageToLoad,
         limit: pageSize,
       });
@@ -201,7 +200,7 @@ export default function AdminVocabularyPage() {
   useEffect(() => {
     loadVocab(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedList, sortBy, debouncedQ]);
+  }, [category, sortBy, debouncedQ]);
 
   function loadMoreServer() {
     if (pagination?.hasNextPage && !loadingMore) {
@@ -239,30 +238,29 @@ export default function AdminVocabularyPage() {
       {/* Stat cards */}
       <VocabStatsCards
         total={pagination?.total ?? items.length}
-        selectedList={selectedList}
+        selectedList={category}
         lists={lists}
         items={items}
       />
 
-      {/* Search */}
-      <VocabSearchBar
-        value={q}
-        onChange={setQ}
-        onSearch={() => loadVocab(true)}
-      />
-
       {/* Toolbar */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+        {/* Search */}
+        <VocabSearchBar
+          value={q}
+          onChange={setQ}
+          onSearch={() => loadVocab(true)}
+        />
         <VocabFilters
           lists={lists}
-          selectedList={selectedList}
-          onChangeList={setSelectedList}
+          selectedList={category}
+          onChangeList={setCategory}
         />
         <div className="flex items-center gap-3">
           <Select
             value={sortBy}
             onValueChange={(v) => setSortBy(v as typeof sortBy)}>
-            <SelectTrigger className="w-44 h-11 rounded-xl border-slate-200/80 bg-white/80 backdrop-blur-sm">
+            <SelectTrigger className="md:w-44 h-11 rounded-xl border-slate-200/80 bg-white/80 backdrop-blur-sm">
               <SelectValue placeholder="Sort: newest" />
             </SelectTrigger>
             <SelectContent>

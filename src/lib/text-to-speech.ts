@@ -38,7 +38,7 @@ class TextToSpeechService {
    * Check if the browser supports speech synthesis
    */
   private checkSupport(): boolean {
-    return "speechSynthesis" in window;
+    return typeof window !== "undefined" && "speechSynthesis" in window;
   }
 
   /**

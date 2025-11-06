@@ -3,7 +3,6 @@ import connectDB from "@/lib/db";
 import VocabList from "@/models/VocabList";
 import Vocabulary from "@/models/Vocabulary";
 import { IPagination } from "@/types/pagination";
-import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -20,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q");
-    const listId = searchParams.get("listId");
+    const category = searchParams.get("category");
     const level = searchParams.get("level");
     const partOfSpeech = searchParams.get("pos");
     const pageParam = searchParams.get("page");
@@ -45,19 +44,7 @@ export async function GET(request: NextRequest) {
 
     if (level) filter.level = level;
     if (partOfSpeech) filter.partOfSpeech = partOfSpeech;
-
-    // Filter by listId - check if listId is in the lists array
-    if (listId) {
-      // Validate ObjectId format
-      if (mongoose.Types.ObjectId.isValid(listId)) {
-        filter.lists = { $in: [new mongoose.Types.ObjectId(listId)] };
-      } else {
-        return NextResponse.json(
-          { error: "Invalid listId format" },
-          { status: 400 }
-        );
-      }
-    }
+    if (category) filter.category = category;
 
     // Get total count for pagination
     const total = await Vocabulary.countDocuments(filter);
