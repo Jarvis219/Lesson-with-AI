@@ -1,4 +1,5 @@
 import { PartOfSpeech } from "./lesson-enums";
+import { IPagination } from "./pagination";
 
 export interface VocabList {
   _id: string;
@@ -50,10 +51,10 @@ export interface CreateVocabularyRequest {
 
 export interface VocabListResponse {
   lists: VocabList[];
-  total: number;
+  pagination: IPagination;
 }
 
 export interface VocabularyListResponse {
   vocabulary: VocabularyItem[];
-  count: number;
+  pagination: IPagination;
 }

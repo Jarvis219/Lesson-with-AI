@@ -9,15 +9,22 @@ import {
 } from "@/types/vocab";
 
 export const vocabService = {
-  async listVocabLists(params?: { q?: string; active?: boolean }) {
+  async listVocabLists(params?: {
+    q?: string;
+    active?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<VocabListResponse> {
     const search = new URLSearchParams();
     if (params?.q) search.set("q", params.q);
     if (typeof params?.active === "boolean")
       search.set("active", String(params.active));
+    if (params?.page) search.set("page", String(params.page));
+    if (params?.limit) search.set("limit", String(params.limit));
     const res = await apiService.get<VocabListResponse>(
       `/api/vocab-lists${search.toString() ? `?${search.toString()}` : ""}`
     );
-    return res.data as unknown as VocabListResponse;
+    return res.data;
   },
 
   async createVocabList(payload: CreateVocabListRequest) {
@@ -33,6 +40,7 @@ export const vocabService = {
     listId?: string;
     level?: string;
     pos?: string;
+    page?: number;
     limit?: number;
   }) {
     const search = new URLSearchParams();
@@ -40,6 +48,7 @@ export const vocabService = {
     if (params?.listId) search.set("listId", params.listId);
     if (params?.level) search.set("level", params.level);
     if (params?.pos) search.set("pos", params.pos);
+    if (params?.page) search.set("page", String(params.page));
     if (params?.limit) search.set("limit", String(params.limit));
     const res = await apiService.get<VocabularyListResponse>(
       `/api/vocabulary${search.toString() ? `?${search.toString()}` : ""}`

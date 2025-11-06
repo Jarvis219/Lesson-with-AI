@@ -2,6 +2,8 @@ import { getUserFromRequest } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import VocabList from "@/models/VocabList";
 import Vocabulary from "@/models/Vocabulary";
+import { IPagination } from "@/types/pagination";
+import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -21,20 +23,70 @@ export async function GET(request: NextRequest) {
     const listId = searchParams.get("listId");
     const level = searchParams.get("level");
     const partOfSpeech = searchParams.get("pos");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
 
+    // Parse pagination params
+    const page = Math.max(1, Number(pageParam) || 1);
+    const limit = Math.max(1, Math.min(100, Number(limitParam) || 20));
+    const skip = (page - 1) * limit;
+
+    // Build filter
     const filter: any = { isActive: true };
-    if (q) filter.word = { $regex: q, $options: "i" };
+
+    // Search query - search in word, definition, and translation
+    if (q) {
+      filter.$or = [
+        { word: { $regex: q, $options: "i" } },
+        { definition: { $regex: q, $options: "i" } },
+        { translation: { $regex: q, $options: "i" } },
+      ];
+    }
+
     if (level) filter.level = level;
     if (partOfSpeech) filter.partOfSpeech = partOfSpeech;
-    if (listId) filter.lists = listId;
 
+    // Filter by listId - check if listId is in the lists array
+    if (listId) {
+      // Validate ObjectId format
+      if (mongoose.Types.ObjectId.isValid(listId)) {
+        filter.lists = { $in: [new mongoose.Types.ObjectId(listId)] };
+      } else {
+        return NextResponse.json(
+          { error: "Invalid listId format" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Get total count for pagination
+    const total = await Vocabulary.countDocuments(filter);
+
+    // Get paginated items
     const items = await Vocabulary.find(filter)
       .sort({ frequency: -1, word: 1 })
+      .skip(skip)
       .limit(limit)
       .lean();
 
-    return NextResponse.json({ vocabulary: items, count: items.length });
+    // Calculate pagination metadata
+    const totalPage = Math.max(1, Math.ceil(total / limit));
+    const hasNextPage = page < totalPage;
+    const hasPreviousPage = page > 1;
+
+    const pagination: IPagination = {
+      page,
+      limit,
+      total,
+      totalPage,
+      hasNextPage,
+      hasPreviousPage,
+    };
+
+    return NextResponse.json({
+      vocabulary: items,
+      pagination,
+    });
   } catch (error) {
     console.error("Get vocabulary error:", error);
     return NextResponse.json(

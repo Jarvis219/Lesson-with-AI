@@ -27,6 +27,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q");
     const active = searchParams.get("active");
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
+    const page = Math.max(1, Number(pageParam) || 1);
+    const limit = Math.max(1, Math.min(100, Number(limitParam) || 10));
+    const skip = (page - 1) * limit;
 
     const filter: any = {};
     if (q) {
@@ -38,9 +43,31 @@ export async function GET(request: NextRequest) {
     if (active === "true") filter.isActive = true;
     if (active === "false") filter.isActive = false;
 
-    const lists = await VocabList.find(filter).sort({ createdAt: -1 }).lean();
+    const total = await VocabList.countDocuments(filter);
+    const lists = await VocabList.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
-    return NextResponse.json({ lists, total: lists.length }, { status: 200 });
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    return NextResponse.json(
+      {
+        lists,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalItems: total,
+          itemsPerPage: limit,
+          hasNextPage,
+          hasPrevPage,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Get vocab lists error:", error);
     return NextResponse.json(
