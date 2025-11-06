@@ -1,0 +1,272 @@
+{
+  "vowels": [
+    {
+      "symbol": "iː",
+      "example": "see",
+      "type": "vowel",
+      "description": "Long high front unrounded vowel"
+    },
+    {
+      "symbol": "ɪ",
+      "example": "sit",
+      "type": "vowel",
+      "description": "Near-close near-front unrounded vowel"
+    },
+    {
+      "symbol": "e",
+      "example": "bed",
+      "type": "vowel",
+      "description": "Close-mid front unrounded vowel"
+    },
+    {
+      "symbol": "æ",
+      "example": "cat",
+      "type": "vowel",
+      "description": "Near-open front unrounded vowel"
+    },
+    {
+      "symbol": "ɑː",
+      "example": "father",
+      "type": "vowel",
+      "description": "Open back unrounded vowel"
+    },
+    {
+      "symbol": "ɒ",
+      "example": "hot",
+      "type": "vowel",
+      "description": "Open back rounded vowel"
+    },
+    {
+      "symbol": "ɔː",
+      "example": "saw",
+      "type": "vowel",
+      "description": "Open-mid back rounded vowel"
+    },
+    {
+      "symbol": "ʊ",
+      "example": "put",
+      "type": "vowel",
+      "description": "Near-close near-back rounded vowel"
+    },
+    {
+      "symbol": "uː",
+      "example": "too",
+      "type": "vowel",
+      "description": "Close back rounded vowel"
+    },
+    {
+      "symbol": "ʌ",
+      "example": "cup",
+      "type": "vowel",
+      "description": "Open-mid back unrounded vowel"
+    },
+    {
+      "symbol": "ɜː",
+      "example": "bird",
+      "type": "vowel",
+      "description": "Open-mid central unrounded vowel"
+    },
+    {
+      "symbol": "ə",
+      "example": "about",
+      "type": "vowel",
+      "description": "Mid central vowel (schwa)"
+    }
+  ],
+  "consonants": [
+    {
+      "symbol": "p",
+      "example": "pen",
+      "type": "consonant",
+      "description": "Voiceless bilabial plosive"
+    },
+    {
+      "symbol": "b",
+      "example": "bad",
+      "type": "consonant",
+      "description": "Voiced bilabial plosive"
+    },
+    {
+      "symbol": "t",
+      "example": "tea",
+      "type": "consonant",
+      "description": "Voiceless alveolar plosive"
+    },
+    {
+      "symbol": "d",
+      "example": "did",
+      "type": "consonant",
+      "description": "Voiced alveolar plosive"
+    },
+    {
+      "symbol": "k",
+      "example": "cat",
+      "type": "consonant",
+      "description": "Voiceless velar plosive"
+    },
+    {
+      "symbol": "ɡ",
+      "example": "got",
+      "type": "consonant",
+      "description": "Voiced velar plosive"
+    },
+    {
+      "symbol": "f",
+      "example": "find",
+      "type": "consonant",
+      "description": "Voiceless labiodental fricative"
+    },
+    {
+      "symbol": "v",
+      "example": "view",
+      "type": "consonant",
+      "description": "Voiced labiodental fricative"
+    },
+    {
+      "symbol": "θ",
+      "example": "think",
+      "type": "consonant",
+      "description": "Voiceless dental fricative"
+    },
+    {
+      "symbol": "ð",
+      "example": "this",
+      "type": "consonant",
+      "description": "Voiced dental fricative"
+    },
+    {
+      "symbol": "s",
+      "example": "see",
+      "type": "consonant",
+      "description": "Voiceless alveolar fricative"
+    },
+    {
+      "symbol": "z",
+      "example": "zoo",
+      "type": "consonant",
+      "description": "Voiced alveolar fricative"
+    },
+    {
+      "symbol": "ʃ",
+      "example": "she",
+      "type": "consonant",
+      "description": "Voiceless postalveolar fricative"
+    },
+    {
+      "symbol": "ʒ",
+      "example": "pleasure",
+      "type": "consonant",
+      "description": "Voiced postalveolar fricative"
+    },
+    {
+      "symbol": "h",
+      "example": "how",
+      "type": "consonant",
+      "description": "Voiceless glottal fricative"
+    },
+    {
+      "symbol": "m",
+      "example": "man",
+      "type": "consonant",
+      "description": "Bilabial nasal"
+    },
+    {
+      "symbol": "n",
+      "example": "no",
+      "type": "consonant",
+      "description": "Alveolar nasal"
+    },
+    {
+      "symbol": "ŋ",
+      "example": "sing",
+      "type": "consonant",
+      "description": "Velar nasal"
+    },
+    {
+      "symbol": "l",
+      "example": "leg",
+      "type": "consonant",
+      "description": "Alveolar lateral approximant"
+    },
+    {
+      "symbol": "r",
+      "example": "red",
+      "type": "consonant",
+      "description": "Alveolar approximant"
+    },
+    {
+      "symbol": "j",
+      "example": "yes",
+      "type": "consonant",
+      "description": "Palatal approximant"
+    },
+    {
+      "symbol": "w",
+      "example": "we",
+      "type": "consonant",
+      "description": "Labial-velar approximant"
+    },
+    {
+      "symbol": "tʃ",
+      "example": "chair",
+      "type": "consonant",
+      "description": "Voiceless postalveolar affricate"
+    },
+    {
+      "symbol": "dʒ",
+      "example": "joy",
+      "type": "consonant",
+      "description": "Voiced postalveolar affricate"
+    }
+  ],
+  "diphthongs": [
+    {
+      "symbol": "eɪ",
+      "example": "face",
+      "type": "diphthong",
+      "description": "Closing diphthong from mid-front to high-front"
+    },
+    {
+      "symbol": "aɪ",
+      "example": "price",
+      "type": "diphthong",
+      "description": "Closing diphthong from open to high-front"
+    },
+    {
+      "symbol": "ɔɪ",
+      "example": "choice",
+      "type": "diphthong",
+      "description": "Closing diphthong from open-mid back to high-front"
+    },
+    {
+      "symbol": "əʊ",
+      "example": "goat",
+      "type": "diphthong",
+      "description": "Closing diphthong from mid-central to high-back"
+    },
+    {
+      "symbol": "aʊ",
+      "example": "mouth",
+      "type": "diphthong",
+      "description": "Closing diphthong from open to high-back"
+    },
+    {
+      "symbol": "ɪə",
+      "example": "near",
+      "type": "diphthong",
+      "description": "Centering diphthong from near-close front to mid-central"
+    },
+    {
+      "symbol": "eə",
+      "example": "square",
+      "type": "diphthong",
+      "description": "Centering diphthong from mid-front to mid-central"
+    },
+    {
+      "symbol": "ʊə",
+      "example": "cure",
+      "type": "diphthong",
+      "description": "Centering diphthong from near-close back to mid-central"
+    }
+  ]
+}

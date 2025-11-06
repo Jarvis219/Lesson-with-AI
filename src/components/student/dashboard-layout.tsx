@@ -9,6 +9,7 @@ import {
   ChevronRight,
   History,
   Home,
+  Languages,
   Menu,
   Settings,
   User,
@@ -66,6 +67,12 @@ const navigation: NavItem[] = [
     href: "/student/profile",
     icon: User,
     description: "Personal information and goals",
+  },
+  {
+    name: "IPA Chart",
+    href: "/student/ipa",
+    icon: Languages,
+    description: "International Phonetic Alphabet",
   },
   {
     name: "Settings",
