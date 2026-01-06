@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useRequireAuth } from "@/hooks/useAuth";
 import { BillingService } from "@/lib/billing-service";
 import { PlanService } from "@/lib/plan-service";
 import type { BillingStatusDTO, PricingPlanDTO } from "@/types/billing";
@@ -40,6 +41,7 @@ const BillingContext = createContext<BillingContextValue | undefined>(
 );
 
 export function BillingProvider({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useRequireAuth();
   const [status, setStatus] = useState<BillingStatusDTO | null>(null);
   const [loadingStatus, setLoadingStatus] = useState<boolean>(true);
   const [plans, setPlans] = useState<PricingPlanDTO[]>([]);
@@ -72,17 +74,17 @@ export function BillingProvider({ children }: { children: React.ReactNode }) {
       try {
         setPurchasing(true);
         await PlanService.purchase(planId);
-        await fetchStatus();
+        isAuthenticated && (await fetchStatus());
       } finally {
         setPurchasing(false);
       }
     },
-    [fetchStatus]
+    [fetchStatus, isAuthenticated]
   );
 
   useEffect(() => {
-    fetchStatus();
-  }, []);
+    isAuthenticated && fetchStatus();
+  }, [isAuthenticated, fetchStatus]);
 
   const openPricing = useCallback(async () => {
     setPricingOpen(true);

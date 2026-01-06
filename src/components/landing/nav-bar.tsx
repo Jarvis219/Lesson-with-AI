@@ -7,19 +7,30 @@ import { Languages, Menu, X } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  isScrolledInitial?: boolean;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({
+  isScrolledInitial = false,
+}) => {
   const { isAuthenticated } = useRequireAuth();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (isScrolledInitial) {
+      setIsScrolled(true);
+      return;
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isScrolledInitial]);
 
   return (
     <nav
@@ -30,7 +41,7 @@ export const Navbar: React.FC = () => {
       }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer">
+          <Link href="/" className="flex items-center gap-2 cursor-pointer">
             <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-2 rounded-lg text-white">
               <Languages size={24} />
             </div>
@@ -40,7 +51,7 @@ export const Navbar: React.FC = () => {
               }`}>
               Lean English<span className="text-blue-600">AI</span>
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-8">

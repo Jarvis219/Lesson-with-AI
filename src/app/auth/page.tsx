@@ -67,9 +67,9 @@ const AuthPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Navbar />
+      <Navbar isScrolledInitial />
 
-      <div className="flex items-center justify-center min-h-[calc(100vh-200px)] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-center min-h-[calc(100vh-70px)] py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
