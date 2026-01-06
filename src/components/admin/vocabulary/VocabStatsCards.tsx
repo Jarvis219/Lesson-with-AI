@@ -1,7 +1,6 @@
 "use client";
 
-import { VocabularyItem } from "@/types/vocab";
-import { VocabList } from "@/types/vocab";
+import { VocabList, VocabularyItem } from "@/types/vocab";
 import { BookOpen, CalendarDays, TrendingUp } from "lucide-react";
 
 interface VocabStatsCardsProps {
@@ -55,7 +54,9 @@ export function VocabStatsCards({
             </p>
             <p className="text-lg font-semibold text-slate-900 line-clamp-1">
               {selectedList
-                ? lists.find((l) => l._id === selectedList)?.name || "List"
+                ? lists.find(
+                    (l) => l._id === selectedList || l.slug === selectedList
+                  )?.name || "List"
                 : "All lists"}
             </p>
           </div>
@@ -68,9 +69,7 @@ export function VocabStatsCards({
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
         <div className="relative p-6 flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500 mb-1">
-              This Week
-            </p>
+            <p className="text-sm font-medium text-slate-500 mb-1">This Week</p>
             <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">
               {thisWeekCount}
             </p>
