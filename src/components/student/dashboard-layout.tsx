@@ -5,6 +5,7 @@ import { useAuth, useRequireAuth } from "@/hooks/useAuth";
 import {
   BarChart3,
   BookDashed,
+  BookMarked,
   BookOpen,
   ChevronRight,
   History,
@@ -49,6 +50,12 @@ const navigation: NavItem[] = [
     href: "/student/lessons",
     icon: BookOpen,
     description: "Lessons and progress",
+  },
+  {
+    name: "Vocabulary",
+    href: "/student/vocabulary",
+    icon: BookMarked,
+    description: "Vocabulary lists and words",
   },
   {
     name: "History",

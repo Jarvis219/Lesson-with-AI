@@ -11,22 +11,22 @@ import { VocabList } from "@/types/vocab";
 
 export function VocabFilters({
   lists,
-  selectedList,
-  onChangeList,
+  selectedCategory,
+  onChangeCategory,
 }: {
   lists: VocabList[];
-  selectedList: string;
-  onChangeList: (listId: string) => void;
+  selectedCategory: string;
+  onChangeCategory: (category: string) => void;
 }) {
   return (
     <Select
-      value={selectedList || "all"}
-      onValueChange={(v) => onChangeList(v === "all" ? "" : v)}>
+      value={selectedCategory || "all"}
+      onValueChange={(v) => onChangeCategory(v === "all" ? "" : v)}>
       <SelectTrigger className="md:w-56">
-        <SelectValue placeholder="All lists" />
+        <SelectValue placeholder="All categories" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all">All lists</SelectItem>
+        <SelectItem value="all">All categories</SelectItem>
         {lists.map((l) => (
           <SelectItem key={l.slug} value={l.slug}>
             {l.name}

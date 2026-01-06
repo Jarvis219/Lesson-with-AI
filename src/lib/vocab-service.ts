@@ -40,6 +40,7 @@ export const vocabService = {
     category?: string;
     level?: string;
     pos?: string;
+    list?: string; // list ID or slug
     page?: number;
     limit?: number;
   }) {
@@ -48,6 +49,7 @@ export const vocabService = {
     if (params?.category) search.set("category", params.category);
     if (params?.level) search.set("level", params.level);
     if (params?.pos) search.set("pos", params.pos);
+    if (params?.list) search.set("list", params.list);
     if (params?.page) search.set("page", String(params.page));
     if (params?.limit) search.set("limit", String(params.limit));
     const res = await apiService.get<VocabularyListResponse>(

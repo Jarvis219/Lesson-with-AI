@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 export default function useSpeechRecognition({ lang = "en-US" } = {}) {
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
-  console.log(transcript);
   const [error, setError] = useState("");
   console.log(error);
   const recognitionRef = useRef<any>(null);
