@@ -2,7 +2,7 @@
 
 import { authService } from "@/lib/auth-service";
 import { User } from "@/types";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, {
   createContext,
   ReactNode,
@@ -206,13 +206,19 @@ export function useAuth(): AuthContextType {
 // Custom hook for protected routes
 export function useRequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (
+      !isLoading &&
+      !isAuthenticated &&
+      !pathname.startsWith("/auth") &&
+      pathname !== "/"
+    ) {
       // Redirect to login page
       window.location.href = "/auth";
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, pathname]);
 
   return { isAuthenticated, isLoading };
 }
