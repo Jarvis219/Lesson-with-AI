@@ -3,8 +3,8 @@
 import LoginForm from "@/components/forms/login-form";
 import RegisterForm from "@/components/forms/register-form";
 import TeacherRegisterForm from "@/components/forms/teacher-register-form";
-import Footer from "@/components/layout/footer";
-import Navbar from "@/components/layout/navbar";
+import { Footer } from "@/components/landing/footer";
+import { Navbar } from "@/components/landing/nav-bar";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
