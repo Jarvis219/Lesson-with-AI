@@ -48,6 +48,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,13 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated && pathname !== "/") {
       router.push("/auth");
       return;
     }
 
     initializeAuth();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, pathname]);
 
   // Login function
   const login = async (email: string, password: string) => {
